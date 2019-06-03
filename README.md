@@ -1,2 +1,23 @@
-# LetoH5GameCenter
-Leto 开源的H5 游戏中心
+# LETO GAMES
+
+> 梦工厂游戏中心
+
+## Build Setup
+
+``` bash
+# install dependencies
+$ yarn install
+
+# serve with hot reload at localhost:3000
+$ yarn run dev
+
+# build for production and launch server
+$ yarn run build
+$ yarn start
+
+# generate static project
+$ yarn run generate
+```
+
+For detailed explanation on how things work, checkout [Nuxt.js docs](https://nuxtjs.org).
+

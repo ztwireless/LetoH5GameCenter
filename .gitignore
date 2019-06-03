@@ -1,0 +1,32 @@
+# dependencies
+node_modules
+
+# logs
+npm-debug.log
+
+# Nuxt build
+.nuxt
+
+# Nuxt build
+build
+
+# Nuxt generate
+dist
+build
+nuxt-dist
+
+# editor
+.history
+
+package-lock.json
+.vscode
+
+# pm2
+err.log
+out.log
+
+# ide
+.idea/
+
+# yarn
+yarn.lock
