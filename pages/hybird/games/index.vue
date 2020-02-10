@@ -11,6 +11,9 @@
                 <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>游戏中心</h2>
+                    <div v-if="backable" class="withdraw_red" @click="withdraw"></div>
+                    <div v-if="backable" class="withdraw" @click="withdraw"></div>
+                    <div v-if="backable" class="withdraw_tx" @click="withdraw">提现</div>
                 </header>
 
                 <div class="content">
@@ -502,6 +505,11 @@ export default {
             native.closeWebview();
         },
 
+        //关闭
+        withdraw() {
+            window.mgc.showWithdraw();
+        },
+
         //监听用户登录状态
         listenLogin(){
             native.listenSignStatus((data)=> {
@@ -968,6 +976,43 @@ export default {
             position: absolute;
             top: 0.26rem;
             left: 0.22rem;
+        }
+
+        .withdraw {
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybird/common/withdraw_pic.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.26rem;
+            right: 0.85rem;
+        }
+
+        .withdraw_tx {
+            width: 0.66rem;
+            height: 0.54rem;
+            position: absolute;
+            top: 0.26rem;
+            right: 0.22rem;
+            font-size: 0.3rem;
+            font-weight: normal;
+            line-height: 0.54rem;
+            text-align: center;
+        }
+
+        .withdraw_red {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: url("~assets/img/hybird/common/leto_mgc_withdraw_bubble_bg2.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.05rem;
+            right: 1.13rem;
+            font-size: 0.18rem;
+            font-weight: normal;
+            text-align: center;
+            color: #ffffff;
+            padding-top: 0.02rem;
         }
 
         h2 {
