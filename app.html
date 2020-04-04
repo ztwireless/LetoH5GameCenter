@@ -4,11 +4,6 @@
     {{ HEAD }}
 </head>
 <body {{ BODY_ATTRS }}>
-<script>
-    if(ServiceJSBridge) {
-		ServiceJSBridge.publish('serviceReady', __wxConfig__, [100000]);
-	}
-</script>
 {{ APP }}
 </body>
 </html>

@@ -45,28 +45,31 @@ module.exports = {
                 charset: 'utf-8'
             },
             {
-                src: '/static/__leto__/service-config.js',
+                src: '../../static/__leto__/service-config.js',
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '/static/__leto__/config.js',
+                src: '../../static/__leto__/config.js',
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '/static/framework/service.js',
+                src: '../../static/framework/view.js',
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '/static/__leto__/app-service.js',
+                src: '../../static/__leto__/app-service.js',
                 type: 'text/javascript',
                 charset: 'utf-8'
             }
         ],
         // // 不对<script>标签中内容做转义处理
         // __dangerouslyDisableSanitizers: ['script'],
+    },
+    router: {
+        base: '/~maruojie/dist/'
     },
 
     server: {

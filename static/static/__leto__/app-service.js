@@ -46,17 +46,17 @@ var __wxRouteBegin = true, __wxRoute = '__start__'
 define("__start__.js", function(require, module, exports, window, document, frames, self, location, navigator, localStorage, history, Caches, screen, alert, confirm, prompt, fetch, XMLHttpRequest, WebSocket, webkit, WeixinJSCore, AndroidJSCore, ViewJSBridge, Reporter) {
     "use strict"
 
-    Page({})
+    // Page({})
 })
 require('__start__.js')
 
 define("app.js", function(require, module, exports, window,document,frames,self,location,navigator,localStorage,history,Caches,screen,alert,confirm,prompt,fetch,XMLHttpRequest,WebSocket,webkit,WeixinJSCore,AndroidJSCore,ViewJSBridge,Reporter){
     'use strict';
 
-    App({
-        onLaunch: function onLaunch() {
-            logxx('App Launch')
-        }
-    })
+    // App({
+    //     onLaunch: function onLaunch() {
+    //         logxx('App Launch')
+    //     }
+    // })
 })
 require('app.js')
