@@ -2,6 +2,9 @@ let config = require('./config');
 let webpack = require('webpack');
 let dayjs = require('dayjs');
 
+// TODO: 正式发布时需要修改
+const routerBase = process.env.NODE_ENV == 'development' ? '' : '/~maruojie/dist'
+
 module.exports = {
     mode: 'spa',
     /*
@@ -45,22 +48,22 @@ module.exports = {
                 charset: 'utf-8'
             },
             {
-                src: '../../static/__leto__/service-config.js',
+                src: `${routerBase}/static/__leto__/service-config.js`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '../../static/__leto__/config.js',
+                src: `${routerBase}/static/__leto__/config.js`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '../../static/framework/view.js',
+                src: `${routerBase}/static/framework/view.js`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: '../../static/__leto__/app-service.js',
+                src: `${routerBase}/static/__leto__/app-service.js`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             }
@@ -69,7 +72,7 @@ module.exports = {
         // __dangerouslyDisableSanitizers: ['script'],
     },
     router: {
-        base: '/~maruojie/dist/'
+        base: routerBase
     },
 
     server: {
@@ -154,37 +157,6 @@ module.exports = {
         preload: false,
         prefetch: false,
     },
-
-    render: {
-        // bundleRenderer: {
-        //     shouldPrefetch: (file, type) => {
-        //         if (type === 'script') {
-        //             if (/pages/img.test(file)) {
-        //                 return false;
-        //             }
-        //         }
-        //         return true;
-        //     }
-        // },
-        // prefetch: false,
-        // preload: false,
-    },
-
-    // Nuxt.js modules
-    // modules: [
-    //     '@nuxtjs/sentry'
-    // ],
-
-    // // 错误捕获
-    // sentry: {
-    //     dsn: 'http://f2790c6243794a00a353c0a4f1ddbed6@172.16.41.58:9000/2',
-    //     config: {
-    //       // Additional config
-    //         logger: 'javascript'
-    //     },
-    // },
-
-    // buildDir: 'nuxt-dist',
 
     /*
      ** Build configuration

@@ -239,24 +239,11 @@ import {http, qs} from '~/plugins/axios';
 import config from '~/config';
 
 import Share from '~/components/Share';
-import md5 from 'md5';
-import {addUrlQuery, replaceUrlQuery, randomNumBoth, } from '~/plugins/utils';
-import {GUESSAD, } from '~/plugins/key';
-import Cookies from '~/plugins/cookie';
-import {hybridPointAction, hybridPointPage, hybridAdExposure, hybridAdAction, hybridAdClose} from '~/plugins/point';
-import {BANNES, GAMES, GAMESGOLD} from '~/plugins/text';
+import {addUrlQuery, replaceUrlQuery } from '~/plugins/utils';
+import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
-
-
-const imgs = [
-    '/images/guess/1.gif',
-    '/images/guess/2.gif',
-    '/images/guess/3.gif',
-    '/images/guess/4.gif',
-    '/images/guess/5.gif',
-];
 
 export default {
     name: 'games',
@@ -278,16 +265,10 @@ export default {
         return {
             backable: true, //头部是否显示后退按钮
 
-            isLogin: false, //登录状态
-            isBlack: false, //当前用户是否在黑名单
             blockMessage: '你的账号存在异常，无法进行游戏', //黑名单提示
 
             lastClickTime: 0,
 
-            isAndroid: false,
-            isIOS: false, //是否时IOS
-
-            isMGC: false, // 是否显示 梦工厂 游戏
             games: [],
             favoriteGameList: [],
             recentGameList: [],
@@ -320,18 +301,6 @@ export default {
     },
 
     asyncData({query, redirect, req}){
-        let isLogin = false
-        let isMGC = true
-		let isAndroid = true
-        if(req && req.headers && req.headers['user-agent']) {
-			const ua = req.headers['user-agent']
-			isAndroid = !/iPhone|iPad|iPod/i.test(ua)
-        }
-
-        if (query.guid && query.token) {
-            isLogin = true;
-        }
-
         let version = query.appVersion || '';
             version = version.replace(/\./ig, '');
 
@@ -360,11 +329,9 @@ export default {
 
                     // return
 					return {
-						isLogin: isLogin,
 						backable: query.backable,
                         newGames: dataList,
-						banners: banners,
-						isMGC: isMGC
+						banners: banners
 					}
                 }
             })).catch((e) => {
@@ -372,19 +339,10 @@ export default {
     },
 
     mounted() {
-        //头部显示与否
-        this.headShow();
-        this.getOs();
-        //设置高度
-        // this.setMinHeight();
-        //监听录用登录状态
-        this.listenLogin();
+    	// 设置游戏根目录
+        window.mgc.setJSGameRootUrl('http://192.168.1.104/~maruojie/leto_ad_test/games/games')
 
-        //判断是否时IOS
-        this.checkIOS();
-
-        native.interceptTouchEvent('true');
-        this.getRecentGameList();
+        this.getRecentGameList()
 
         this.loadRemote()
 
@@ -463,43 +421,6 @@ export default {
 			})
 		},
 
-        //判断系统平台
-        checkIOS() {
-            const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (isIos) {
-                this.isIOS = true;
-            } else {
-                this.isIOS = false;
-            }
-        },
-
-        //头部显示与否
-        headShow() {
-
-            // hybridAdExposure({
-            //     id: 'zhongyi',
-            //     from: 'game_tb'
-            // })
-
-            let query = this.$route.query;
-            if (query.type) {
-                //看点进入
-                //埋点
-                hybridPointPage({
-                    pageType: 'tabtogame',
-                    id: 'tabtogame',
-                });
-            } else {
-                //我的tab进入
-
-                //埋点
-                hybridPointPage({
-                    pageType: 'watchtogame',
-                    id: 'watchtogame',
-                });
-            }
-        },
-
         //关闭
         back() {
             native.closeWebview();
@@ -508,63 +429,6 @@ export default {
         //关闭
         withdraw() {
             window.mgc.showWithdraw();
-        },
-
-        //监听用户登录状态
-        listenLogin(){
-            native.listenSignStatus((data)=> {
-                const userInfo = native.getUserInfo();
-                if (userInfo.getToken()) {
-                    // 登录
-                    native.reload(addUrlQuery(location.href, {guid: userInfo.getGuid(), token: userInfo.getToken()}));
-                    return;
-                } else {
-                    native.reload(replaceUrlQuery(location.href, {guid: '', token: ''}));
-                    return;
-                }
-            });
-        },
-
-        //开始游戏
-        startGame(){
-
-           hybridPointAction({
-                id: '2048start'
-           });
-
-           let _this = this;
-           //判断登录状态
-           if (this.isLogin) {
-
-                 //判断是否在黑名单
-                if (this.isBlack) {
-                   this.$toast(this.blockMessage);
-                } else {
-                    native.newWebview({
-                        type: 0,
-                        url: `${config.gameUrl}/2048`,
-                    });
-                }
-           } else {
-                //未登录状态去登录
-               native.doLogin();
-           }
-        },
-
-        //根据可视区域高度设置高度
-        setMinHeight() {
-            const root = this.$refs.root;
-            if (root) {
-                const height = root.offsetHeight;
-                const screenHeight = document.documentElement.clientHeight;
-                if (height < screenHeight) {
-                    root.style.minHeight = screenHeight  + 'px';
-                }
-            }
-        },
-
-        getOs() {
-            this.isAndroid = !/iPhone|iPad|iPod/i.test(navigator.userAgent);
         },
 
         start(item) {
@@ -838,9 +702,6 @@ export default {
     background: url('~assets/img/hybrid/game/wall.png') no-repeat;
     background-size: 100% 100%;
 }
-
-
-
 
 .mgc {
 
