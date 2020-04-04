@@ -36,8 +36,8 @@ export default {
                 // 默认数据
                 return {
                     url: localUrl,
-                    title: '亿刻APP - 时间就是金钱',
-                    desc: '时间就是金钱',
+                    title: '梦工厂小游戏',
+                    desc: '玩一个小游戏, 是一种年轻生活方式',
                     thumbUrl: `${localUrl}/images/logo.png`,
                 };
             }
