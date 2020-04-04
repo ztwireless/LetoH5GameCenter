@@ -151,7 +151,7 @@ export default {
         content: '';
         width: .96rem;
         height: .97rem;
-        background: url('~assets/img/hybird/common/share-timeline.png') no-repeat;
+        background: url('~assets/img/hybrid/common/share-timeline.png') no-repeat;
         background-size: 100%;
         display: block;
         margin: 0 auto .24rem auto;
@@ -168,7 +168,7 @@ export default {
         content: '';
         width: .96rem;
         height: .97rem;
-        background: url('~assets/img/hybird/common/share-wechat.png') no-repeat;
+        background: url('~assets/img/hybrid/common/share-wechat.png') no-repeat;
         background-size: 100%;
         display: block;
         margin: 0 auto .24rem auto;
@@ -186,7 +186,7 @@ export default {
         content: '';
         width: .96rem;
         height: .97rem;
-        background: url('~assets/img/hybird/common/share-qq.png') no-repeat;
+        background: url('~assets/img/hybrid/common/share-qq.png') no-repeat;
         background-size: 100%;
         display: block;
         margin: 0 auto .24rem auto;

@@ -10,7 +10,7 @@ import {DEVICEID} from './key';
  * 客户端内 PAGE 埋点
  * @param {} type
  */
-export function hybirdPointPage(options) {
+export function hybridPointPage(options) {
     const device = native.getDeviceInfo();
     const userInfo = native.getUserInfo();
 
@@ -18,7 +18,7 @@ export function hybirdPointPage(options) {
         ts: new Date().valueOf(),
         verCode: '1.0.0',
         devVendor: 'h5',
-        type: 'hybird_pv',
+        type: 'hybrid_pv',
         screen: `${window.screen.width}x${window.screen.height}`,
         os: device.getOs(),
         //osVersion: device.os.version.info,
@@ -48,7 +48,7 @@ export function hybirdPointPage(options) {
  *
  * @param {*} type
  */
-export function hybirdPointAction(options) {
+export function hybridPointAction(options) {
     const device = native.getDeviceInfo();
     const userInfo = native.getUserInfo();
 
@@ -56,7 +56,7 @@ export function hybirdPointAction(options) {
         ts: new Date().valueOf(),
         verCode: '1.0.0',
         devVendor: 'h5',
-        type: 'hybird_action',
+        type: 'hybrid_action',
         screen: `${window.screen.width}x${window.screen.height}`,
         os: device.getOs(),
         ua: navigator.userAgent,
@@ -394,7 +394,7 @@ export function h5AdClose(options) {
  * 客户端内 PAGE 埋点
  * @param {} type
  */
-export function hybirdAdExposure(options) {
+export function hybridAdExposure(options) {
     const device = native.getDeviceInfo();
     const userInfo = native.getUserInfo();
 
@@ -402,7 +402,7 @@ export function hybirdAdExposure(options) {
         ts: new Date().valueOf(),
         verCode: '1.0.0',
         devVendor: 'h5',
-        type: 'hybird_ad',
+        type: 'hybrid_ad',
         adType: 0, // 0-曝光, // 1-点击  // 2-关闭
         screen: `${window.screen.width}x${window.screen.height}`,
         os: device.getOs(),
@@ -433,7 +433,7 @@ export function hybirdAdExposure(options) {
  *
  * @param {*} type
  */
-export function hybirdAdAction(options) {
+export function hybridAdAction(options) {
     const device = native.getDeviceInfo();
     const userInfo = native.getUserInfo();
 
@@ -441,7 +441,7 @@ export function hybirdAdAction(options) {
         ts: new Date().valueOf(),
         verCode: '1.0.0',
         devVendor: 'h5',
-        type: 'hybird_ad',
+        type: 'hybrid_ad',
         adType: 1, // 0-曝光, // 1-点击  // 2-关闭
         screen: `${window.screen.width}x${window.screen.height}`,
         os: device.getOs(),
@@ -471,7 +471,7 @@ export function hybirdAdAction(options) {
  *
  * @param {*} type
  */
-export function hybirdAdClose(options) {
+export function hybridAdClose(options) {
     const device = native.getDeviceInfo();
     const userInfo = native.getUserInfo();
 
@@ -479,7 +479,7 @@ export function hybirdAdClose(options) {
         ts: new Date().valueOf(),
         verCode: '1.0.0',
         devVendor: 'h5',
-        type: 'hybird_ad',
+        type: 'hybrid_ad',
         adType: 2, // 0-曝光, // 1-点击  // 2-关闭
         screen: `${window.screen.width}x${window.screen.height}`,
         os: device.getOs(),

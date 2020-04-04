@@ -243,7 +243,7 @@ import md5 from 'md5';
 import {addUrlQuery, replaceUrlQuery, randomNumBoth, } from '~/plugins/utils';
 import {GUESSAD, } from '~/plugins/key';
 import Cookies from '~/plugins/cookie';
-import {hybirdPointAction, hybirdPointPage, hybirdAdExposure, hybirdAdAction, hybirdAdClose} from '~/plugins/point';
+import {hybridPointAction, hybridPointPage, hybridAdExposure, hybridAdAction, hybridAdClose} from '~/plugins/point';
 import {BANNES, GAMES, GAMESGOLD} from '~/plugins/text';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
@@ -476,7 +476,7 @@ export default {
         //头部显示与否
         headShow() {
 
-            // hybirdAdExposure({
+            // hybridAdExposure({
             //     id: 'zhongyi',
             //     from: 'game_tb'
             // })
@@ -485,7 +485,7 @@ export default {
             if (query.type) {
                 //看点进入
                 //埋点
-                hybirdPointPage({
+                hybridPointPage({
                     pageType: 'tabtogame',
                     id: 'tabtogame',
                 });
@@ -493,7 +493,7 @@ export default {
                 //我的tab进入
 
                 //埋点
-                hybirdPointPage({
+                hybridPointPage({
                     pageType: 'watchtogame',
                     id: 'watchtogame',
                 });
@@ -528,7 +528,7 @@ export default {
         //开始游戏
         startGame(){
 
-           hybirdPointAction({
+           hybridPointAction({
                 id: '2048start'
            });
 
@@ -568,7 +568,7 @@ export default {
         },
 
         start(item) {
-            hybirdPointAction({
+            hybridPointAction({
                 id: item.id
             });
 
@@ -588,7 +588,7 @@ export default {
             this.lastClickTime = now
 
             // report
-            hybirdPointAction({
+            hybridPointAction({
                 id: `mgc_${game.id}`
             });
 
@@ -708,7 +708,7 @@ export default {
         height: .72rem;
         left: 1.28rem;
         bottom: 0;
-        background: no-repeat center/contain url('~assets/img/hybird/game/adv.png');
+        background: no-repeat center/contain url('~assets/img/hybrid/game/adv.png');
     }
 
     span {
@@ -721,36 +721,36 @@ export default {
 
 //2048
 .game2048 {
-    background: no-repeat center/contain url('~assets/img/hybird/game/2048_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/2048_bg.png');
 }
 
 .game-xiyou {
-    background: no-repeat center/contain url('~assets/img/hybird/game/xiyou_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xiyou_bg.png');
 }
 
 // 预测帝
 .guess {
-    background: no-repeat center/contain url('~assets/img/hybird/game/guess_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/guess_bg.png');
 }
 
 // 烧脑大作战
 .mind {
-    background: no-repeat center/contain url('~assets/img/hybird/game/ming_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/ming_bg.png');
 }
 
 // 一笔画到底
 .hua {
-    background: no-repeat center/contain url('~assets/img/hybird/game/hua.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/hua.png');
 }
 
 // 美食大战老鼠
 .meishi {
-    background: no-repeat center/contain url('~assets/img/hybird/game/meishi.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/meishi.png');
 }
 
 //绝地逃生
 .battle {
-    background: no-repeat center/contain url('~assets/img/hybird/game/battle_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/battle_bg.png');
 
     .new-icon {
         position: absolute;
@@ -758,13 +758,13 @@ export default {
         left: .24rem;
         width: .7rem;
         height: .49rem;
-        background: no-repeat center/contain url('~assets/img/hybird/game/new_icon.png');
+        background: no-repeat center/contain url('~assets/img/hybrid/game/new_icon.png');
     }
 }
 
 // 享玩大厅
 .xiangwan {
-    background: no-repeat center/contain url('~assets/img/hybird/game/xiangwan_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xiangwan_bg.png');
 
     // .btn {
     //     margin-top: .5rem;
@@ -773,7 +773,7 @@ export default {
 
 // 闲玩大厅
 .xianwan {
-    background: no-repeat center/contain url('~assets/img/hybird/game/xianwan_bg.png');
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xianwan_bg.png');
 
     // .btn {
     //     margin-top: .5rem;
@@ -792,7 +792,7 @@ export default {
     .back {
         width: 0.36rem;
         height: 0.36rem;
-        background: url("~assets/img/hybird/common/back-black.png") no-repeat;
+        background: url("~assets/img/hybrid/common/back-black.png") no-repeat;
         background-size: 100%;
         position: absolute;
         top: 0.26rem;
@@ -835,7 +835,7 @@ export default {
     bottom: 1rem;
     width: 1.3rem;
     height: 1.26rem;
-    background: url('~assets/img/hybird/game/wall.png') no-repeat;
+    background: url('~assets/img/hybrid/game/wall.png') no-repeat;
     background-size: 100% 100%;
 }
 
@@ -893,7 +893,7 @@ export default {
     height: 3.82rem;
     border-radius: .1rem;
     transform: translate(-50%, -50%);
-    background: url("~assets/img/hybird/task/sign-gold.png") no-repeat rgba(0, 0, 0, .5) left bottom;
+    background: url("~assets/img/hybrid/task/sign-gold.png") no-repeat rgba(0, 0, 0, .5) left bottom;
     background-size: 100%;
 
     h5 {
@@ -931,13 +931,13 @@ export default {
     top: 4.9rem;
     right: 0.2rem;
     width: 1.5rem;
-    background: url('~assets/img/hybird/game/active.png') no-repeat center;
+    background: url('~assets/img/hybrid/game/active.png') no-repeat center;
     background-size: 100%;
     padding-top: 1.55rem;
     z-index: 1000;
 
     &.diss {
-        background: url('~assets/img/hybird/game/diss.png') no-repeat center;
+        background: url('~assets/img/hybrid/game/diss.png') no-repeat center;
         background-size: 100%;
 
         .button {
@@ -971,7 +971,7 @@ export default {
         .back {
             width: 0.36rem;
             height: 0.36rem;
-            background: url("~assets/img/hybird/common/back-black.png") no-repeat;
+            background: url("~assets/img/hybrid/common/back-black.png") no-repeat;
             background-size: 100%;
             position: absolute;
             top: 0.26rem;
@@ -981,7 +981,7 @@ export default {
         .withdraw {
             width: 0.54rem;
             height: 0.54rem;
-            background: url("~assets/img/hybird/common/withdraw_pic.png") no-repeat;
+            background: url("~assets/img/hybrid/common/withdraw_pic.png") no-repeat;
             background-size: 100%;
             position: absolute;
             top: 0.26rem;
@@ -1003,7 +1003,7 @@ export default {
         .withdraw_red {
             width: 0.5rem;
             height: 0.5rem;
-            background: url("~assets/img/hybird/common/leto_mgc_withdraw_bubble_bg2.png") no-repeat;
+            background: url("~assets/img/hybrid/common/leto_mgc_withdraw_bubble_bg2.png") no-repeat;
             background-size: 100%;
             position: absolute;
             top: 0.05rem;
@@ -1136,7 +1136,7 @@ export default {
                 content: '';
                 width: 0.32rem;
                 height: 0.32rem;
-                background: url('~assets/img/hybird/task/upd/gold.png') no-repeat;
+                background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
                 background-size: 100%;
                 left: 0;
             }
@@ -1146,49 +1146,49 @@ export default {
     .recently {
         width: 0.3rem;
         height: 0.36rem;
-        background: url('~assets/img/hybird/game/recently.png') no-repeat;
+        background: url('~assets/img/hybrid/game/recently.png') no-repeat;
         background-size: 100%;
     }
 
     .like {
         width: 0.3rem;
         height: 0.38rem;
-        background: url('~assets/img/hybird/game/like.png') no-repeat;
+        background: url('~assets/img/hybrid/game/like.png') no-repeat;
         background-size: 100%;
     }
 
     .coin {
         width: 0.36rem;
         height: 0.38rem;
-        background: url('~assets/img/hybird/game/coin.png') no-repeat;
+        background: url('~assets/img/hybrid/game/coin.png') no-repeat;
         background-size: 100%;
     }
 
     .rank {
         width: 0.32rem;
         height: 0.36rem;
-        background: url('~assets/img/hybird/game/gold-title.png') no-repeat;
+        background: url('~assets/img/hybrid/game/gold-title.png') no-repeat;
         background-size: 100%;
     }
 
     .hot {
         width: 0.32rem;
         height: 0.36rem;
-        background: url('~assets/img/hybird/game/hot.png') no-repeat;
+        background: url('~assets/img/hybrid/game/hot.png') no-repeat;
         background-size: 100%;
     }
 
     .xiu {
         width: 0.28rem;
         height: 0.36rem;
-        background: url('~assets/img/hybird/game/xiu.png') no-repeat;
+        background: url('~assets/img/hybrid/game/xiu.png') no-repeat;
         background-size: 100%;
     }
 
     .common-game {
         height: 0.36rem;
         width: 0.32rem;
-        background: url('~assets/img/hybird/game/common-game.png') no-repeat;
+        background: url('~assets/img/hybrid/game/common-game.png') no-repeat;
         background-size: 100%;
     }
 
@@ -1312,7 +1312,7 @@ export default {
                 display: flex;
                 align-items: center;
                 padding-left: 0.18rem;
-                background: url('~assets/img/hybird/game/mask-img.png') no-repeat;
+                background: url('~assets/img/hybrid/game/mask-img.png') no-repeat;
                 background-size: 100%;
             }
 
@@ -1352,7 +1352,7 @@ export default {
             .rank-1 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybird/game/rank-1.png') no-repeat;
+                background: url('~assets/img/hybrid/game/rank-1.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }
@@ -1360,7 +1360,7 @@ export default {
             .rank-2 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybird/game/rank-2.png') no-repeat;
+                background: url('~assets/img/hybrid/game/rank-2.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }
@@ -1368,7 +1368,7 @@ export default {
             .rank-3 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybird/game/rank-3.png') no-repeat;
+                background: url('~assets/img/hybrid/game/rank-3.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }

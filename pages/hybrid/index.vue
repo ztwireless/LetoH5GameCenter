@@ -72,7 +72,7 @@ export default {
     .back {
         width: .36rem;
         height: .36rem;
-        background: url("~assets/img/hybird/common/back-white.png") no-repeat;
+        background: url("~assets/img/hybrid/common/back-white.png") no-repeat;
         background-size: 100%;
         position: absolute;
         top: .24rem;

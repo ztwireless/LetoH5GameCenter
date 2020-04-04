@@ -7,7 +7,7 @@
 import rem from '../plugins/rem.js';
 
 export default {
-    name: 'hybird',
+    name: 'hybrid',
     head() {
         return {
             script: [
