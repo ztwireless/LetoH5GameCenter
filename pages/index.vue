@@ -583,67 +583,6 @@ export default {
     }
 }
 
-//2048
-.game2048 {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/2048_bg.png');
-}
-
-.game-xiyou {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/xiyou_bg.png');
-}
-
-// 预测帝
-.guess {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/guess_bg.png');
-}
-
-// 烧脑大作战
-.mind {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/ming_bg.png');
-}
-
-// 一笔画到底
-.hua {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/hua.png');
-}
-
-// 美食大战老鼠
-.meishi {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/meishi.png');
-}
-
-//绝地逃生
-.battle {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/battle_bg.png');
-
-    .new-icon {
-        position: absolute;
-        top: .22rem;
-        left: .24rem;
-        width: .7rem;
-        height: .49rem;
-        background: no-repeat center/contain url('~assets/img/hybrid/game/new_icon.png');
-    }
-}
-
-// 享玩大厅
-.xiangwan {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/xiangwan_bg.png');
-
-    // .btn {
-    //     margin-top: .5rem;
-    // }
-}
-
-// 闲玩大厅
-.xianwan {
-    background: no-repeat center/contain url('~assets/img/hybrid/game/xianwan_bg.png');
-
-    // .btn {
-    //     margin-top: .5rem;
-    // }
-}
-
 .header {
     position: fixed;
     top: 0;
@@ -745,37 +684,6 @@ export default {
     }
 }
 
-.sign-gold {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    z-index: 1000;
-    width: 3.04rem;
-    height: 3.82rem;
-    border-radius: .1rem;
-    transform: translate(-50%, -50%);
-    background: url("~assets/img/hybrid/task/sign-gold.png") no-repeat rgba(0, 0, 0, .5) left bottom;
-    background-size: 100%;
-
-    h5 {
-        padding-top: .2rem;
-        font-size: .28rem;
-        line-height: .4rem;
-        margin-bottom: .1rem;
-        color: #fff;
-        text-align: center;
-        margin-top: 0;
-    }
-
-    p {
-        font-size: .5rem;
-        line-height: .8rem;
-        color: #FF6F4D;
-        font-weight: bolder;
-        text-align: center;
-    }
-}
-
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 2s;
@@ -785,37 +693,6 @@ export default {
     opacity: 0;
 }
 
-
-
-.onepiece {
-    position: fixed;
-    top: 4.9rem;
-    right: 0.2rem;
-    width: 1.5rem;
-    background: url('~assets/img/hybrid/game/active.png') no-repeat center;
-    background-size: 100%;
-    padding-top: 1.55rem;
-    z-index: 1000;
-
-    &.diss {
-        background: url('~assets/img/hybrid/game/diss.png') no-repeat center;
-        background-size: 100%;
-
-        .button {
-            background: #7e7e7e;
-        }
-    }
-
-    .button {
-        font-size: .26rem;
-        height: 0.46rem;
-        line-height: 0.45rem;
-        text-align: center;
-        color: #fff;
-        .linear-color-orange();
-        border-radius: 0.24rem;
-    }
-}
 
 
 .new-51 {

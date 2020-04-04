@@ -206,25 +206,3 @@ export function randomShareUrl() {
     // return `http://m.pezy.cn`;
     // return `http://${sup}.meigegou.com.cn`;
 }
-
-/**
- * 摇一摇
- *
-*/
-export let imgData = [
-    "/images/lucky/money1.png",
-    "/images/lucky/money3.png",
-    "/images/lucky/money4.png",
-    "/images/lucky/money4.png"
-]
-
-export let pigImg = [
-    "/images/pig/gold.png",
-    "/images/pig/pig-icon.png",
-    "/images/pig/coin.png"
-
-]
-
-
-
-
