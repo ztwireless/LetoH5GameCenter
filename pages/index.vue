@@ -1,371 +1,1372 @@
 <template>
-    <div class="download">
-        <div v-if="fixed" class="fixed">
-            <img src="~assets/img/logo.png" />
-            <div class="slogan">
-                <h2>亿  刻</h2>
-                <p>时间就是金钱</p>
+    <div class="game" ref="root">
+        <!-- 小游戏头部 -->
+        <header class="header">
+            <div v-if="backable" class="back" @click="back"></div>
+            <h2>游戏大厅</h2>
+        </header>
+
+        <template>
+            <div class="new-51">
+                <header class="header">
+                    <div v-if="backable" class="back" @click="back"></div>
+                    <h2>游戏中心</h2>
+                    <div v-if="backable" class="withdraw_red" @click="withdraw"></div>
+                    <div v-if="backable" class="withdraw" @click="withdraw"></div>
+                    <div v-if="backable" class="withdraw_tx" @click="withdraw">提现</div>
+                </header>
+
+                <div class="content">
+
+                    <!-- banner -->
+                    <div class="banner">
+                        <div class="swiper-container" v-swiper:mySwiper="swiperOption">
+                            <div class="swiper-wrapper">
+                                <img :src="item.pic" alt=""
+                                    class="swiper-slide"
+                                    v-for="(item, index) in banners.gameList"
+                                    :key="index"
+                                    :class="[{'shadow' : nowIndex == index}]"
+                                    @click="startMGCGame(item)"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TODO: 按钮条 -->
+                    <div class="button-list">
+                    </div>
+
+                    <!-- recent played games -->
+                    <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
+                        <div class="row-game title">
+                            <div class="recently"></div>
+                            <p class="add-flex">我的游戏</p>
+                            <div class="arrow-right"></div>
+                        </div>
+
+                        <div class="mgc-games-row">
+                            <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
+                                <img :src="item.icon" />
+                                <div class="name">{{cutFive(item.name)}}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 所有游戏 -->
+                    <div v-for="(i, k) in newGames" :key="k">
+                        <!-- gallery样式 -->
+                        <template v-if="i.styleCode == 'gallery'">
+                            <div class="list list-left">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div class="like"></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- gallery item -->
+                                <div class="mgc-games-row">
+                                    <div class="mgc-like" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.pic" />
+                                        <div class="name">
+                                            <img v-lazy="item.icon" class="icon-img" />
+                                            <div class="mgc-text">
+                                                {{cutFive(item.name)}}
+                                                <p>{{item.play_num}}万人玩过</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- 单行grid样式 -->
+                        <template v-else-if="i.styleCode == 'horizontalList'">
+                            <div class="list list-left">
+                                <!-- title -->
+                                <div class="row-game title text-active">
+                                    <div class="coin"></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- grid item -->
+                                <div class="mgc-games-row">
+                                    <div class="mgc-game-row mgc-bottom"
+                                        v-for="(item, index) in i.gameList"
+                                        :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.icon" />
+                                        <div class="name">{{cutFive(item.name)}}</div>
+                                        <p>{{item.play_num}}万人玩过</p>
+                                        <div class="btn" v-if="index == 2">玩一玩</div>
+                                        <div class="btn-border" v-else>玩一玩</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </template>
+
+                        <!-- 大图样式 -->
+                        <template v-else-if="i.styleCode == 'bigPic'">
+                            <div class="list list-left bottom32">
+                                <!-- title -->
+                                <div class="row-game title text-active">
+                                    <div class="coin"></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- item -->
+                                <div class="list-banner list-padding-without-top" v-if="i.gameList && i.gameList.length > 0">
+                                    <img class="banner-img" @click="startMGCGame(i.gameList[0])" :src="i.gameList[0].pic" alt="">
+
+                                    <div class="row-game">
+                                        <img :src="i.gameList[0].icon" alt="">
+                                        <div class="game-info">
+                                            <div class="name">{{i.gameList[0].name}}</div>
+                                            <div class="play">{{i.gameList[0].play_num}}万人玩过</div>
+                                        </div>
+                                        <div class="btn-border" @click="startMGCGame(i.gameList[0])">玩一玩</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- 单排行样式 -->
+                        <template v-else-if="i.styleCode == 'singleRanking'">
+                            <div class="list list-padding-without-bottom">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div class="rank"></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- list -->
+                                <div class="row-game inline" v-for="(item, index) in i.rankList[0].gameList" :key="index" @click="startMGCGame(item)">
+                                    <!-- rank icon -->
+                                    <div class="rank-1" v-if="index == 0"></div>
+                                    <div class="rank-2" v-else-if="index == 1"></div>
+                                    <div class="rank-3" v-else-if="index == 2"></div>
+                                    <div class="rank-num" v-else>{{index + 1}}</div>
+
+                                    <!-- game icon, name, etc. -->
+                                    <img v-lazy="item.icon" alt="">
+                                    <div class="game-info">
+                                        <div class="name row-name">
+                                            {{item.name}}
+                                        </div>
+                                        <div class="des">{{item.publicity}}</div>
+                                        <div class="play">{{item.play_num}}万人玩过</div>
+                                    </div>
+                                    <div class="btn-border">玩一玩</div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- TODO: 多排行样式 -->
+                        <template v-else-if="i.styleCode == 'moreRanking'">
+                        </template>
+
+                        <!-- TODO: 分类排行样式 -->
+                        <template v-else-if="i.styleCode == 'category'">
+                        </template>
+
+                        <!-- 双行grid, 后跟大图, 这个作为缺省样式 -->
+                        <template v-else>
+                            <div class="list list-left bottom32">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div class="common-game"></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- grid items -->
+                                <div class="mgc-games-row">
+                                    <!-- row 1 -->
+                                    <div class="mgc-game-row mgc-bottom"
+                                        v-if="index %2 == 0"
+                                        v-for="(item, index) in i.gameList"
+                                        :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.icon" />
+                                        <div class="name">{{cutFive(item.name)}}</div>
+                                        <p>{{item.play_num}}万人玩过</p>
+                                        <div class="btn" v-if="index == 2">玩一玩</div>
+                                        <div class="btn-border" v-else>玩一玩</div>
+                                    </div>
+
+                                    <br>
+
+                                    <!-- row 2 -->
+                                    <div class="mgc-game-row"
+                                        v-if="index % 2 !=0"
+                                        v-for="(item, index) in i.gameList"
+                                        :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.icon" />
+                                        <div class="name">{{cutFive(item.name)}}</div>
+                                        <p>{{item.play_num}}万人玩过</p>
+                                        <div class="btn-border">玩一玩</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- footer -->
+                <div class="footer">
+                    不断更新更多好玩的<em>游戏</em>
+                </div>
             </div>
-            <button class="download-btn" @click="download">立即下载</button>
-        </div>
-
-        <div v-if="guide" class="guide">
-            <div class="mask" @click="hideGuide"></div>
-            <div class="arrow"></div>
-            <div class="text">
-                <h4>请使用<em>浏览器</em>打开<br/>立即下载<em>亿刻APP</em></h4>
-                <p>说明：</p>
-                <p>1、点击右上角更多按钮；</p>
-                <p>2、在弹出窗口中选择用浏览器打开，即可下载App。</p>
-                </p>
-            </div>
-        </div>
-
-        <div ref="head" class="head">
-            <div class="btn download-btn" @click="download">立即下载</div>
-        </div>
-
-        <div class="body">
-            <img src="~assets/img/landpage/5.png" />
-
-            <!-- <img src="~assets/img/landpage/2.png" />
-            <img src="~assets/img/landpage/3.png" />
-            <img src="~assets/img/landpage/4.png" /> -->
-        </div>
-
-        <alert v-if="showAlert"
-            v-on:ok="hideAlert"
-            >{{alert}}</alert>
+        </template>
     </div>
 </template>
-
 <script>
-import Alert from '~/components/Alert';
-import sdk from '~/plugins/wechatsdk';
+import native from '~/plugins/native';
 import {http, qs} from '~/plugins/axios';
-import clipboard from '~/plugins/clipboard';
-import {apiBaseUrl, localUrl, appstore, chan1009,} from '~/config';
+import config from '~/config';
+
+import Share from '~/components/Share';
+import {addUrlQuery, replaceUrlQuery } from '~/plugins/utils';
+import { hybridPointAction } from '~/plugins/report';
+import TimeBtn from '~/components/TimeBtn';
+import Empty from '~/components/Empty';
+import {NEWGAMES, BANNER} from '~/plugins/games';
 
 export default {
-    name: 'download',
-    components: {
-        Alert,
+    name: 'games',
+
+    components:{
+        Share,
+        Empty,
+        TimeBtn,
     },
+
     head() {
         return {
-            title: '亿刻官网_最新最快亿刻今日资讯头条新闻亿刻阅读平台,亿刻全新热门趣味益智类app',
-            meta: [
-                {
-                    hid: 'keywords',
-                    name: 'keywords',
-                    content: '亿刻官网,亿刻APP,亿刻,头条,阅读,讯息,生活方式',
-                },
-                {
-                    hid: 'description',
-                    name: 'description',
-                    content: '亿刻是个人价值的记录工具,亿刻为用户提供邀请好友预测猜球阅读奖励的分享参与模式,世界杯期间赞助梁宏达评论节目老梁说世界杯',
-                },
-            ],
+            title: '游戏大厅'
         }
     },
-    data() {
+
+   data() {
+       let vm = this;
         return {
-            fixed: false,
-            guide: false,
-            showAlert: false,
-            alert: '',
-        };
-    },
-    asyncData({query, req, redirect}) {
-        if (process.client) {
-            return;
+            backable: true, //头部是否显示后退按钮
+
+            blockMessage: '你的账号存在异常，无法进行游戏', //黑名单提示
+
+            lastClickTime: 0,
+
+            games: [],
+            favoriteGameList: [],
+            recentGameList: [],
+
+            type: 1, //  红包页:0 banner:1 宝箱:2
+
+            nowIndex: 0,
+            swiperOption: {
+                spaceBetween : 10, // 距离两边得距离
+                slidesPerView: 'auto',   //设置slider容器能够同时显示的slides数量
+                centeredSlides: true,    //设定为true时，活动块会居中，而不是默认状态下的居左。
+                speed: 500,
+                noSwiping: false,        //设置为true时禁止切换
+                paginationClickable: false,
+                observer: true,
+                observerParents: true,
+                initialSlide: 0,
+
+                on: {
+                    slideChangeTransitionStart: function() {
+                        vm.nowIndex = this.activeIndex;
+                        // alert(this.activeIndex);//切换结束时，告诉我现在是第几个slide
+                    },
+                },
+            },
+
+            newGames: NEWGAMES,
+            banners: {}
         }
-
-        const ua = req.headers['user-agent'];
-        // 跳转 电脑 版本
-        if (!ua.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
-            return redirect('http://www.pezy.cn/download', query);
-        }
     },
-    methods: {
-        setScroll() {
-            const _this = this;
-            const head = this.$refs.head.offsetHeight;
-            window.addEventListener('scroll', ()=>{
-                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
 
-                if (scrollTop > head) {
-                    _this.fixed = true;
-                } else {
-                    _this.fixed = false;
-                }
-            }, false);
-        },
+    asyncData({query, redirect, req}){
+        let version = query.appVersion || '';
+            version = version.replace(/\./ig, '');
 
-        setWechat() {
-            const ua = navigator.userAgent;
-
-            if (ua.match(/MicroMessenger/i)) {
-                this.guide = true;
-            }
-        },
-
-        download() {
-            // TDAPP.onEvent('h5_index_download');
-            const ua = navigator.userAgent;
-
-            if (ua.match(/MicroMessenger/i)) {
-                location.href = chan1009.yyb;
-
-            } else if (ua.match(/iPhone|iPad|iPod/i)) {
-                location.href = appstore;
-
-            } else {
-                location.href = this.getJumpUrl();
-            }
-        },
-
-        hideGuide() {
-            this.guide = false;
-        },
-
-        hideAlert() {
-            this.showAlert = false;
-        },
-
-        setsdk() {
-            const wx = sdk.init();
-            const _this = this;
-
-            http.post(`${apiBaseUrl}/wx/getJsSdk`, qs.stringify({
-                url: location.href,
-            }))
-            .then((res)=>{
-                if (res.data.code != 1000) {
-                    // _this.$toast('微信分享暂不能使用');
-                }
-
-                wx.config({
-                    debug: false,
-                    appId: res.data.appId,
-                    timestamp: res.data.timestamp,
-                    nonceStr: res.data.nonceStr,
-                    signature: res.data.signature,
-                    jsApiList: ['onMenuShareAppMessage', 'onMenuShareQQ', 'onMenuShareQZone', 'onMenuShareTimeline', 'onMenuShareWeibo'],
-                });
-
-                wx.ready(()=>{
-                    const sharedata = {
-                        title: '亿刻APP 时间就是金钱',
-                        desc: '好友们都开始转战亿刻APP，你也别out啦!',
-                        imgUrl: `${localUrl}/images/logo.png`,
-                        link: `${localUrl}/landpage`,
-                    };
-
-                    wx.onMenuShareAppMessage(sharedata);
-
-                    wx.onMenuShareTimeline(sharedata);
-
-                    wx.onMenuShareQZone(sharedata);
-
-                    wx.onMenuShareQQ(sharedata);
-                });
+		function getLocalGameCenterData() {
+        	return new Promise((resolve, reject) => {
+        		let j = native.getLocalGameCenterData()
+                resolve(j)
             })
-            .catch((error)=>{
-                // _this.$toast('获取JS-SDK失败');
-            });
-        },
+        }
 
-        getJumpUrl() {
-            let url = 'http://www.pezy.cn/jump';
-
-            if (this.$route.query.channel) {
-                return `${url}?channel=${this.$route.query.channel}`;
-            }
-
-            return url;
-        },
-
-        autoDownload() {
-            const ua = navigator.userAgent;
-            const isWechat = ua.match(/MicroMessenger\/[0-9]/i);
-            const isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1;
-            let url = `http://www.pezy.cn/jump`;
-
-            if (isAndroid && !isWechat) {
-                setTimeout(() => {
-                    if (this.$route.query.channel) {
-                        location.replace(`${url}?channel=${this.$route.query.channel}`);
-                    } else {
-                        location.replace(url);
+        return http.all([getLocalGameCenterData()])
+            .then(http.spread(j => {
+            	// if has cached data, use it now
+                if(j.gameCenterData) {
+                	// get banner data
+                    let dataList = j.gameCenterData || []
+                    let banners = {}
+                    for(let idx in dataList) {
+                    	let data = dataList[idx]
+                    	if(data.styleCode == 'rotationChart') {
+                    		banners = data
+                            dataList.splice(idx, 1)
+                            break
+                        }
                     }
 
-                }, 300);
-            }
-        },
+                    // return
+					return {
+						backable: query.backable,
+                        newGames: dataList,
+						banners: banners
+					}
+                }
+            })).catch((e) => {
+            })
     },
+
     mounted() {
-        // TDAPP.onEvent('h5_index_pv');
-        this.setsdk();
-        this.setScroll();
-        // this.setWechat();
-        this.autoDownload();
+    	// 设置游戏根目录
+        window.mgc.setJSGameRootUrl('http://192.168.1.104/~maruojie/leto_ad_test/games/games')
+
+        this.getRecentGameList()
+
+        this.loadRemote()
+
+        native.onResume(res => {
+        	// update recent game list
+            let newRecent = native.getRecentGameList()
+            let newLen = newRecent.gameList ? newRecent.gameList.length : 0
+            let oldLen = this.recentGameList.gameList ? this.recentGameList.gameList.length : 0
+            if(newLen != oldLen) {
+            	this.recentGameList = newRecent
+            }
+        })
+    },
+
+    methods: {
+		getMGCGameCenterData() {
+			// get info from native
+			let appInfo = native.getAppInfo()
+			let sysInfo = native.getSystemInfo()
+
+			// build url
+			let args = {
+				dt: 0,
+				open_token: '0023a78e02fb489528a99b7f9cb39ec',
+				app_id: appInfo.appId,
+				client_id: 334,
+				packagename: appInfo.packageName,
+				leto_version: sysInfo.LetoVersion,
+				framework_version: sysInfo.SDKVersion,
+				from: 11,
+				device_md5: sysInfo.deviceId
+			}
+			let first = true
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
+			for(let key in args) {
+				if(first) {
+					url += '?'
+					first = false
+				} else {
+					url += '&'
+				}
+				url += `${key}=${args[key]}`
+			}
+
+			// promise of http
+			return http.get(url)
+		},
+
+		loadRemote() {
+			this.getMGCGameCenterData().then(mgcResp => {
+				if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
+					// save
+                    native.saveGameCenterDataToLocal(mgcResp.data.data)
+
+					// get banner data
+					let dataList = mgcResp.data.data.gameCenterData || []
+					let banners = {}
+					for(let idx in dataList) {
+						let data = dataList[idx]
+						if(data.styleCode == 'rotationChart') {
+							banners = data
+							dataList.splice(idx, 1)
+							break
+						}
+					}
+
+					// return
+					this.banners = banners;
+					this.newGames = dataList;
+				} else {
+					if(this.newGames.length <= 0) {
+						this.banners = BANNER
+						this.newGames = NEWGAMES
+					}
+				}
+			})
+		},
+
+        //关闭
+        back() {
+            native.closeWebview();
+        },
+
+        //关闭
+        withdraw() {
+            window.mgc.showWithdraw();
+        },
+
+        start(item) {
+            hybridPointAction({
+                id: item.id
+            });
+
+            native.newWebview({
+                type: 0,
+                url: item.url
+            })
+        },
+
+        // 启动 梦工厂 游戏
+        startMGCGame(game) {
+			// avoid quick click
+			let now = Date.now()
+            if(now - this.lastClickTime < 500) {
+            	return
+            }
+            this.lastClickTime = now
+
+            // report
+            hybridPointAction({
+                id: `mgc_${game.id}`
+            });
+
+            // start
+            native.startGame(game.id)
+        },
+
+        getFavoriteGameList() {
+            // alert(native.getFavoriteGameList());
+            this.favoriteGameList = JSON.parse(native.getFavoriteGameList());
+        },
+
+        getRecentGameList() {
+            this.recentGameList = native.getRecentGameList()
+        },
+
+        cutFive(str) {
+            if (str.length > 6 ) {
+                str = str.substring(0, 6);
+
+                return str + '...'
+            };
+
+            return str;
+        },
+
+        // 截取字符串
+        cutText(str) {
+            if (str.length >= 18 ) {
+                str = str.substring(0, 18);
+
+                return str + '...'
+            };
+
+            return str;
+        },
     },
 }
 </script>
-
-<style scoped lang="less">
+<style lang="less" scoped>
 @import '~assets/less/Mixins.less';
 
-.download {
-    user-select: text;
-}
-
-
-.fixed {
-    // display: none;
-    position: fixed;
-    top: .24rem;
-    left: .24rem;
-    height: 1.36rem;
-    width: 7rem;
-    background: #fff;
-    box-shadow: 0 .1rem .2rem 0 rgba(36, 95, 178, 0.30);
-    border-radius: .24rem;
+@titleLeft: .32rem;
+// .game {
+//     padding-top: 1.1rem;
+// }
+.game-list {
+    // margin-top: 1.1rem;
     display: flex;
-    align-items: center;
-    padding: .28rem .32rem;
-    z-index: 1000;
+    flex-wrap: wrap;
+    padding: 0 .24rem .46rem;
+    justify-content: space-between;
+}
 
-    img {
-        width: .8rem;
-        height: .8rem;
-        border-radius: .1rem;
-        box-shadow: 0 0 .24rem 0 rgba(174,46,19,0.57);
-        margin-right: .32rem;
+.box-item {
+    position:relative;
+    width: 3.39rem;
+    height: 4.72rem;
+    margin: .24rem 0 0;
+    border-radius: .24rem;
+
+    // 标题
+    h5 {
+        width: 100;
+        text-align: center;
+        font-size: .44rem;
+        color: #FFFFFF;
+        font-weight: 800;
+        margin: 2.89rem 0 0;
     }
 
-    button {
-        .linear-color-orange();
-        box-shadow: 0 0 .24rem 0 rgba(174,46,19,0.57);
-        font-size: .32rem;
-        color: #fff;
-        height: .72rem;
-        padding: .14rem .32rem;
-        border: 0;
-        border-radius: .72rem;
+    // 描述
+    p {
+        width: 100%;
+        text-align: center;
+        font-size: .24rem;
+        color: #FFFFFF;
+        margin-top: .11rem;
     }
 
-    .slogan {
-        flex: 1;
+    //按钮
+    .btn {
+        width: 1.44rem;
+        height: .58rem;
+        margin:.24rem auto;
+        background:rgba(0,0,0, 0.1);
+        border-radius: .29rem;
+        font-size: .36rem;
+        text-align:center;
+        line-height: .58rem;
 
-        h2 {
-            margin-top: 0;
-            margin-bottom: .1rem;
-            font-size: .3rem;
-            color: #383B3D;
-            letter-spacing: .05rem;
-            line-height: .42rem;
-        }
-
-        p {
-            font-size: .24rem;
-            color: #B6BBBF;
-            line-height: .34rem;
+        span {
+            color: #FFFFFF;
         }
     }
 }
 
-.guide {
+// 展示盒子
+.show {
+    position: relative;
+    width: 7.02rem;
+    margin: 0 auto;
+    // margin-top: .24rem;
+}
+
+// 无实际意义的占位盒子
+.useless:extend(.show) {
+    margin: 0 .24rem;
+    height: .64rem;
+    font-size: .32rem;
+    border-radius: 10px;
+    background-image: linear-gradient(-90deg, #ff4940 0%, #ff8040 100%);
+
+    .clock {
+        position: absolute;
+        width: .92rem;
+        height: .72rem;
+        left: 1.28rem;
+        bottom: 0;
+        background: no-repeat center/contain url('~assets/img/hybrid/game/adv.png');
+    }
+
+    span {
+        position: absolute;
+        color: #fff;
+        left: 2.52rem;
+        line-height: .64rem;
+    }
+}
+
+//2048
+.game2048 {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/2048_bg.png');
+}
+
+.game-xiyou {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xiyou_bg.png');
+}
+
+// 预测帝
+.guess {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/guess_bg.png');
+}
+
+// 烧脑大作战
+.mind {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/ming_bg.png');
+}
+
+// 一笔画到底
+.hua {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/hua.png');
+}
+
+// 美食大战老鼠
+.meishi {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/meishi.png');
+}
+
+//绝地逃生
+.battle {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/battle_bg.png');
+
+    .new-icon {
+        position: absolute;
+        top: .22rem;
+        left: .24rem;
+        width: .7rem;
+        height: .49rem;
+        background: no-repeat center/contain url('~assets/img/hybrid/game/new_icon.png');
+    }
+}
+
+// 享玩大厅
+.xiangwan {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xiangwan_bg.png');
+
+    // .btn {
+    //     margin-top: .5rem;
+    // }
+}
+
+// 闲玩大厅
+.xianwan {
+    background: no-repeat center/contain url('~assets/img/hybrid/game/xianwan_bg.png');
+
+    // .btn {
+    //     margin-top: .5rem;
+    // }
+}
+
+.header {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1001;
+    width: 100%;
+    z-index: 1000;
+    height: .88rem;
+    background: #fff;
 
-    .mask {
+    .back {
+        width: 0.36rem;
+        height: 0.36rem;
+        background: url("~assets/img/hybrid/common/back-black.png") no-repeat;
+        background-size: 100%;
+        position: absolute;
+        top: 0.26rem;
+        left: 0.22rem;
+    }
+
+    h2 {
+        font-size: 0.36rem;
+        font-weight: normal;
+        color: #17181A;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        height: 0.88rem;
+        line-height: 0.88rem;
+    }
+
+    .more-right {
+        position: absolute;
+        top: 0;
+        right: .26rem;
+        height: .88rem;
+        line-height: .22rem;
+
+        .dot {
+            float: left;
+            width: 4px;
+            height: 4px;
+            border-radius: 100%;
+            background: black;
+            margin-right: 5px;
+            margin-top: .4rem;
+        }
+    }
+}
+
+.wall {
+    position: fixed ;
+    right: .5rem;
+    bottom: 1rem;
+    width: 1.3rem;
+    height: 1.26rem;
+    background: url('~assets/img/hybrid/game/wall.png') no-repeat;
+    background-size: 100% 100%;
+}
+
+.mgc {
+
+}
+
+.mgc-item {
+    border-bottom: .2rem solid #eee;
+    padding: .24rem;
+
+    .title {
+        font-size: .4rem;
+        font-weight: bold;
+        margin-bottom: .3rem;
+    }
+}
+
+.mgc-games {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.mgc-game {
+    width: 25%;
+    text-align: center;
+    margin-bottom: .2rem;
+    padding: 0 .05rem;
+
+    img {
+        width: 1.3rem;
+        height: 1.3rem;
+    }
+
+    .name {
+        font-size: .3rem;
+        margin-bottom: .1rem;
+    }
+
+    .desc {
+        font-size: .24rem;
+        color: #999;
+    }
+}
+
+.sign-gold {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+    width: 3.04rem;
+    height: 3.82rem;
+    border-radius: .1rem;
+    transform: translate(-50%, -50%);
+    background: url("~assets/img/hybrid/task/sign-gold.png") no-repeat rgba(0, 0, 0, .5) left bottom;
+    background-size: 100%;
+
+    h5 {
+        padding-top: .2rem;
+        font-size: .28rem;
+        line-height: .4rem;
+        margin-bottom: .1rem;
+        color: #fff;
+        text-align: center;
+        margin-top: 0;
+    }
+
+    p {
+        font-size: .5rem;
+        line-height: .8rem;
+        color: #FF6F4D;
+        font-weight: bolder;
+        text-align: center;
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 2s;
+}
+
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
+}
+
+
+
+.onepiece {
+    position: fixed;
+    top: 4.9rem;
+    right: 0.2rem;
+    width: 1.5rem;
+    background: url('~assets/img/hybrid/game/active.png') no-repeat center;
+    background-size: 100%;
+    padding-top: 1.55rem;
+    z-index: 1000;
+
+    &.diss {
+        background: url('~assets/img/hybrid/game/diss.png') no-repeat center;
+        background-size: 100%;
+
+        .button {
+            background: #7e7e7e;
+        }
+    }
+
+    .button {
+        font-size: .26rem;
+        height: 0.46rem;
+        line-height: 0.45rem;
+        text-align: center;
+        color: #fff;
+        .linear-color-orange();
+        border-radius: 0.24rem;
+    }
+}
+
+
+.new-51 {
+
+    .header {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, .6);
+        z-index: 1000;
+        height: .88rem;
+        background: #fff;
+
+        .back {
+            width: 0.36rem;
+            height: 0.36rem;
+            background: url("~assets/img/hybrid/common/back-black.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.26rem;
+            left: 0.22rem;
+        }
+
+        .withdraw {
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybrid/common/withdraw_pic.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.26rem;
+            right: 0.85rem;
+        }
+
+        .withdraw_tx {
+            width: 0.66rem;
+            height: 0.54rem;
+            position: absolute;
+            top: 0.26rem;
+            right: 0.22rem;
+            font-size: 0.3rem;
+            font-weight: normal;
+            line-height: 0.54rem;
+            text-align: center;
+        }
+
+        .withdraw_red {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: url("~assets/img/hybrid/common/leto_mgc_withdraw_bubble_bg2.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.05rem;
+            right: 1.13rem;
+            font-size: 0.18rem;
+            font-weight: normal;
+            text-align: center;
+            color: #ffffff;
+            padding-top: 0.02rem;
+        }
+
+        h2 {
+            font-size: 0.36rem;
+            font-weight: normal;
+            color: #17181A;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 0.88rem;
+            line-height: 0.88rem;
+        }
     }
 
-    .arrow {
-        position: fixed;
-        right: .1rem;
-        top: .1rem;
-        width: 1.2rem;
-        height: 1.4rem;
-        background: url('~assets/img/landpage/arrow.png') no-repeat center;
+    .row-game {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .content {
+        padding: 1rem 0 0 0;
+    }
+
+    .list-banner {
+        .banner-img {
+            border-radius: 0.16rem;
+            width: 100%;
+            margin-bottom: 0.16rem;
+        }
+
+        .row-game {
+            img {
+                border-radius: 50%;
+                margin-right: 0.16rem;
+                width: 0.72rem;
+                height: 0.72rem;
+            }
+
+            .game-info {
+                flex: 1;
+            }
+
+            .name {
+                color: #17181A;
+                font-size: 0.28rem;
+                margin-bottom: 0.1rem;
+            }
+            .play {
+                color: #87898C;
+                font-size: 0.18rem;
+            }
+
+        }
+
+    }
+
+    // .banner {
+    //     margin-bottom: 0.12rem;
+    //     padding: 0 0.32rem;
+    //     img {
+    //         border-radius: 0.16rem;
+    //         width: 100%;
+    //         height: 3rem;
+    //     }
+    // }
+
+
+    .banner {
+        .swiper-container {
+            padding-bottom: 0.5rem;
+        }
+
+        img {
+            width: 6.4rem;
+            height: 3rem;
+            border-radius: 0.32rem;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .shadow {
+            box-shadow: 0 10px 15px 0 rgba(0, 50, 127, .1);
+        }
+    }
+
+    .button-list {
+
+    }
+
+    .title {
+        font-size: 0.32rem;
+        font-weight: bold;
+        color: #17181A;
+        margin-bottom: 0.32rem;
+
+        p {
+            margin-left: 0.14rem;
+            margin-right: 0.14rem;
+        }
+
+        .add-flex {
+            flex: 1;
+        }
+
+        .add-gold {
+            background-color: #FFF5E0;
+            font-size: 0.3rem;
+            border-radius: 0.16rem;
+            color: #FA8C00;
+            position: relative;
+            line-height: 0.32rem;
+            padding-right: 0.24rem;
+            padding-left: 0.4rem;
+            display: inline-block;
+            padding-top: 0.02rem;
+            font-weight: bold;
+
+            &::before {
+                position: absolute;
+                content: '';
+                width: 0.32rem;
+                height: 0.32rem;
+                background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                background-size: 100%;
+                left: 0;
+            }
+        }
+    }
+
+    .recently {
+        width: 0.3rem;
+        height: 0.36rem;
+        background: url('~assets/img/hybrid/game/recently.png') no-repeat;
         background-size: 100%;
     }
 
-    .text {
-        position: fixed;
-        top: 1.2rem;
-        left: 50%;
-        width: 5rem;
-        background: rgba(0, 0, 0, .7);
-        border-radius: .28rem;
-        padding: .4rem;
-        transform: translateX(-50%);
-
-        p {
-            line-height: .44rem;
-            font-size: .32rem;
-            color: #fff;
-            margin-bottom: .18rem;
-        }
-
-        h4 {
-            margin: 0;
-            line-height: .6rem;
-            font-size: .44rem;
-            color: #fff;
-            text-align: center;
-            margin-bottom: .4rem;
-        }
-
-        em {
-            color: #E39A3F;
-            font-style: normal;
-        }
-
+    .like {
+        width: 0.3rem;
+        height: 0.38rem;
+        background: url('~assets/img/hybrid/game/like.png') no-repeat;
+        background-size: 100%;
     }
-}
 
-.head {
-    height: 5.4rem;
-    background: url('~assets/img/landpage/banner.png') no-repeat;
-    background-size: 100%;
-    margin-bottom: .76rem;
-    padding-top: 3.64rem;
+    .coin {
+        width: 0.36rem;
+        height: 0.38rem;
+        background: url('~assets/img/hybrid/game/coin.png') no-repeat;
+        background-size: 100%;
+    }
+
+    .rank {
+        width: 0.32rem;
+        height: 0.36rem;
+        background: url('~assets/img/hybrid/game/gold-title.png') no-repeat;
+        background-size: 100%;
+    }
+
+    .hot {
+        width: 0.32rem;
+        height: 0.36rem;
+        background: url('~assets/img/hybrid/game/hot.png') no-repeat;
+        background-size: 100%;
+    }
+
+    .xiu {
+        width: 0.28rem;
+        height: 0.36rem;
+        background: url('~assets/img/hybrid/game/xiu.png') no-repeat;
+        background-size: 100%;
+    }
+
+    .common-game {
+        height: 0.36rem;
+        width: 0.32rem;
+        background: url('~assets/img/hybrid/game/common-game.png') no-repeat;
+        background-size: 100%;
+    }
+
+    .list-padding {
+        padding: 0.32rem 0.32rem 0.32rem 0.32rem;
+    }
+
+    .list-padding-without-bottom {
+        padding: 0.32rem 0.32rem 0rem 0.32rem;
+    }
+
+    .list-padding-without-top {
+        padding: 0rem 0.32rem 0rem 0.32rem;
+    }
+
+    .bottom32 {
+        padding-bottom: 0.32rem;
+    }
+
+    .list-left {
+        padding-top: 0.32rem;
+        .title {
+            padding: 0 0.32rem;
+        }
+
+        .mgc-games-row {
+            padding-left: 0.32rem;
+        }
+    }
 
     .btn {
-        box-shadow: 0 0 .24rem 0 rgba(174,46,19,0.57);
-        border-radius: .82rem;
-        height: .82rem;
-        font-size: .44rem;
-        line-height: .82rem;
-        color: #FF6F4D;
-        letter-spacing: 3.7px;
+        width: 1.1rem;
+        height: 0.46rem;
+        background-color: #FF9340;
+        color: #FFF;
+        line-height: 0.46rem;
+        border-radius: 0.1rem;
         text-align: center;
-        background: #fff;
-        width: 5rem;
+        font-size: 0.24rem;
         margin: 0 auto;
+    }
+
+    .btn-border {
+        width: 1.1rem;
+        height: 0.46rem;
+        background-color: #FFF;
+        color: #FF9340;
+        border: 0.02rem solid #FF9340;
+        line-height: 0.42rem;
+        border-radius: 0.1rem;
+        text-align: center;
+        font-size: 0.24rem;
+        margin: 0 auto;
+    }
+
+    .list {
+        border-bottom: 0.2rem solid #F5F5F5;
+
+        .mgc-games-row {
+            overflow-x: scroll;
+            overflow-y: hidden;
+            white-space: nowrap;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            .mgc-bottom {
+                margin-bottom: 0.4rem;
+            }
+
+            .mgc-game-row {
+                display: inline-block;
+                margin-right: 0.8rem;
+                width: 20%;
+
+                p {
+                    font-size: 0.22rem;
+                    color: #87898C;
+                    margin-bottom: 0.24rem;
+                    text-align: center;
+                }
+            }
+
+            img {
+                width: 1.3rem;
+                height: 1.3rem;
+                border-radius: 0.24rem;
+                display: block;
+                margin: 0 auto;
+                margin-bottom: 0.24rem;
+            }
+
+            .name {
+                font-size: 0.28rem;
+                margin-bottom: 0.1rem;
+                text-align: center;
+            }
+
+        }
+
+        .mgc-like {
+            display: inline-block;
+            margin-right: 0.16rem;
+            position: relative;
+
+            img {
+                width: 3.28rem;
+                height: 2.4rem;
+                border-radius: 0.16rem;
+                margin-bottom: 0;
+            }
+
+            .name {
+                margin-bottom: 0;
+                position: absolute;
+                margin-top: -0.97rem;
+                width: 100%;
+                height: 1rem;
+                color: #FFF;
+                display: flex;
+                align-items: center;
+                padding-left: 0.18rem;
+                background: url('~assets/img/hybrid/game/mask-img.png') no-repeat;
+                background-size: 100%;
+            }
+
+            .mgc-text {
+                text-align: left;
+            }
+
+            .icon-img {
+                width: 0.76rem;
+                height: 0.76rem;
+                border-radius: 100%;
+                margin: 0;
+                padding: 0;
+                margin-right: 0.18rem;
+            }
+
+            p {
+                font-size: 0.18rem;
+            }
+        }
+
+
+        .inline {
+            margin-bottom: 0.34rem;
+            img {
+                width: 1.28rem;
+                height: 1.28rem;
+                border-radius: 0.24rem;
+            }
+
+            .rank-num {
+                width: 0.48rem;
+                font-size: 0.48rem;
+                margin-right: 0.24rem;
+            }
+
+            .rank-1 {
+                width: 0.48rem;
+                height: 0.56rem;
+                background: url('~assets/img/hybrid/game/rank-1.png') no-repeat;
+                background-size: 100%;
+                margin-right: 0.24rem;
+            }
+
+            .rank-2 {
+                width: 0.48rem;
+                height: 0.56rem;
+                background: url('~assets/img/hybrid/game/rank-2.png') no-repeat;
+                background-size: 100%;
+                margin-right: 0.24rem;
+            }
+
+            .rank-3 {
+                width: 0.48rem;
+                height: 0.56rem;
+                background: url('~assets/img/hybrid/game/rank-3.png') no-repeat;
+                background-size: 100%;
+                margin-right: 0.24rem;
+            }
+
+            .game-info {
+                flex: 1;
+                margin-left: 0.26rem;
+                margin-right: 0.1rem;
+            }
+
+            .name {
+                font-size: 0.32rem;
+                color: #17181A;
+                margin-bottom: 0.12rem;
+            }
+
+            .des {
+                color: #87898C;
+                font-size: 0.24rem;
+                margin-bottom: 0.12rem;
+                height: 0.48rem; // that's one line, 2em for 2 lines, etc...
+                line-height: 0.24rem; // the height of one text line
+                overflow: auto;
+                text-overflow: ellipsis;
+            }
+
+            .play {
+                color: #87898C;
+                font-size: 0.18rem;
+            }
+
+            .start-btn {
+                width: 1.36rem;
+                height: 0.48rem;
+                line-height: 0.48rem;
+                color: #FFF;
+                .linear-color-orange();
+                border-radius: 0.24rem;
+                font-size: 0.24rem;
+                text-align: center;
+            }
+
+            .gold-img {
+                width: 0.32rem;
+                height: 0.32rem;
+            }
+
+            .bg-y {
+                height: 0.33rem;
+                background-color: #FFF5E0;
+                border-radius: 0.16rem;
+                margin-left: 0.2rem;
+                padding: 0 0.2rem;
+                line-height: 0.33rem;
+            }
+
+            .row-name {
+                display: flex;
+                align-items: center;
+            }
+
+            em {
+                font-size: 0.24rem;
+                color: #FA8C00;
+                font-style: normal;
+                flex: 1;
+            }
+        }
+
+        .text-active {
+            color: #FF8400;
+        }
+    }
+
+    .video {
+        height: .66rem;
+        line-height: .66rem;
+        color: #fff;
+        width: 100%;
+        height: 1.2rem;
+        line-height: 1.2rem;
+        background: url('http://static1.pezy.cn/img/2019-04-15/4342494177262820562.png') no-repeat;
+        background-size: 100%;
+        border-radius: .33rem;
+        font-size: .32rem;
+        padding-left: 0.9rem;
+    }
+    .footer {
+        height: 0.8rem;
+        width: 100%;
+        background-color: #F5F5F5;
+        padding-top: 0.2rem;
+        text-align: center;
+        font-size: 0.2rem;
+        color: #87898C;
+        em {
+            font-style: normal;
+            color: #FA9424;
+        }
     }
 }
 
-.body {
-    img {
-        display: block;
-        width: 100%;
-        margin-bottom: 1.2rem;
 
-        &:last-of-type {
-            margin: 0;
-        }
-    }
+
+.b-fixed {
+    width: 100%;
+}
+
+.alert-51 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1200;
+}
+
+.mask-51 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, .6);
+    z-index: 1;
+}
+.body{
+    position: absolute;
+    // background-color: #FFF;
+    border-radius: 0.24rem;
+    width: 7.2rem;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    padding:  0.44rem 0  0 0;
+    color:  #383B3D;
+    z-index: 99;
 }
 </style>
