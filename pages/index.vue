@@ -234,12 +234,10 @@
     </div>
 </template>
 <script>
-import native from '~/plugins/native';
 import {http, qs} from '~/plugins/axios';
 import config from '~/config';
 
 import Share from '~/components/Share';
-import {addUrlQuery, replaceUrlQuery } from '~/plugins/utils';
 import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
@@ -265,15 +263,11 @@ export default {
         return {
             backable: true, //头部是否显示后退按钮
 
-            blockMessage: '你的账号存在异常，无法进行游戏', //黑名单提示
-
             lastClickTime: 0,
 
             games: [],
             favoriteGameList: [],
             recentGameList: [],
-
-            type: 1, //  红包页:0 banner:1 宝箱:2
 
             nowIndex: 0,
             swiperOption: {
@@ -301,12 +295,9 @@ export default {
     },
 
     asyncData({query, redirect, req}){
-        let version = query.appVersion || '';
-            version = version.replace(/\./ig, '');
-
 		function getLocalGameCenterData() {
         	return new Promise((resolve, reject) => {
-        		let j = native.getLocalGameCenterData()
+        		let j = mgc.getLocalGameCenterData()
                 resolve(j)
             })
         }
@@ -340,28 +331,27 @@ export default {
 
     mounted() {
     	// 设置游戏根目录
-        window.mgc.setJSGameRootUrl('http://192.168.1.104/~maruojie/leto_ad_test/games/games')
+        mgc.setJSGameRootUrl('http://192.168.1.104/~maruojie/leto_ad_test/games/games')
 
-        this.getRecentGameList()
+        // ensure channel id is set
+        mgc.setChannelId('364775')
 
         this.loadRemote()
 
-        native.onResume(res => {
-        	// update recent game list
-            let newRecent = native.getRecentGameList()
-            let newLen = newRecent.gameList ? newRecent.gameList.length : 0
-            let oldLen = this.recentGameList.gameList ? this.recentGameList.gameList.length : 0
-            if(newLen != oldLen) {
-            	this.recentGameList = newRecent
-            }
-        })
+		// update recent game list
+		let newRecent = mgc.getRecentGameList()
+		let newLen = newRecent.gameList ? newRecent.gameList.length : 0
+		let oldLen = this.recentGameList.gameList ? this.recentGameList.gameList.length : 0
+		if(newLen != oldLen) {
+			this.recentGameList = newRecent
+		}
     },
 
     methods: {
 		getMGCGameCenterData() {
 			// get info from native
-			let appInfo = native.getAppInfo()
-			let sysInfo = native.getSystemInfo()
+			let appInfo = mgc.getAppInfoSync()
+			let sysInfo = mgc.getSystemInfoSync()
 
 			// build url
 			let args = {
@@ -395,7 +385,7 @@ export default {
 			this.getMGCGameCenterData().then(mgcResp => {
 				if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
 					// save
-                    native.saveGameCenterDataToLocal(mgcResp.data.data)
+                    mgc.saveGameCenterDataToLocal(mgcResp.data.data)
 
 					// get banner data
 					let dataList = mgcResp.data.data.gameCenterData || []
@@ -423,23 +413,12 @@ export default {
 
         //关闭
         back() {
-            native.closeWebview();
+			// TODO how to exit webview?
         },
 
         //关闭
         withdraw() {
             window.mgc.showWithdraw();
-        },
-
-        start(item) {
-            hybridPointAction({
-                id: item.id
-            });
-
-            native.newWebview({
-                type: 0,
-                url: item.url
-            })
         },
 
         // 启动 梦工厂 游戏
@@ -457,16 +436,15 @@ export default {
             });
 
             // start
-            native.startGame(game.id)
+			mgc.navigateToMiniProgram({ appId: game.id.toString() })
         },
 
         getFavoriteGameList() {
-            // alert(native.getFavoriteGameList());
-            this.favoriteGameList = JSON.parse(native.getFavoriteGameList());
+            this.favoriteGameList = mgc.getFavoriteGameList()
         },
 
         getRecentGameList() {
-            this.recentGameList = native.getRecentGameList()
+            this.recentGameList = mgc.getRecentGameList()
         },
 
         cutFive(str) {

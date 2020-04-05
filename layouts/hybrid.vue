@@ -14,11 +14,7 @@ export default {
                 {
                     innerHTML: rem(),
                     type: 'text/javascript',
-                },
-                // {
-                //     src: '/static/js/talkdata.js',
-                //     type: 'text/javascript',
-                // },
+                }
             ],
             __dangerouslyDisableSanitizers: ['script']
         }

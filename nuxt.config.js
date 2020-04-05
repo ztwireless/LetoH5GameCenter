@@ -109,9 +109,6 @@ module.exports = {
             src: '~plugins/alloylever.js', ssr: false,
         },
         {
-            src: '~plugins/native.js', ssr: false,
-        },
-        {
             src: '~plugins/callupapp.js', ssr: false,
         },
         {
@@ -147,10 +144,7 @@ module.exports = {
         },
         {
             src: '~plugins/toast.js', ssr: false,
-        },
-        // {
-        //     src: '~/plugins/talkdata.js', ssr: false,
-        // },
+        }
     ],
 
     performance: {

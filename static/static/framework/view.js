@@ -19229,19 +19229,43 @@ var apiObj_js = {
 		}
 	},
 	getRecentGameList: function getRecentGameList() {
-		var data = window.__nativeLocalStorage.getItem(_const2.default.LETO_RECENT_GAMES);
-		return data || {};
+		try {
+			var j = JSON.parse(window.__nativeLocalStorage.getItem(_const2.default.LETO_RECENT_GAMES));
+			if (j && j.gameList && j.gameList.length > 0) {
+				return j;
+			} else {
+				return {};
+			}
+		} catch (e) {
+			return {};
+		}
 	},
 	getFavoriteGameList: function getFavoriteGameList() {
-		var data = window.__nativeLocalStorage.getItem(_const2.default.LETO_FAVORITE_GAMES);
-		return data || {};
+		try {
+			var j = JSON.parse(window.__nativeLocalStorage.getItem(_const2.default.LETO_FAVORITE_GAMES));
+			if (j && j.gameList && j.gameList.length > 0) {
+				return j;
+			} else {
+				return {};
+			}
+		} catch (e) {
+			return {};
+		}
 	},
 	getLocalGameCenterData: function getLocalGameCenterData() {
-		var data = window.__nativeLocalStorage.getItem(_const2.default.LETO_GAME_CENTER_DATA);
-		return data || [];
+		try {
+			var j = JSON.parse(window.__nativeLocalStorage.getItem(_const2.default.LETO_GAME_CENTER_DATA));
+			if (j && j.gameCenterData && j.gameCenterData.length > 0) {
+				return j;
+			} else {
+				return {};
+			}
+		} catch (e) {
+			return {};
+		}
 	},
 	saveGameCenterDataToLocal: function saveGameCenterDataToLocal(params) {
-		params = params || [];
+		params = params || {};
 		window.__nativeLocalStorage.setItem(_const2.default.LETO_GAME_CENTER_DATA, JSON.stringify(params));
 	}
 };

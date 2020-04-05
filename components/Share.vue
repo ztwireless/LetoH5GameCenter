@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import native from '~/plugins/native';
 import {localUrl} from '~/config';
 
 export default {
@@ -65,21 +64,24 @@ export default {
                 type: 1,
             }, this.sharedata);
 
-            native.wxshare(timeline);
+            // TODO share?
+            // native.wxshare(timeline);
         },
         wechat() {
             const wechat = Object.assign({
                 type: 0,
             }, this.sharedata);
 
-            native.wxshare(wechat);
+			// TODO share?
+            // native.wxshare(wechat);
         },
         qq() {
             const wechat = Object.assign({
                 type: 4,
             }, this.sharedata);
 
-            native.wxshare(wechat);
+			// TODO share?
+            // native.wxshare(wechat);
         },
         cancel() {
             this.$emit('cancel');
