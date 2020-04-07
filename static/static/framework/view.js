@@ -1306,6 +1306,48 @@ function getOrCreateDeviceId() {
 	return deviceId;
 }
 
+/**
+ * 把路径格式化成数组, 排除空字符串
+ */
+function normalizeSegments(path) {
+	if (!path) {
+		return [];
+	} else {
+		var segments = path.split('/');
+		segments = segments.filter(function (seg) {
+			return seg.length > 0;
+		});
+		return segments;
+	}
+}
+
+function normalizePath(path) {
+	// if empty, return empty
+	if (!path) {
+		return '';
+	}
+
+	// if url, don't process
+	var pathWithoutSchema = path;
+	if (path.startsWith('http:') || path.startsWith('https:')) {
+		return pathWithoutSchema;
+	}
+
+	// handle wdfile and wdtmp, if not absolute path, don't process
+	if (path.startsWith(_const2.default.LETO_FILE_SCHEMA)) {
+		pathWithoutSchema = path.substring(_const2.default.LETO_FILE_SCHEMA.length);
+	} else if (path.startsWith(_const2.default.LETO_TMP_SCHEMA)) {
+		pathWithoutSchema = path.substring(_const2.default.LETO_TMP_SCHEMA.length);
+	}
+	if (pathWithoutSchema.startsWith('/')) {
+		path = _const2.default.LETO_STORE_DIR + pathWithoutSchema;
+		var segments = normalizeSegments(path);
+		return '/' + segments.join('/');
+	} else {
+		return pathWithoutSchema;
+	}
+}
+
 function convertArrayBuffer(buf, encoding) {
 	// check encoding, not set means return array buffer
 	if (encoding === undefined || encoding === null || typeof encoding == 'string' && encoding.length <= 0) {
@@ -1404,7 +1446,9 @@ exports.default = {
 	convertArrayBuffer: convertArrayBuffer,
 	stringByDeleteLastPathComponent: stringByDeleteLastPathComponent,
 	lastPathComponent: lastPathComponent,
-	pathExtension: pathExtension
+	pathExtension: pathExtension,
+	normalizeSegments: normalizeSegments,
+	normalizePath: normalizePath
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
@@ -8467,57 +8511,11 @@ var FileSystemManager_js = function () {
 		value: function debug() {
 			return this.fs.debug();
 		}
-
-		/**
-   * 把路径格式化成数组, 排除空字符串
-   */
-
-	}, {
-		key: '_normalizeSegments',
-		value: function _normalizeSegments(path) {
-			if (!path) {
-				return [];
-			} else {
-				var segments = path.split('/');
-				segments = segments.filter(function (seg) {
-					return seg.length > 0;
-				});
-				return segments;
-			}
-		}
-	}, {
-		key: '_normalizePath',
-		value: function _normalizePath(path) {
-			// if empty, return empty
-			if (!path) {
-				return '';
-			}
-
-			// if url, don't process
-			var pathWithoutSchema = path;
-			if (path.startsWith('http:') || path.startsWith('https:')) {
-				return pathWithoutSchema;
-			}
-
-			// handle wdfile and wdtmp, if not absolute path, don't process
-			if (path.startsWith(_const2.default.LETO_FILE_SCHEMA)) {
-				pathWithoutSchema = path.substring(_const2.default.LETO_FILE_SCHEMA.length);
-			} else if (path.startsWith(_const2.default.LETO_TMP_SCHEMA)) {
-				pathWithoutSchema = path.substring(_const2.default.LETO_TMP_SCHEMA.length);
-			}
-			if (pathWithoutSchema.startsWith('/')) {
-				path = _const2.default.LETO_STORE_DIR + pathWithoutSchema;
-				var segments = this._normalizeSegments(path);
-				return '/' + segments.join('/');
-			} else {
-				return pathWithoutSchema;
-			}
-		}
 	}, {
 		key: 'appendFile',
 		value: function appendFile(params) {
 			params = params || {};
-			params.filePath = this._normalizePath(params.filePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			this.fs.appendFile(params.filePath, params.data, params.encoding).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8533,14 +8531,14 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'appendFileSync',
 		value: function appendFileSync(filePath, data, encoding) {
-			filePath = this._normalizePath(filePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			this.fs.appendFileSync(filePath, data, encoding);
 		}
 	}, {
 		key: 'access',
 		value: function access(params) {
 			params = params || {};
-			params.path = this._normalizePath(params.path);
+			params.path = _utils2.default.normalizePath(params.path);
 			this.fs.access(params.path).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8556,7 +8554,7 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'accessSync',
 		value: function accessSync(path) {
-			path = this._normalizePath(path);
+			path = _utils2.default.normalizePath(path);
 			if (this.fs.accessSync(path)) {
 				return null;
 			} else {
@@ -8567,8 +8565,8 @@ var FileSystemManager_js = function () {
 		key: 'copyFile',
 		value: function copyFile(params) {
 			params = params || {};
-			params.srcPath = this._normalizePath(params.srcPath);
-			params.destPath = this._normalizePath(params.destPath);
+			params.srcPath = _utils2.default.normalizePath(params.srcPath);
+			params.destPath = _utils2.default.normalizePath(params.destPath);
 			this.fs.copyFile(params.srcPath, params.destPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8584,8 +8582,8 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'copyFileSync',
 		value: function copyFileSync(srcPath, destPath) {
-			srcPath = this._normalizePath(srcPath);
-			destPath = this._normalizePath(destPath);
+			srcPath = _utils2.default.normalizePath(srcPath);
+			destPath = _utils2.default.normalizePath(destPath);
 			this.fs.copyFileSync(srcPath, destPath);
 		}
 	}, {
@@ -8603,7 +8601,7 @@ var FileSystemManager_js = function () {
 		key: 'getFileInfo',
 		value: function getFileInfo(params) {
 			params = params || {};
-			params.filePath = this._normalizePath(params.filePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			var info = this.fs.getFileInfo(params.filePath);
 			params.__fake_result = {
 				errCode: _const2.default.RESULT_OK,
@@ -8615,7 +8613,7 @@ var FileSystemManager_js = function () {
 		key: 'mkdir',
 		value: function mkdir(params) {
 			params = params || {};
-			params.dirPath = this._normalizePath(params.dirPath);
+			params.dirPath = _utils2.default.normalizePath(params.dirPath);
 			this.fs.mkdir(params.dirPath, !!params.recursive).then(function (r) {
 				// ok anyway
 				params.__fake_result = {
@@ -8633,14 +8631,14 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'mkdirSync',
 		value: function mkdirSync(dirPath, recursive) {
-			dirPath = this._normalizePath(dirPath);
+			dirPath = _utils2.default.normalizePath(dirPath);
 			this.fs.mkdirSync(dirPath, recursive);
 		}
 	}, {
 		key: 'readFile',
 		value: function readFile(params) {
 			params = params || {};
-			params.filePath = this._normalizePath(params.filePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			console.log('readFile: ' + params.filePath);
 
 			// 如果不是绝对路径, 应该在远程
@@ -8691,7 +8689,7 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'readFileSync',
 		value: function readFileSync(filePath, encoding, position, length) {
-			filePath = this._normalizePath(filePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			console.log('readFileSync: ' + filePath);
 			if (!filePath.startsWith('/')) {
 				// process url
@@ -8721,7 +8719,7 @@ var FileSystemManager_js = function () {
 		key: 'readdir',
 		value: function readdir(params) {
 			params = params || {};
-			params.dirPath = this._normalizePath(params.dirPath);
+			params.dirPath = _utils2.default.normalizePath(params.dirPath);
 			this.fs.readdir(params.dirPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8738,15 +8736,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'readdirSync',
 		value: function readdirSync(dirPath) {
-			dirPath = this._normalizePath(dirPath);
+			dirPath = _utils2.default.normalizePath(dirPath);
 			return this.fs.readdirSync(dirPath);
 		}
 	}, {
 		key: 'rename',
 		value: function rename(params) {
 			params = params || {};
-			params.oldPath = this._normalizePath(params.oldPath);
-			params.newPath = this._normalizePath(params.newPath);
+			params.oldPath = _utils2.default.normalizePath(params.oldPath);
+			params.newPath = _utils2.default.normalizePath(params.newPath);
 			this.fs.rename(params.oldPath, params.newPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8762,15 +8760,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'renameSync',
 		value: function renameSync(oldPath, newPath) {
-			oldPath = this._normalizePath(params.oldPath);
-			newPath = this._normalizePath(newPath);
+			oldPath = _utils2.default.normalizePath(params.oldPath);
+			newPath = _utils2.default.normalizePath(newPath);
 			this.fs.renameSync(oldPath, newPath);
 		}
 	}, {
 		key: 'rmdir',
 		value: function rmdir(params) {
 			params = params || {};
-			params.dirPath = this._normalizePath(params.dirPath);
+			params.dirPath = _utils2.default.normalizePath(params.dirPath);
 			this.fs.rmdir(params.dirPath, !!params.recursive).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8786,14 +8784,14 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'rmdirSync',
 		value: function rmdirSync(dirPath, recursive) {
-			dirPath = this._normalizePath(dirPath);
+			dirPath = _utils2.default.normalizePath(dirPath);
 			this.fs.rmdirSync(dirPath, recursive);
 		}
 	}, {
 		key: 'removeSavedFile',
 		value: function removeSavedFile(params) {
 			params = params || {};
-			params.filePath = this._normalizePath(params.filePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			params.__fake_result = {
 				errCode: _const2.default.RESULT_FAIL
 			};
@@ -8803,8 +8801,8 @@ var FileSystemManager_js = function () {
 		key: 'saveFile',
 		value: function saveFile(params) {
 			params = params || {};
-			params.tempFilePath = this._normalizePath(params.tempFilePath);
-			params.filePath = this._normalizePath(params.filePath);
+			params.tempFilePath = _utils2.default.normalizePath(params.tempFilePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			this.fs.saveFile(params.tempFilePath, params.filePath).then(function (savedFilePath) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8821,15 +8819,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'saveFileSync',
 		value: function saveFileSync(tempFilePath, filePath) {
-			tempFilePath = this._normalizePath(tempFilePath);
-			filePath = this._normalizePath(filePath);
+			tempFilePath = _utils2.default.normalizePath(tempFilePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			this.fs.saveFileSync(tempFilePath, filePath);
 		}
 	}, {
 		key: 'stat',
 		value: function stat(params) {
 			params = params || {};
-			params.path = this._normalizePath(params.path);
+			params.path = _utils2.default.normalizePath(params.path);
 			this.fs.stat(params.path, params.recursive).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8848,14 +8846,14 @@ var FileSystemManager_js = function () {
 		value: function statSync(path) {
 			var recursive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-			path = this._normalizePath(path);
+			path = _utils2.default.normalizePath(path);
 			return this.fs.statSync(path, recursive);
 		}
 	}, {
 		key: 'unlink',
 		value: function unlink(params) {
 			params = params || {};
-			params.filePath = this._normalizePath(params.filePath);
+			params.filePath = _utils2.default.normalizePath(params.filePath);
 			this.fs.unlink(params.filePath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8871,15 +8869,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'unlinkSync',
 		value: function unlinkSync(filePath) {
-			filePath = this._normalizePath(filePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			this.fs.unlinkSync(filePath);
 		}
 	}, {
 		key: 'unzip',
 		value: function unzip(params) {
 			params = params || {};
-			params.zipFilePath = this._normalizePath(params.zipFilePath);
-			params.targetPath = this._normalizePath(params.targetPath);
+			params.zipFilePath = _utils2.default.normalizePath(params.zipFilePath);
+			params.targetPath = _utils2.default.normalizePath(params.targetPath);
 			this.fs.unzip(params.zipFilePath, params.targetPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8901,7 +8899,7 @@ var FileSystemManager_js = function () {
 						switch (_context.prev = _context.next) {
 							case 0:
 								params = params || {};
-								params.filePath = this._normalizePath(params.filePath);
+								params.filePath = _utils2.default.normalizePath(params.filePath);
 								this.fs.writeFile(params.filePath, params.data, params.encoding).then(function (r) {
 									params.__fake_result = {
 										errCode: _const2.default.RESULT_OK
@@ -8931,13 +8929,13 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'writeFileSync',
 		value: function writeFileSync(filePath, data, encoding) {
-			filePath = this._normalizePath(filePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			return this.fs.writeFileSync(filePath, data, encoding);
 		}
 	}, {
 		key: 'resolveUrlSync',
 		value: function resolveUrlSync(filePath) {
-			filePath = this._normalizePath(filePath);
+			filePath = _utils2.default.normalizePath(filePath);
 			return filePath;
 		}
 	}]);
@@ -9568,7 +9566,7 @@ var IndexedDBFS = function () {
 		key: '_getPathINodeFromCache',
 		value: function _getPathINodeFromCache(path) {
 			// find inode key
-			var segments = path.split('/');
+			var segments = _utils2.default.normalizeSegments(path);
 			var parent = '/'; // '/' for root
 			var _iteratorNormalCompletion2 = true;
 			var _didIteratorError2 = false;
@@ -9634,7 +9632,7 @@ var IndexedDBFS = function () {
 												switch (_context9.prev = _context9.next) {
 													case 0:
 														// find inode key
-														segments = path.split('/');
+														segments = _utils2.default.normalizeSegments(path);
 														key = '/'; // '/' for root
 
 														_iteratorNormalCompletion3 = true;
@@ -10137,7 +10135,7 @@ var IndexedDBFS = function () {
 			}
 
 			// find deepest parent
-			var segments = path.split('/');
+			var segments = _utils2.default.normalizeSegments(path);
 			var parent = '/'; // '/' for root
 			var segIdx = 0;
 			var _iteratorNormalCompletion6 = true;
