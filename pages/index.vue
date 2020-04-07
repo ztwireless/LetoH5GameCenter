@@ -19,7 +19,7 @@
                 <div class="content">
 
                     <!-- banner -->
-                    <div class="banner">
+                    <div class="banner" v-if="banners.gameList && banners.gameList.length > 0">
                         <div class="swiper-container" v-swiper:mySwiper="swiperOption">
                             <div class="swiper-wrapper">
                                 <img :src="item.pic" alt=""
@@ -290,7 +290,7 @@ export default {
             },
 
             newGames: NEWGAMES,
-            banners: {}
+            banners: BANNER
         }
     },
 

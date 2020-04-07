@@ -295,6 +295,29 @@ function checkUrlInConfig(apiName, url, params) {
 	return -1 !== __wxConfig.pages.indexOf(path) || (beforeInvokeFail(apiName, params, 'url "' + _utils2.default.removeHtmlSuffixFromUrl(url) + '" is not in app.json'), !1);
 }
 
+// directly succeed
+function simulateOK(event, params, data) {
+	params = params || {};
+	params.__fake_result = params.__fake_result || {};
+	params.__fake_result.errCode = _const2.default.RESULT_OK;
+	if (data) {
+		params.__fake_result = Object.assign(params.__fake_result, data);
+	}
+	setTimeout(function () {
+		invokeMethod(event, params);
+	}, 0);
+}
+
+// directly fail
+function simulateFail(event, params) {
+	params = params || {};
+	params.__fake_result = params.__fake_result || {};
+	params.__fake_result.errCode = _const2.default.RESULT_FAIL;
+	setTimeout(function () {
+		invokeMethod(event, params);
+	}, 0);
+}
+
 exports.default = {
 	invoke: invoke,
 	on: on,
@@ -307,7 +330,9 @@ exports.default = {
 	beforeInvoke: beforeInvoke,
 	beforeInvokeFail: beforeInvokeFail,
 	checkUrlInConfig: checkUrlInConfig,
-	callSyncApi: callSyncApi
+	callSyncApi: callSyncApi,
+	simulateOK: simulateOK,
+	simulateFail: simulateFail
 };
 
 /***/ }),
@@ -706,8 +731,12 @@ function base64ToArrayBuffer(str) {
 }
 
 function textToArrayBuffer(str) {
-	var enc = new TextEncoder();
-	return enc.encode(str).buffer;
+	var buf = new ArrayBuffer(str.length);
+	var bufView = new Uint8Array(buf);
+	for (var i = 0, strLen = str.length; i < strLen; i++) {
+		bufView[i] = str.charCodeAt(i);
+	}
+	return buf;
 }
 
 function parseData(str) {
@@ -1277,6 +1306,66 @@ function getOrCreateDeviceId() {
 	return deviceId;
 }
 
+function convertArrayBuffer(buf, encoding) {
+	// check encoding, not set means return array buffer
+	if (encoding === undefined || encoding === null || typeof encoding == 'string' && encoding.length <= 0) {
+		return buf;
+	} else {
+		switch (encoding) {
+			case 'hex':
+				return buf2hex(buf);
+			case 'base64':
+				return arrayBufferToBase64(buf);
+			case 'utf16le':
+			case 'utf-16le':
+			case 'ucs2':
+			case 'ucs-2':
+				return String.fromCharCode.apply(null, new Uint16Array(buf));
+			default:
+				{
+					var d = new TextDecoder();
+					return d.decode(buf);
+				}
+		}
+	}
+}
+
+function stringByDeleteLastPathComponent(p) {
+	if (typeof p == 'string') {
+		var idx = p.lastIndexOf('/');
+		if (idx != -1 && idx > 0) {
+			p = p.substring(0, idx);
+		}
+	}
+	return p;
+}
+
+function lastPathComponent(p) {
+	if (typeof p == 'string') {
+		// remove trailing /
+		while (p.length > 1 && p.endsWith('/')) {
+			p.substring(0, p.length - 1);
+		}
+		var idx = p.lastIndexOf('/');
+		if (idx != -1 && idx < p.length - 1) {
+			p = p.substring(idx + 1);
+		}
+	}
+	return p;
+}
+
+function pathExtension(p) {
+	if (!p) {
+		return '';
+	}
+	var idx = p.lastIndexOf('.');
+	if (idx == -1) {
+		return '';
+	} else {
+		return p.substring(idx + 1);
+	}
+}
+
 exports.default = {
 	surroundByTryCatchFactory: surroundByTryCatchFactory,
 	throttle: throttle,
@@ -1311,7 +1400,11 @@ exports.default = {
 	getFontFamily: getFontFamily,
 	concatArrayBuffer: concatArrayBuffer,
 	getOrCreateUserId: getOrCreateUserId,
-	getOrCreateDeviceId: getOrCreateDeviceId
+	getOrCreateDeviceId: getOrCreateDeviceId,
+	convertArrayBuffer: convertArrayBuffer,
+	stringByDeleteLastPathComponent: stringByDeleteLastPathComponent,
+	lastPathComponent: lastPathComponent,
+	pathExtension: pathExtension
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
@@ -1994,716 +2087,6 @@ var URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors ||
-  function getOwnPropertyDescriptors(obj) {
-    var keys = Object.keys(obj);
-    var descriptors = {};
-    for (var i = 0; i < keys.length; i++) {
-      descriptors[keys[i]] = Object.getOwnPropertyDescriptor(obj, keys[i]);
-    }
-    return descriptors;
-  };
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  if (typeof process !== 'undefined' && process.noDeprecation === true) {
-    return fn;
-  }
-
-  // Allow for deprecating things in the process of starting up.
-  if (typeof process === 'undefined') {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = __webpack_require__(32);
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = __webpack_require__(33);
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-var kCustomPromisifiedSymbol = typeof Symbol !== 'undefined' ? Symbol('util.promisify.custom') : undefined;
-
-exports.promisify = function promisify(original) {
-  if (typeof original !== 'function')
-    throw new TypeError('The "original" argument must be of type Function');
-
-  if (kCustomPromisifiedSymbol && original[kCustomPromisifiedSymbol]) {
-    var fn = original[kCustomPromisifiedSymbol];
-    if (typeof fn !== 'function') {
-      throw new TypeError('The "util.promisify.custom" argument must be of type Function');
-    }
-    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
-      value: fn, enumerable: false, writable: false, configurable: true
-    });
-    return fn;
-  }
-
-  function fn() {
-    var promiseResolve, promiseReject;
-    var promise = new Promise(function (resolve, reject) {
-      promiseResolve = resolve;
-      promiseReject = reject;
-    });
-
-    var args = [];
-    for (var i = 0; i < arguments.length; i++) {
-      args.push(arguments[i]);
-    }
-    args.push(function (err, value) {
-      if (err) {
-        promiseReject(err);
-      } else {
-        promiseResolve(value);
-      }
-    });
-
-    try {
-      original.apply(this, args);
-    } catch (err) {
-      promiseReject(err);
-    }
-
-    return promise;
-  }
-
-  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
-
-  if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
-    value: fn, enumerable: false, writable: false, configurable: true
-  });
-  return Object.defineProperties(
-    fn,
-    getOwnPropertyDescriptors(original)
-  );
-}
-
-exports.promisify.custom = kCustomPromisifiedSymbol
-
-function callbackifyOnRejected(reason, cb) {
-  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
-  // Because `null` is a special error value in callbacks which means "no error
-  // occurred", we error-wrap so the callback consumer can distinguish between
-  // "the promise rejected with null" or "the promise fulfilled with undefined".
-  if (!reason) {
-    var newReason = new Error('Promise was rejected with a falsy value');
-    newReason.reason = reason;
-    reason = newReason;
-  }
-  return cb(reason);
-}
-
-function callbackify(original) {
-  if (typeof original !== 'function') {
-    throw new TypeError('The "original" argument must be of type Function');
-  }
-
-  // We DO NOT return the promise as it gives the user a false sense that
-  // the promise is actually somehow related to the callback's execution
-  // and that the callback throwing will reject the promise.
-  function callbackified() {
-    var args = [];
-    for (var i = 0; i < arguments.length; i++) {
-      args.push(arguments[i]);
-    }
-
-    var maybeCb = args.pop();
-    if (typeof maybeCb !== 'function') {
-      throw new TypeError('The last argument must be of type Function');
-    }
-    var self = this;
-    var cb = function() {
-      return maybeCb.apply(self, arguments);
-    };
-    // In true node style we process the callback on `nextTick` with all the
-    // implications (stack, `uncaughtException`, `async_hooks`)
-    original.apply(this, args)
-      .then(function(ret) { process.nextTick(cb, null, ret) },
-            function(rej) { process.nextTick(callbackifyOnRejected, rej, cb) });
-  }
-
-  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
-  Object.defineProperties(callbackified,
-                          getOwnPropertyDescriptors(original));
-  return callbackified;
-}
-exports.callbackify = callbackify;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 
 
@@ -2716,11 +2099,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Canvas Context API
 
 
-var _canvas = __webpack_require__(15);
+var _canvas = __webpack_require__(14);
 
 var _canvas2 = _interopRequireDefault(_canvas);
 
-var _predefinedColor = __webpack_require__(41);
+var _predefinedColor = __webpack_require__(39);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2962,7 +2345,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2976,7 +2359,7 @@ var _bridge = __webpack_require__(0);
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _context = __webpack_require__(14);
+var _context = __webpack_require__(13);
 
 var _context2 = _interopRequireDefault(_context);
 
@@ -2984,7 +2367,7 @@ var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _EventEmitter = __webpack_require__(16);
+var _EventEmitter = __webpack_require__(15);
 
 var _EventEmitter2 = _interopRequireDefault(_EventEmitter);
 
@@ -3131,7 +2514,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3900,7 +3283,7 @@ exports.default = EventEmitter;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, exports) {
 
 var charenc = {
@@ -3939,7 +3322,7 @@ module.exports = charenc;
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4137,7 +3520,7 @@ var SocketTask_js = function () {
 exports.default = SocketTask_js;
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4202,6 +3585,716 @@ window.MGCScene = MGCScene;
 exports.default = MGCScene;
 
 /***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors ||
+  function getOwnPropertyDescriptors(obj) {
+    var keys = Object.keys(obj);
+    var descriptors = {};
+    for (var i = 0; i < keys.length; i++) {
+      descriptors[keys[i]] = Object.getOwnPropertyDescriptor(obj, keys[i]);
+    }
+    return descriptors;
+  };
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  if (typeof process !== 'undefined' && process.noDeprecation === true) {
+    return fn;
+  }
+
+  // Allow for deprecating things in the process of starting up.
+  if (typeof process === 'undefined') {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = __webpack_require__(75);
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = __webpack_require__(76);
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+var kCustomPromisifiedSymbol = typeof Symbol !== 'undefined' ? Symbol('util.promisify.custom') : undefined;
+
+exports.promisify = function promisify(original) {
+  if (typeof original !== 'function')
+    throw new TypeError('The "original" argument must be of type Function');
+
+  if (kCustomPromisifiedSymbol && original[kCustomPromisifiedSymbol]) {
+    var fn = original[kCustomPromisifiedSymbol];
+    if (typeof fn !== 'function') {
+      throw new TypeError('The "util.promisify.custom" argument must be of type Function');
+    }
+    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+      value: fn, enumerable: false, writable: false, configurable: true
+    });
+    return fn;
+  }
+
+  function fn() {
+    var promiseResolve, promiseReject;
+    var promise = new Promise(function (resolve, reject) {
+      promiseResolve = resolve;
+      promiseReject = reject;
+    });
+
+    var args = [];
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    args.push(function (err, value) {
+      if (err) {
+        promiseReject(err);
+      } else {
+        promiseResolve(value);
+      }
+    });
+
+    try {
+      original.apply(this, args);
+    } catch (err) {
+      promiseReject(err);
+    }
+
+    return promise;
+  }
+
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+
+  if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    value: fn, enumerable: false, writable: false, configurable: true
+  });
+  return Object.defineProperties(
+    fn,
+    getOwnPropertyDescriptors(original)
+  );
+}
+
+exports.promisify.custom = kCustomPromisifiedSymbol
+
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    var newReason = new Error('Promise was rejected with a falsy value');
+    newReason.reason = reason;
+    reason = newReason;
+  }
+  return cb(reason);
+}
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new TypeError('The "original" argument must be of type Function');
+  }
+
+  // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+  function callbackified() {
+    var args = [];
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    var maybeCb = args.pop();
+    if (typeof maybeCb !== 'function') {
+      throw new TypeError('The last argument must be of type Function');
+    }
+    var self = this;
+    var cb = function() {
+      return maybeCb.apply(self, arguments);
+    };
+    // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+    original.apply(this, args)
+      .then(function(ret) { process.nextTick(cb, null, ret) },
+            function(rej) { process.nextTick(callbackifyOnRejected, rej, cb) });
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified,
+                          getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+exports.callbackify = callbackify;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+
+/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4218,13 +4311,13 @@ __webpack_require__(23);
 
 __webpack_require__(30);
 
-__webpack_require__(34);
-
-__webpack_require__(92);
+__webpack_require__(32);
 
 __webpack_require__(93);
 
-__webpack_require__(98);
+__webpack_require__(94);
+
+__webpack_require__(99);
 
 /***/ }),
 /* 21 */
@@ -5626,15 +5719,11 @@ function sha1(bytes) {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 var _errorType = __webpack_require__(31);
 
 var errorType = _interopRequireWildcard(_errorType);
-
-var _util = __webpack_require__(13);
-
-var _util2 = _interopRequireDefault(_util);
 
 var _const = __webpack_require__(1);
 
@@ -5880,21 +5969,6 @@ typeof window !== 'undefined' && (window.onbeforeunload = function () {
 window.Reporter = defineObj;
 module.exports = defineObj;
 
-// custom log method
-var prodMode = process.env.NODE_ENV == 'production';
-window.logxx = function (msg) {
-	jsBridge.publish('H5_CONSOLE_LOG', { msg: msg }, ['']);
-};
-if (!window.console) {
-	window.console = {};
-}
-window.console.log = window.console.info = window.console.trace = window.console.warn = window.console.error = function () {
-	if (!prodMode || window.__wxConfig__ && window.__wxConfig__.enable_log) {
-		logxx(_util2.default.format.apply(this, arguments) + '\n');
-	}
-};
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
 /***/ }),
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -6011,61 +6085,21 @@ var ErrorType = exports.ErrorType = {
 
 /***/ }),
 /* 32 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
+"use strict";
+
+
+__webpack_require__(33);
+
+__webpack_require__(92);
 
 /***/ }),
 /* 33 */
-/***/ (function(module, exports) {
-
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-
-/***/ }),
-/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-__webpack_require__(35);
-
-__webpack_require__(91);
-
-/***/ }),
-/* 35 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/* WEBPACK VAR INJECTION */(function(process) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -6077,11 +6111,11 @@ var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _fileManager = __webpack_require__(36);
+var _fileManager = __webpack_require__(34);
 
 var _fileManager2 = _interopRequireDefault(_fileManager);
 
-var _fileManager_js = __webpack_require__(38);
+var _fileManager_js = __webpack_require__(36);
 
 var _fileManager_js2 = _interopRequireDefault(_fileManager_js);
 
@@ -6089,157 +6123,165 @@ var _configFlags = __webpack_require__(8);
 
 var _configFlags2 = _interopRequireDefault(_configFlags);
 
-var _context = __webpack_require__(14);
+var _context = __webpack_require__(13);
 
 var _context2 = _interopRequireDefault(_context);
 
-var _canvas = __webpack_require__(15);
+var _canvas = __webpack_require__(14);
 
 var _canvas2 = _interopRequireDefault(_canvas);
 
-var _storage = __webpack_require__(42);
+var _storage = __webpack_require__(40);
 
 var _storage2 = _interopRequireDefault(_storage);
 
-var _downloadTask = __webpack_require__(43);
+var _downloadTask = __webpack_require__(41);
 
 var _downloadTask2 = _interopRequireDefault(_downloadTask);
 
-var _downloadTask_js = __webpack_require__(44);
+var _downloadTask_js = __webpack_require__(42);
 
 var _downloadTask_js2 = _interopRequireDefault(_downloadTask_js);
 
-var _uploadTask = __webpack_require__(48);
+var _uploadTask = __webpack_require__(46);
 
 var _uploadTask2 = _interopRequireDefault(_uploadTask);
 
-var _uploadTask_js = __webpack_require__(49);
+var _uploadTask_js = __webpack_require__(47);
 
 var _uploadTask_js2 = _interopRequireDefault(_uploadTask_js);
 
-var _requestTask = __webpack_require__(50);
+var _requestTask = __webpack_require__(48);
 
 var _requestTask2 = _interopRequireDefault(_requestTask);
 
-var _requestTask_js = __webpack_require__(51);
+var _requestTask_js = __webpack_require__(49);
 
 var _requestTask_js2 = _interopRequireDefault(_requestTask_js);
 
-var _loadSubpackage = __webpack_require__(52);
+var _loadSubpackage = __webpack_require__(50);
 
 var _loadSubpackage2 = _interopRequireDefault(_loadSubpackage);
 
-var _socketTask = __webpack_require__(53);
+var _loadSubpackage_js = __webpack_require__(51);
+
+var _loadSubpackage_js2 = _interopRequireDefault(_loadSubpackage_js);
+
+var _socketTask = __webpack_require__(52);
 
 var _socketTask2 = _interopRequireDefault(_socketTask);
 
-var _socketTask_js = __webpack_require__(18);
+var _socketTask_js = __webpack_require__(17);
 
 var _socketTask_js2 = _interopRequireDefault(_socketTask_js);
 
-var _versionUpdateManager = __webpack_require__(54);
+var _versionUpdateManager = __webpack_require__(53);
 
 var _versionUpdateManager2 = _interopRequireDefault(_versionUpdateManager);
 
-var _bannerAd = __webpack_require__(55);
+var _bannerAd = __webpack_require__(54);
 
 var _bannerAd2 = _interopRequireDefault(_bannerAd);
 
-var _rewardedVideoAd = __webpack_require__(56);
+var _rewardedVideoAd = __webpack_require__(55);
 
 var _rewardedVideoAd2 = _interopRequireDefault(_rewardedVideoAd);
 
-var _interstitialAd = __webpack_require__(57);
+var _interstitialAd = __webpack_require__(56);
 
 var _interstitialAd2 = _interopRequireDefault(_interstitialAd);
 
-var _gameIcon = __webpack_require__(58);
+var _gameIcon = __webpack_require__(57);
 
 var _gameIcon2 = _interopRequireDefault(_gameIcon);
 
-var _gamePortal = __webpack_require__(59);
+var _gamePortal = __webpack_require__(58);
 
 var _gamePortal2 = _interopRequireDefault(_gamePortal);
 
-var _openDataContext = __webpack_require__(60);
+var _openDataContext = __webpack_require__(59);
 
 var _openDataContext2 = _interopRequireDefault(_openDataContext);
 
-var _sceneConst = __webpack_require__(19);
+var _sceneConst = __webpack_require__(18);
 
 var _sceneConst2 = _interopRequireDefault(_sceneConst);
+
+__webpack_require__(60);
 
 __webpack_require__(61);
 
 __webpack_require__(62);
 
-__webpack_require__(63);
-
 var _const = __webpack_require__(1);
 
 var _const2 = _interopRequireDefault(_const);
 
-var _innerAudioContext = __webpack_require__(64);
+var _innerAudioContext = __webpack_require__(63);
 
 var _innerAudioContext2 = _interopRequireDefault(_innerAudioContext);
 
-var _backgroundAudioManager = __webpack_require__(65);
+var _backgroundAudioManager = __webpack_require__(64);
 
 var _backgroundAudioManager2 = _interopRequireDefault(_backgroundAudioManager);
 
-var _recorderManager = __webpack_require__(66);
+var _recorderManager = __webpack_require__(65);
 
 var _recorderManager2 = _interopRequireDefault(_recorderManager);
 
-var _gameClubButton = __webpack_require__(67);
+var _gameClubButton = __webpack_require__(66);
 
 var _gameClubButton2 = _interopRequireDefault(_gameClubButton);
 
-var _userInfoButton = __webpack_require__(68);
+var _userInfoButton = __webpack_require__(67);
 
 var _userInfoButton2 = _interopRequireDefault(_userInfoButton);
 
-var _openSettingButton = __webpack_require__(69);
+var _openSettingButton = __webpack_require__(68);
 
 var _openSettingButton2 = _interopRequireDefault(_openSettingButton);
 
-var _feedbackButton = __webpack_require__(70);
+var _feedbackButton = __webpack_require__(69);
 
 var _feedbackButton2 = _interopRequireDefault(_feedbackButton);
 
-var _gameClubButton_js = __webpack_require__(71);
+var _gameClubButton_js = __webpack_require__(70);
 
 var _gameClubButton_js2 = _interopRequireDefault(_gameClubButton_js);
 
-var _userInfoButton_js = __webpack_require__(72);
+var _userInfoButton_js = __webpack_require__(71);
 
 var _userInfoButton_js2 = _interopRequireDefault(_userInfoButton_js);
 
-var _openSettingButton_js = __webpack_require__(73);
+var _openSettingButton_js = __webpack_require__(72);
 
 var _openSettingButton_js2 = _interopRequireDefault(_openSettingButton_js);
 
-var _feedbackButton_js = __webpack_require__(74);
+var _feedbackButton_js = __webpack_require__(73);
 
 var _feedbackButton_js2 = _interopRequireDefault(_feedbackButton_js);
 
-var _logManager = __webpack_require__(75);
+var _logManager = __webpack_require__(74);
 
 var _logManager2 = _interopRequireDefault(_logManager);
 
-__webpack_require__(76);
+__webpack_require__(77);
 
-var _performance = __webpack_require__(77);
+var _performance = __webpack_require__(78);
 
 var _performance2 = _interopRequireDefault(_performance);
 
-var _mgc_api = __webpack_require__(78);
+var _mgc_api = __webpack_require__(79);
 
 var _mgc_api2 = _interopRequireDefault(_mgc_api);
 
-var _api_js = __webpack_require__(90);
+var _api_js = __webpack_require__(91);
 
 var _api_js2 = _interopRequireDefault(_api_js);
+
+var _util = __webpack_require__(19);
+
+var _util2 = _interopRequireDefault(_util);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -6331,7 +6373,14 @@ var emptyFn = function emptyFn() {},
 	loginSourceUrl: '',
 	openId: '',
 	unionId: '',
-	jsGameRootUrl: 'http://www.xianliao.com/mgc/letojs/games/games' // js模式下, 游戏存放的根url, 后面加上游戏id/__start__.html就是启动路径
+	jsGameRootUrl: 'http://www.xianliao.com/mgc/letojs/games/games', // js模式下, 游戏存放的根url, 后面加上游戏id/__start__.html就是启动路径
+
+	// 有些游戏访问阿拉丁的这个, 在文档里没有, 为了兼容设置一些假的
+	aldStage: {
+		onStart: function onStart() {},
+		onRunning: function onRunning() {},
+		onEnd: function onEnd() {}
+	}
 };
 
 _bridge2.default.subscribe('SPECIAL_PAGE_EVENT', function (params) {
@@ -6407,6 +6456,11 @@ var apiObj = {
 	setChannelId: function setChannelId(v) {
 		if (window.__nativeLocalStorage) {
 			window.__nativeLocalStorage.setItem(_const2.default.LETO_CHANNEL_ID, v);
+		}
+	},
+	getChannelId: function getChannelId() {
+		if (window.__nativeLocalStorage) {
+			return window.__nativeLocalStorage.getItem(_const2.default.LETO_CHANNEL_ID);
 		}
 	},
 
@@ -7368,7 +7422,11 @@ var apiObj = {
 	},
 	loadSubpackage: function loadSubpackage(params) {
 		if (paramCheck('loadSubpackage', params, { name: '' })) {
-			return new _loadSubpackage2.default(params);
+			if (MGC.SDKMode == _const2.default.SDK_MODE_JS) {
+				return new _loadSubpackage_js2.default(params);
+			} else {
+				return new _loadSubpackage2.default(params);
+			}
 		}
 		return null;
 	},
@@ -7851,8 +7909,74 @@ window.mgc.getFileSystemManager();
 
 // if pure js mode, need store something in local storage
 if (window.mgc.SDKMode == _const2.default.SDK_MODE_JS) {
-	_utils2.default.getOrCreateUserId();
-	_utils2.default.getOrCreateDeviceId();
+	// 一些关键参数可以通过url传入, 如果传入了, 以传入的为准, 尝试解析querystring
+	var queryParams = {};
+	if (window.location && window.location.search && window.location.search.length > 0) {
+		var qs = window.location.search;
+		if (qs.startsWith('?')) {
+			qs = qs.substring(1);
+		}
+		var pairs = qs.split('&');
+		var _iteratorNormalCompletion2 = true;
+		var _didIteratorError2 = false;
+		var _iteratorError2 = undefined;
+
+		try {
+			for (var _iterator2 = pairs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+				var pair = _step2.value;
+
+				var kv = pair.split('=');
+				if (kv.length == 2) {
+					queryParams[kv[0]] = kv[1];
+				}
+			}
+		} catch (err) {
+			_didIteratorError2 = true;
+			_iteratorError2 = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion2 && _iterator2.return) {
+					_iterator2.return();
+				}
+			} finally {
+				if (_didIteratorError2) {
+					throw _iteratorError2;
+				}
+			}
+		}
+	}
+
+	// save from query string or create new
+	if (queryParams.userId && queryParams.userId.length > 0) {
+		window.__nativeLocalStorage.setItem(_const2.default.LETO_MGC_MOBILE, queryParams.userId);
+	} else {
+		_utils2.default.getOrCreateUserId();
+	}
+	if (queryParams.deviceId && queryParams.deviceId.length > 0) {
+		window.__nativeLocalStorage.setItem(_const2.default.LETO_DEVICE_ID, queryParams.deviceId);
+	} else {
+		_utils2.default.getOrCreateDeviceId();
+	}
+	if (queryParams.channelId && queryParams.channelId.length > 0) {
+		window.__nativeLocalStorage.setItem(_const2.default.LETO_CHANNEL_ID, queryParams.channelId);
+	}
+}
+
+// set custom log method if not js mode
+if (window.mgc.SDKMode != _const2.default.SDK_MODE_JS) {
+	var prodMode = process.env.NODE_ENV == 'production';
+	window.console.__log = window.console.log;
+	window.console.log = window.console.info = window.console.trace = window.console.warn = window.console.error = function () {
+		if (!prodMode || window.__wxConfig__ && window.__wxConfig__.enable_log) {
+			logxx(_util2.default.format.apply(this, arguments) + '\n');
+		}
+	};
+	window.logxx = function (msg) {
+		window.console.__log(msg);
+		if (ServiceJSBridge) {
+			ServiceJSBridge.publish('H5_CONSOLE_LOG', { msg: msg }, ['']);
+		}
+	};
 }
 
 execOnReady(function () {
@@ -7866,9 +7990,10 @@ execOnReady(function () {
 		});
 	}, 1e2);
 });
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ }),
-/* 36 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7884,7 +8009,7 @@ var _bridge = __webpack_require__(0);
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _fileStats = __webpack_require__(37);
+var _fileStats = __webpack_require__(35);
 
 var _fileStats2 = _interopRequireDefault(_fileStats);
 
@@ -8226,7 +8351,7 @@ var FileSystemManager = function () {
 exports.default = FileSystemManager;
 
 /***/ }),
-/* 37 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8284,7 +8409,7 @@ var Stats = function () {
 exports.default = Stats;
 
 /***/ }),
-/* 38 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8304,7 +8429,7 @@ var _const = __webpack_require__(1);
 
 var _const2 = _interopRequireDefault(_const);
 
-var _indexed_db_fs = __webpack_require__(39);
+var _indexed_db_fs = __webpack_require__(37);
 
 var _indexed_db_fs2 = _interopRequireDefault(_indexed_db_fs);
 
@@ -8342,10 +8467,57 @@ var FileSystemManager_js = function () {
 		value: function debug() {
 			return this.fs.debug();
 		}
+
+		/**
+   * 把路径格式化成数组, 排除空字符串
+   */
+
+	}, {
+		key: '_normalizeSegments',
+		value: function _normalizeSegments(path) {
+			if (!path) {
+				return [];
+			} else {
+				var segments = path.split('/');
+				segments = segments.filter(function (seg) {
+					return seg.length > 0;
+				});
+				return segments;
+			}
+		}
+	}, {
+		key: '_normalizePath',
+		value: function _normalizePath(path) {
+			// if empty, return empty
+			if (!path) {
+				return '';
+			}
+
+			// if url, don't process
+			var pathWithoutSchema = path;
+			if (path.startsWith('http:') || path.startsWith('https:')) {
+				return pathWithoutSchema;
+			}
+
+			// handle wdfile and wdtmp, if not absolute path, don't process
+			if (path.startsWith(_const2.default.LETO_FILE_SCHEMA)) {
+				pathWithoutSchema = path.substring(_const2.default.LETO_FILE_SCHEMA.length);
+			} else if (path.startsWith(_const2.default.LETO_TMP_SCHEMA)) {
+				pathWithoutSchema = path.substring(_const2.default.LETO_TMP_SCHEMA.length);
+			}
+			if (pathWithoutSchema.startsWith('/')) {
+				path = _const2.default.LETO_STORE_DIR + pathWithoutSchema;
+				var segments = this._normalizeSegments(path);
+				return '/' + segments.join('/');
+			} else {
+				return pathWithoutSchema;
+			}
+		}
 	}, {
 		key: 'appendFile',
 		value: function appendFile(params) {
 			params = params || {};
+			params.filePath = this._normalizePath(params.filePath);
 			this.fs.appendFile(params.filePath, params.data, params.encoding).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8361,12 +8533,14 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'appendFileSync',
 		value: function appendFileSync(filePath, data, encoding) {
+			filePath = this._normalizePath(filePath);
 			this.fs.appendFileSync(filePath, data, encoding);
 		}
 	}, {
 		key: 'access',
 		value: function access(params) {
 			params = params || {};
+			params.path = this._normalizePath(params.path);
 			this.fs.access(params.path).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8382,6 +8556,7 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'accessSync',
 		value: function accessSync(path) {
+			path = this._normalizePath(path);
 			if (this.fs.accessSync(path)) {
 				return null;
 			} else {
@@ -8392,6 +8567,8 @@ var FileSystemManager_js = function () {
 		key: 'copyFile',
 		value: function copyFile(params) {
 			params = params || {};
+			params.srcPath = this._normalizePath(params.srcPath);
+			params.destPath = this._normalizePath(params.destPath);
 			this.fs.copyFile(params.srcPath, params.destPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8407,6 +8584,8 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'copyFileSync',
 		value: function copyFileSync(srcPath, destPath) {
+			srcPath = this._normalizePath(srcPath);
+			destPath = this._normalizePath(destPath);
 			this.fs.copyFileSync(srcPath, destPath);
 		}
 	}, {
@@ -8424,6 +8603,7 @@ var FileSystemManager_js = function () {
 		key: 'getFileInfo',
 		value: function getFileInfo(params) {
 			params = params || {};
+			params.filePath = this._normalizePath(params.filePath);
 			var info = this.fs.getFileInfo(params.filePath);
 			params.__fake_result = {
 				errCode: _const2.default.RESULT_OK,
@@ -8435,6 +8615,7 @@ var FileSystemManager_js = function () {
 		key: 'mkdir',
 		value: function mkdir(params) {
 			params = params || {};
+			params.dirPath = this._normalizePath(params.dirPath);
 			this.fs.mkdir(params.dirPath, !!params.recursive).then(function (r) {
 				// ok anyway
 				params.__fake_result = {
@@ -8452,45 +8633,31 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'mkdirSync',
 		value: function mkdirSync(dirPath, recursive) {
+			dirPath = this._normalizePath(dirPath);
 			this.fs.mkdirSync(dirPath, recursive);
 		}
 	}, {
 		key: 'readFile',
 		value: function readFile(params) {
 			params = params || {};
+			params.filePath = this._normalizePath(params.filePath);
+			console.log('readFile: ' + params.filePath);
 
 			// 如果不是绝对路径, 应该在远程
 			if (!params.filePath.startsWith('/')) {
-				var baseUrl = window.mgc.getAppBaseUrl();
+				var url = params.filePath;
+				if (!url.startsWith('http://') && !url.startsWith('https://')) {
+					var baseUrl = window.mgc.getAppBaseUrl();
+					url = baseUrl + '/' + params.filePath;
+				}
 				window.mgc.request({
-					url: baseUrl + '/' + params.filePath,
+					url: url,
 					responseType: 'arraybuffer',
 					dataType: 'arraybuffer',
 					success: function success(res) {
 						// convert encoding
 						var data = res.data;
-						if (params.encoding !== undefined) {
-							switch (params.encoding) {
-								case 'hex':
-									data = _utils2.default.buf2hex(data);
-									break;
-								case 'base64':
-									data = _utils2.default.arrayBufferToBase64(data);
-									break;
-								case 'utf16le':
-								case 'utf-16le':
-								case 'ucs2':
-								case 'ucs-2':
-									data = String.fromCharCode.apply(null, new Uint16Array(data));
-									break;
-								default:
-									{
-										var d = new TextDecoder();
-										data = d.decode(data);
-										break;
-									}
-							}
-						}
+						data = _utils2.default.convertArrayBuffer(data, params.encoding);
 
 						// return
 						params.__fake_result = {
@@ -8524,12 +8691,37 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'readFileSync',
 		value: function readFileSync(filePath, encoding, position, length) {
-			return this.fs.readFileSync(filePath, encoding, position, length);
+			filePath = this._normalizePath(filePath);
+			console.log('readFileSync: ' + filePath);
+			if (!filePath.startsWith('/')) {
+				// process url
+				var url = filePath;
+				if (!filePath.startsWith('http://') && !filePath.startsWith('https://')) {
+					var baseUrl = window.mgc.getAppBaseUrl();
+					url = baseUrl + '/' + filePath;
+				}
+
+				// create request
+				var xhr = new window.NativeGlobal.XMLHttpRequest();
+				xhr.overrideMimeType('text/plain; charset=x-user-defined');
+				xhr.open('GET', url, false);
+				xhr.send();
+				var buf = _utils2.default.textToArrayBuffer(xhr.response);
+				if (position !== undefined || length !== undefined) {
+					position = position || 0;
+					length = length || buf.byteLength;
+					buf = buf.slice(position, position + length);
+				}
+				return _utils2.default.convertArrayBuffer(buf, encoding);
+			} else {
+				return this.fs.readFileSync(filePath, encoding, position, length);
+			}
 		}
 	}, {
 		key: 'readdir',
 		value: function readdir(params) {
 			params = params || {};
+			params.dirPath = this._normalizePath(params.dirPath);
 			this.fs.readdir(params.dirPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8546,12 +8738,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'readdirSync',
 		value: function readdirSync(dirPath) {
+			dirPath = this._normalizePath(dirPath);
 			return this.fs.readdirSync(dirPath);
 		}
 	}, {
 		key: 'rename',
 		value: function rename(params) {
 			params = params || {};
+			params.oldPath = this._normalizePath(params.oldPath);
+			params.newPath = this._normalizePath(params.newPath);
 			this.fs.rename(params.oldPath, params.newPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8567,12 +8762,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'renameSync',
 		value: function renameSync(oldPath, newPath) {
+			oldPath = this._normalizePath(params.oldPath);
+			newPath = this._normalizePath(newPath);
 			this.fs.renameSync(oldPath, newPath);
 		}
 	}, {
 		key: 'rmdir',
 		value: function rmdir(params) {
 			params = params || {};
+			params.dirPath = this._normalizePath(params.dirPath);
 			this.fs.rmdir(params.dirPath, !!params.recursive).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8588,12 +8786,14 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'rmdirSync',
 		value: function rmdirSync(dirPath, recursive) {
+			dirPath = this._normalizePath(dirPath);
 			this.fs.rmdirSync(dirPath, recursive);
 		}
 	}, {
 		key: 'removeSavedFile',
 		value: function removeSavedFile(params) {
 			params = params || {};
+			params.filePath = this._normalizePath(params.filePath);
 			params.__fake_result = {
 				errCode: _const2.default.RESULT_FAIL
 			};
@@ -8603,6 +8803,8 @@ var FileSystemManager_js = function () {
 		key: 'saveFile',
 		value: function saveFile(params) {
 			params = params || {};
+			params.tempFilePath = this._normalizePath(params.tempFilePath);
+			params.filePath = this._normalizePath(params.filePath);
 			this.fs.saveFile(params.tempFilePath, params.filePath).then(function (savedFilePath) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8619,12 +8821,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'saveFileSync',
 		value: function saveFileSync(tempFilePath, filePath) {
+			tempFilePath = this._normalizePath(tempFilePath);
+			filePath = this._normalizePath(filePath);
 			this.fs.saveFileSync(tempFilePath, filePath);
 		}
 	}, {
 		key: 'stat',
 		value: function stat(params) {
 			params = params || {};
+			params.path = this._normalizePath(params.path);
 			this.fs.stat(params.path, params.recursive).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK,
@@ -8643,12 +8848,14 @@ var FileSystemManager_js = function () {
 		value: function statSync(path) {
 			var recursive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
+			path = this._normalizePath(path);
 			return this.fs.statSync(path, recursive);
 		}
 	}, {
 		key: 'unlink',
 		value: function unlink(params) {
 			params = params || {};
+			params.filePath = this._normalizePath(params.filePath);
 			this.fs.unlink(params.filePath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8664,12 +8871,15 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'unlinkSync',
 		value: function unlinkSync(filePath) {
+			filePath = this._normalizePath(filePath);
 			this.fs.unlinkSync(filePath);
 		}
 	}, {
 		key: 'unzip',
 		value: function unzip(params) {
 			params = params || {};
+			params.zipFilePath = this._normalizePath(params.zipFilePath);
+			params.targetPath = this._normalizePath(params.targetPath);
 			this.fs.unzip(params.zipFilePath, params.targetPath).then(function (r) {
 				params.__fake_result = {
 					errCode: _const2.default.RESULT_OK
@@ -8691,6 +8901,7 @@ var FileSystemManager_js = function () {
 						switch (_context.prev = _context.next) {
 							case 0:
 								params = params || {};
+								params.filePath = this._normalizePath(params.filePath);
 								this.fs.writeFile(params.filePath, params.data, params.encoding).then(function (r) {
 									params.__fake_result = {
 										errCode: _const2.default.RESULT_OK
@@ -8703,7 +8914,7 @@ var FileSystemManager_js = function () {
 									_bridge2.default.invokeMethod('FileSystemManager_writeFile', params);
 								});
 
-							case 2:
+							case 3:
 							case 'end':
 								return _context.stop();
 						}
@@ -8720,11 +8931,13 @@ var FileSystemManager_js = function () {
 	}, {
 		key: 'writeFileSync',
 		value: function writeFileSync(filePath, data, encoding) {
+			filePath = this._normalizePath(filePath);
 			return this.fs.writeFileSync(filePath, data, encoding);
 		}
 	}, {
 		key: 'resolveUrlSync',
 		value: function resolveUrlSync(filePath) {
+			filePath = this._normalizePath(filePath);
 			return filePath;
 		}
 	}]);
@@ -8735,7 +8948,7 @@ var FileSystemManager_js = function () {
 exports.default = FileSystemManager_js;
 
 /***/ }),
-/* 39 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8755,7 +8968,7 @@ var _utils2 = _interopRequireDefault(_utils);
 
 var _uuid = __webpack_require__(10);
 
-var _stats_js = __webpack_require__(40);
+var _stats_js = __webpack_require__(38);
 
 var _stats_js2 = _interopRequireDefault(_stats_js);
 
@@ -9152,45 +9365,6 @@ var IndexedDBFS = function () {
 
 			return _writeDirINode;
 		}()
-	}, {
-		key: 'overwriteFileData',
-		value: function () {
-			var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(entry, data) {
-				var _this5 = this;
-
-				return regeneratorRuntime.wrap(function _callee5$(_context5) {
-					while (1) {
-						switch (_context5.prev = _context5.next) {
-							case 0:
-								return _context5.abrupt('return', new Promise(function (resolve, reject) {
-									var tx = _this5.db.transaction(['idata'], 'readwrite');
-									var idata = tx.objectStore('idata');
-									var request = idata.put({
-										id: entry.id,
-										data: data
-									});
-									request.onsuccess = function (event) {
-										resolve(entry);
-									};
-									request.onerror = function (e) {
-										reject(e);
-									};
-								}));
-
-							case 1:
-							case 'end':
-								return _context5.stop();
-						}
-					}
-				}, _callee5, this);
-			}));
-
-			function overwriteFileData(_x7, _x8) {
-				return _ref5.apply(this, arguments);
-			}
-
-			return overwriteFileData;
-		}()
 
 		/**
    * 写入一个文件inode, 参数也可以是 entry, data, 会自动判断. 如果第一个参数是entry, 第二个
@@ -9200,14 +9374,14 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_writeFileINode',
 		value: function () {
-			var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(name, parent, data) {
-				var _this6 = this;
+			var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(name, parent, data) {
+				var _this5 = this;
 
-				return regeneratorRuntime.wrap(function _callee6$(_context6) {
+				return regeneratorRuntime.wrap(function _callee5$(_context5) {
 					while (1) {
-						switch (_context6.prev = _context6.next) {
+						switch (_context5.prev = _context5.next) {
 							case 0:
-								return _context6.abrupt('return', new Promise(function (resolve, reject) {
+								return _context5.abrupt('return', new Promise(function (resolve, reject) {
 									// 自动适配参数
 									var entry = null;
 									var buf = null;
@@ -9230,7 +9404,7 @@ var IndexedDBFS = function () {
 									}
 
 									// 写入
-									var tx = _this6.db.transaction(['inode', 'idata'], 'readwrite');
+									var tx = _this5.db.transaction(['inode', 'idata'], 'readwrite');
 									var inodeReq = tx.objectStore('inode').put(entry);
 									inodeReq.onsuccess = function (event) {
 										var idataReq = tx.objectStore('idata').put({
@@ -9251,14 +9425,14 @@ var IndexedDBFS = function () {
 
 							case 1:
 							case 'end':
-								return _context6.stop();
+								return _context5.stop();
 						}
 					}
-				}, _callee6, this);
+				}, _callee5, this);
 			}));
 
-			function _writeFileINode(_x9, _x10, _x11) {
-				return _ref6.apply(this, arguments);
+			function _writeFileINode(_x7, _x8, _x9) {
+				return _ref5.apply(this, arguments);
 			}
 
 			return _writeFileINode;
@@ -9266,51 +9440,51 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_getFileData',
 		value: function () {
-			var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(path) {
-				var _this7 = this;
+			var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(path) {
+				var _this6 = this;
 
-				return regeneratorRuntime.wrap(function _callee8$(_context8) {
+				return regeneratorRuntime.wrap(function _callee7$(_context7) {
 					while (1) {
-						switch (_context8.prev = _context8.next) {
+						switch (_context7.prev = _context7.next) {
 							case 0:
-								return _context8.abrupt('return', new Promise(function () {
-									var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(resolve, reject) {
+								return _context7.abrupt('return', new Promise(function () {
+									var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(resolve, reject) {
 										var entry, tx, idata, req;
-										return regeneratorRuntime.wrap(function _callee7$(_context7) {
+										return regeneratorRuntime.wrap(function _callee6$(_context6) {
 											while (1) {
-												switch (_context7.prev = _context7.next) {
+												switch (_context6.prev = _context6.next) {
 													case 0:
 														if (!(typeof path == 'string')) {
-															_context7.next = 6;
+															_context6.next = 6;
 															break;
 														}
 
-														_context7.next = 3;
-														return _this7._getPathINode(path);
+														_context6.next = 3;
+														return _this6._getPathINode(path);
 
 													case 3:
-														_context7.t0 = _context7.sent;
-														_context7.next = 7;
+														_context6.t0 = _context6.sent;
+														_context6.next = 7;
 														break;
 
 													case 6:
-														_context7.t0 = path;
+														_context6.t0 = path;
 
 													case 7:
-														entry = _context7.t0;
+														entry = _context6.t0;
 
 														if (entry) {
-															_context7.next = 11;
+															_context6.next = 11;
 															break;
 														}
 
 														resolve(null);
-														return _context7.abrupt('return');
+														return _context6.abrupt('return');
 
 													case 11:
 
 														// get data
-														tx = _this7.db.transaction(['idata']);
+														tx = _this6.db.transaction(['idata']);
 														idata = tx.objectStore('idata');
 														req = idata.get(entry.id);
 
@@ -9323,65 +9497,31 @@ var IndexedDBFS = function () {
 
 													case 16:
 													case 'end':
-														return _context7.stop();
+														return _context6.stop();
 												}
 											}
-										}, _callee7, _this7);
+										}, _callee6, _this6);
 									}));
 
-									return function (_x13, _x14) {
-										return _ref8.apply(this, arguments);
+									return function (_x11, _x12) {
+										return _ref7.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context8.stop();
+								return _context7.stop();
 						}
 					}
-				}, _callee8, this);
+				}, _callee7, this);
 			}));
 
-			function _getFileData(_x12) {
-				return _ref7.apply(this, arguments);
+			function _getFileData(_x10) {
+				return _ref6.apply(this, arguments);
 			}
 
 			return _getFileData;
 		}()
-
-		/**
-   * 把路径格式化成数组, 排除空字符串
-   */
-
-	}, {
-		key: '_normalizeSegments',
-		value: function _normalizeSegments(path) {
-			if (!path) {
-				return [];
-			} else {
-				var segments = path.split('/');
-				segments = segments.filter(function (seg) {
-					return seg.length > 0;
-				});
-				return segments;
-			}
-		}
-	}, {
-		key: '_normalizePath',
-		value: function _normalizePath(path) {
-			var pathWithoutSchema = path;
-			if (path.startsWith(_const2.default.LETO_FILE_SCHEMA)) {
-				pathWithoutSchema = path.substring(_const2.default.LETO_FILE_SCHEMA.length);
-			} else if (path.startsWith(_const2.default.LETO_TMP_SCHEMA)) {
-				pathWithoutSchema = path.substring(_const2.default.LETO_TMP_SCHEMA.length);
-			}
-			if (!pathWithoutSchema.startsWith('/')) {
-				pathWithoutSchema = '/' + pathWithoutSchema;
-			}
-			path = _const2.default.LETO_STORE_DIR + pathWithoutSchema;
-			var segments = this._normalizeSegments(path);
-			return '/' + segments.join('/');
-		}
 
 		/**
    * 查找某个文件的键值, 根据文件的名称和父节点key查找
@@ -9390,15 +9530,15 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_getINodeKey',
 		value: function () {
-			var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(name, parent) {
-				var _this8 = this;
+			var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(name, parent) {
+				var _this7 = this;
 
-				return regeneratorRuntime.wrap(function _callee9$(_context9) {
+				return regeneratorRuntime.wrap(function _callee8$(_context8) {
 					while (1) {
-						switch (_context9.prev = _context9.next) {
+						switch (_context8.prev = _context8.next) {
 							case 0:
-								return _context9.abrupt('return', new Promise(function (resolve, reject) {
-									var tx = _this8.db.transaction(['inode']);
+								return _context8.abrupt('return', new Promise(function (resolve, reject) {
+									var tx = _this7.db.transaction(['inode']);
 									var inode = tx.objectStore('inode');
 									var idx = inode.index('idx_name_parent');
 									var request = idx.getKey([name, parent]);
@@ -9412,83 +9552,23 @@ var IndexedDBFS = function () {
 
 							case 1:
 							case 'end':
-								return _context9.stop();
+								return _context8.stop();
 						}
 					}
-				}, _callee9, this);
+				}, _callee8, this);
 			}));
 
-			function _getINodeKey(_x15, _x16) {
-				return _ref9.apply(this, arguments);
+			function _getINodeKey(_x13, _x14) {
+				return _ref8.apply(this, arguments);
 			}
 
 			return _getINodeKey;
-		}()
-
-		/**
-   * 根据主键获得inode信息, 返回的对象会额外包含主键, 字段名为_key
-   */
-
-	}, {
-		key: '_getINode',
-		value: function () {
-			var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(id) {
-				var _this9 = this;
-
-				return regeneratorRuntime.wrap(function _callee11$(_context11) {
-					while (1) {
-						switch (_context11.prev = _context11.next) {
-							case 0:
-								return _context11.abrupt('return', new Promise(function () {
-									var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(resolve, reject) {
-										var tx, inode, request;
-										return regeneratorRuntime.wrap(function _callee10$(_context10) {
-											while (1) {
-												switch (_context10.prev = _context10.next) {
-													case 0:
-														tx = _this9.db.transaction(['inode']);
-														inode = tx.objectStore('inode');
-														request = inode.get(id);
-
-														request.onsuccess = function (event) {
-															resolve(event.target.result);
-														};
-														request.onerror = function (e) {
-															resolve(null);
-														};
-
-													case 5:
-													case 'end':
-														return _context10.stop();
-												}
-											}
-										}, _callee10, _this9);
-									}));
-
-									return function (_x18, _x19) {
-										return _ref11.apply(this, arguments);
-									};
-								}()));
-
-							case 1:
-							case 'end':
-								return _context11.stop();
-						}
-					}
-				}, _callee11, this);
-			}));
-
-			function _getINode(_x17) {
-				return _ref10.apply(this, arguments);
-			}
-
-			return _getINode;
 		}()
 	}, {
 		key: '_getPathINodeFromCache',
 		value: function _getPathINodeFromCache(path) {
 			// find inode key
-			var segments = this._normalizeSegments(path);
+			var segments = path.split('/');
 			var parent = '/'; // '/' for root
 			var _iteratorNormalCompletion2 = true;
 			var _didIteratorError2 = false;
@@ -9538,103 +9618,103 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_getPathINode',
 		value: function () {
-			var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(path) {
-				var _this10 = this;
+			var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(path) {
+				var _this8 = this;
 
-				return regeneratorRuntime.wrap(function _callee13$(_context13) {
+				return regeneratorRuntime.wrap(function _callee10$(_context10) {
 					while (1) {
-						switch (_context13.prev = _context13.next) {
+						switch (_context10.prev = _context10.next) {
 							case 0:
-								return _context13.abrupt('return', new Promise(function () {
-									var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(resolve, reject) {
+								return _context10.abrupt('return', new Promise(function () {
+									var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(resolve, reject) {
 										var segments, key, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, seg, tx, inode, request;
 
-										return regeneratorRuntime.wrap(function _callee12$(_context12) {
+										return regeneratorRuntime.wrap(function _callee9$(_context9) {
 											while (1) {
-												switch (_context12.prev = _context12.next) {
+												switch (_context9.prev = _context9.next) {
 													case 0:
 														// find inode key
-														segments = _this10._normalizeSegments(path);
+														segments = path.split('/');
 														key = '/'; // '/' for root
 
 														_iteratorNormalCompletion3 = true;
 														_didIteratorError3 = false;
 														_iteratorError3 = undefined;
-														_context12.prev = 5;
+														_context9.prev = 5;
 														_iterator3 = segments[Symbol.iterator]();
 
 													case 7:
 														if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
-															_context12.next = 17;
+															_context9.next = 17;
 															break;
 														}
 
 														seg = _step3.value;
-														_context12.next = 11;
-														return _this10._getINodeKey(seg, key);
+														_context9.next = 11;
+														return _this8._getINodeKey(seg, key);
 
 													case 11:
-														key = _context12.sent;
+														key = _context9.sent;
 
 														if (key) {
-															_context12.next = 14;
+															_context9.next = 14;
 															break;
 														}
 
-														return _context12.abrupt('break', 17);
+														return _context9.abrupt('break', 17);
 
 													case 14:
 														_iteratorNormalCompletion3 = true;
-														_context12.next = 7;
+														_context9.next = 7;
 														break;
 
 													case 17:
-														_context12.next = 23;
+														_context9.next = 23;
 														break;
 
 													case 19:
-														_context12.prev = 19;
-														_context12.t0 = _context12['catch'](5);
+														_context9.prev = 19;
+														_context9.t0 = _context9['catch'](5);
 														_didIteratorError3 = true;
-														_iteratorError3 = _context12.t0;
+														_iteratorError3 = _context9.t0;
 
 													case 23:
-														_context12.prev = 23;
-														_context12.prev = 24;
+														_context9.prev = 23;
+														_context9.prev = 24;
 
 														if (!_iteratorNormalCompletion3 && _iterator3.return) {
 															_iterator3.return();
 														}
 
 													case 26:
-														_context12.prev = 26;
+														_context9.prev = 26;
 
 														if (!_didIteratorError3) {
-															_context12.next = 29;
+															_context9.next = 29;
 															break;
 														}
 
 														throw _iteratorError3;
 
 													case 29:
-														return _context12.finish(26);
+														return _context9.finish(26);
 
 													case 30:
-														return _context12.finish(23);
+														return _context9.finish(23);
 
 													case 31:
 														if (key) {
-															_context12.next = 34;
+															_context9.next = 34;
 															break;
 														}
 
 														resolve(null);
-														return _context12.abrupt('return');
+														return _context9.abrupt('return');
 
 													case 34:
 
 														// 得到inode
-														tx = _this10.db.transaction(['inode']);
+														tx = _this8.db.transaction(['inode']);
 														inode = tx.objectStore('inode');
 														request = inode.get(key);
 
@@ -9647,27 +9727,27 @@ var IndexedDBFS = function () {
 
 													case 39:
 													case 'end':
-														return _context12.stop();
+														return _context9.stop();
 												}
 											}
-										}, _callee12, _this10, [[5, 19, 23, 31], [24,, 26, 30]]);
+										}, _callee9, _this8, [[5, 19, 23, 31], [24,, 26, 30]]);
 									}));
 
-									return function (_x21, _x22) {
-										return _ref13.apply(this, arguments);
+									return function (_x16, _x17) {
+										return _ref10.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context13.stop();
+								return _context10.stop();
 						}
 					}
-				}, _callee13, this);
+				}, _callee10, this);
 			}));
 
-			function _getPathINode(_x20) {
-				return _ref12.apply(this, arguments);
+			function _getPathINode(_x15) {
+				return _ref9.apply(this, arguments);
 			}
 
 			return _getPathINode;
@@ -9688,92 +9768,6 @@ var IndexedDBFS = function () {
 				return 0;
 			}
 		}
-	}, {
-		key: '_getSubPathCount',
-		value: function () {
-			var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(path) {
-				var _this11 = this;
-
-				return regeneratorRuntime.wrap(function _callee15$(_context15) {
-					while (1) {
-						switch (_context15.prev = _context15.next) {
-							case 0:
-								return _context15.abrupt('return', new Promise(function () {
-									var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(resolve, reject) {
-										var entry, tx, inode, idx, req;
-										return regeneratorRuntime.wrap(function _callee14$(_context14) {
-											while (1) {
-												switch (_context14.prev = _context14.next) {
-													case 0:
-														if (!(typeof path == 'string')) {
-															_context14.next = 6;
-															break;
-														}
-
-														_context14.next = 3;
-														return _this11._getPathINode(path);
-
-													case 3:
-														_context14.t0 = _context14.sent;
-														_context14.next = 7;
-														break;
-
-													case 6:
-														_context14.t0 = path;
-
-													case 7:
-														entry = _context14.t0;
-
-														if (entry) {
-															_context14.next = 11;
-															break;
-														}
-
-														resolve(null);
-														return _context14.abrupt('return');
-
-													case 11:
-
-														// 查找直接子节点
-														tx = _this11.db.transaction(['inode']);
-														inode = tx.objectStore('inode');
-														idx = inode.index('idx_parent');
-														req = idx.getAllKeys(entry.id);
-
-														req.onsuccess = function (keys) {
-															resolve(keys.target.result ? keys.target.result.length : 0);
-														};
-														req.onerror = function (e) {
-															resolve(0);
-														};
-
-													case 17:
-													case 'end':
-														return _context14.stop();
-												}
-											}
-										}, _callee14, _this11);
-									}));
-
-									return function (_x24, _x25) {
-										return _ref15.apply(this, arguments);
-									};
-								}()));
-
-							case 1:
-							case 'end':
-								return _context15.stop();
-						}
-					}
-				}, _callee15, this);
-			}));
-
-			function _getSubPathCount(_x23) {
-				return _ref14.apply(this, arguments);
-			}
-
-			return _getSubPathCount;
-		}()
 	}, {
 		key: '_getSubPathINodeFromCacheRecursively',
 		value: function _getSubPathINodeFromCacheRecursively(path, result) {
@@ -9826,52 +9820,52 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_getSubPathINode',
 		value: function () {
-			var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(path) {
-				var _this12 = this;
+			var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(path) {
+				var _this9 = this;
 
 				var tx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-				return regeneratorRuntime.wrap(function _callee17$(_context17) {
+				return regeneratorRuntime.wrap(function _callee12$(_context12) {
 					while (1) {
-						switch (_context17.prev = _context17.next) {
+						switch (_context12.prev = _context12.next) {
 							case 0:
-								return _context17.abrupt('return', new Promise(function () {
-									var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(resolve, reject) {
+								return _context12.abrupt('return', new Promise(function () {
+									var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(resolve, reject) {
 										var entry, inode, idx, request;
-										return regeneratorRuntime.wrap(function _callee16$(_context16) {
+										return regeneratorRuntime.wrap(function _callee11$(_context11) {
 											while (1) {
-												switch (_context16.prev = _context16.next) {
+												switch (_context11.prev = _context11.next) {
 													case 0:
 														if (!(typeof path == 'string')) {
-															_context16.next = 6;
+															_context11.next = 6;
 															break;
 														}
 
-														_context16.next = 3;
-														return _this12._getPathINode(path);
+														_context11.next = 3;
+														return _this9._getPathINode(path);
 
 													case 3:
-														_context16.t0 = _context16.sent;
-														_context16.next = 7;
+														_context11.t0 = _context11.sent;
+														_context11.next = 7;
 														break;
 
 													case 6:
-														_context16.t0 = path;
+														_context11.t0 = path;
 
 													case 7:
-														entry = _context16.t0;
+														entry = _context11.t0;
 
 														if (entry) {
-															_context16.next = 11;
+															_context11.next = 11;
 															break;
 														}
 
 														resolve([]);
-														return _context16.abrupt('return');
+														return _context11.abrupt('return');
 
 													case 11:
 
 														// 查找直接子节点
-														tx = tx || _this12.db.transaction(['inode']);
+														tx = tx || _this9.db.transaction(['inode']);
 														inode = tx.objectStore('inode');
 														idx = inode.index('idx_parent');
 														request = idx.getAll(entry.id);
@@ -9885,27 +9879,27 @@ var IndexedDBFS = function () {
 
 													case 17:
 													case 'end':
-														return _context16.stop();
+														return _context11.stop();
 												}
 											}
-										}, _callee16, _this12);
+										}, _callee11, _this9);
 									}));
 
-									return function (_x28, _x29) {
-										return _ref17.apply(this, arguments);
+									return function (_x20, _x21) {
+										return _ref12.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context17.stop();
+								return _context12.stop();
 						}
 					}
-				}, _callee17, this);
+				}, _callee12, this);
 			}));
 
-			function _getSubPathINode(_x26) {
-				return _ref16.apply(this, arguments);
+			function _getSubPathINode(_x18) {
+				return _ref11.apply(this, arguments);
 			}
 
 			return _getSubPathINode;
@@ -9918,22 +9912,22 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_deleteINode',
 		value: function () {
-			var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(key, dir) {
-				var _this13 = this;
+			var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(key, dir) {
+				var _this10 = this;
 
 				var tx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-				return regeneratorRuntime.wrap(function _callee19$(_context19) {
+				return regeneratorRuntime.wrap(function _callee14$(_context14) {
 					while (1) {
-						switch (_context19.prev = _context19.next) {
+						switch (_context14.prev = _context14.next) {
 							case 0:
-								return _context19.abrupt('return', new Promise(function () {
-									var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(resolve, reject) {
+								return _context14.abrupt('return', new Promise(function () {
+									var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(resolve, reject) {
 										var inode, request;
-										return regeneratorRuntime.wrap(function _callee18$(_context18) {
+										return regeneratorRuntime.wrap(function _callee13$(_context13) {
 											while (1) {
-												switch (_context18.prev = _context18.next) {
+												switch (_context13.prev = _context13.next) {
 													case 0:
-														tx = tx || _this13.db.transaction(['inode', 'idata'], 'readwrite');
+														tx = tx || _this10.db.transaction(['inode', 'idata'], 'readwrite');
 														inode = tx.objectStore('inode');
 														request = inode.delete(key);
 
@@ -9957,27 +9951,27 @@ var IndexedDBFS = function () {
 
 													case 5:
 													case 'end':
-														return _context18.stop();
+														return _context13.stop();
 												}
 											}
-										}, _callee18, _this13);
+										}, _callee13, _this10);
 									}));
 
-									return function (_x33, _x34) {
-										return _ref19.apply(this, arguments);
+									return function (_x25, _x26) {
+										return _ref14.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context19.stop();
+								return _context14.stop();
 						}
 					}
-				}, _callee19, this);
+				}, _callee14, this);
 			}));
 
-			function _deleteINode(_x30, _x31) {
-				return _ref18.apply(this, arguments);
+			function _deleteINode(_x22, _x23) {
+				return _ref13.apply(this, arguments);
 			}
 
 			return _deleteINode;
@@ -9985,102 +9979,102 @@ var IndexedDBFS = function () {
 	}, {
 		key: '_deleteINodeRecursively',
 		value: function () {
-			var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(entry) {
+			var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(entry) {
 				var tx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
 				var subPathNodes, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, subPath;
 
-				return regeneratorRuntime.wrap(function _callee20$(_context20) {
+				return regeneratorRuntime.wrap(function _callee15$(_context15) {
 					while (1) {
-						switch (_context20.prev = _context20.next) {
+						switch (_context15.prev = _context15.next) {
 							case 0:
 								if (!entry.dir) {
-									_context20.next = 34;
+									_context15.next = 34;
 									break;
 								}
 
-								_context20.next = 3;
+								_context15.next = 3;
 								return this._getSubPathINode(entry, tx);
 
 							case 3:
-								subPathNodes = _context20.sent;
+								subPathNodes = _context15.sent;
 								_iteratorNormalCompletion5 = true;
 								_didIteratorError5 = false;
 								_iteratorError5 = undefined;
-								_context20.prev = 7;
+								_context15.prev = 7;
 								_iterator5 = subPathNodes[Symbol.iterator]();
 
 							case 9:
 								if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
-									_context20.next = 16;
+									_context15.next = 16;
 									break;
 								}
 
 								subPath = _step5.value;
-								_context20.next = 13;
+								_context15.next = 13;
 								return this._deleteINodeRecursively(subPath, tx);
 
 							case 13:
 								_iteratorNormalCompletion5 = true;
-								_context20.next = 9;
+								_context15.next = 9;
 								break;
 
 							case 16:
-								_context20.next = 22;
+								_context15.next = 22;
 								break;
 
 							case 18:
-								_context20.prev = 18;
-								_context20.t0 = _context20['catch'](7);
+								_context15.prev = 18;
+								_context15.t0 = _context15['catch'](7);
 								_didIteratorError5 = true;
-								_iteratorError5 = _context20.t0;
+								_iteratorError5 = _context15.t0;
 
 							case 22:
-								_context20.prev = 22;
-								_context20.prev = 23;
+								_context15.prev = 22;
+								_context15.prev = 23;
 
 								if (!_iteratorNormalCompletion5 && _iterator5.return) {
 									_iterator5.return();
 								}
 
 							case 25:
-								_context20.prev = 25;
+								_context15.prev = 25;
 
 								if (!_didIteratorError5) {
-									_context20.next = 28;
+									_context15.next = 28;
 									break;
 								}
 
 								throw _iteratorError5;
 
 							case 28:
-								return _context20.finish(25);
+								return _context15.finish(25);
 
 							case 29:
-								return _context20.finish(22);
+								return _context15.finish(22);
 
 							case 30:
-								_context20.next = 32;
+								_context15.next = 32;
 								return this._deleteINode(entry.id, entry.dir, tx);
 
 							case 32:
-								_context20.next = 36;
+								_context15.next = 36;
 								break;
 
 							case 34:
-								_context20.next = 36;
+								_context15.next = 36;
 								return this._deleteINode(entry.id, entry.dir, tx);
 
 							case 36:
 							case 'end':
-								return _context20.stop();
+								return _context15.stop();
 						}
 					}
-				}, _callee20, this, [[7, 18, 22, 30], [23,, 25, 29]]);
+				}, _callee15, this, [[7, 18, 22, 30], [23,, 25, 29]]);
 			}));
 
-			function _deleteINodeRecursively(_x35) {
-				return _ref20.apply(this, arguments);
+			function _deleteINodeRecursively(_x27) {
+				return _ref15.apply(this, arguments);
 			}
 
 			return _deleteINodeRecursively;
@@ -10088,20 +10082,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'mkdir',
 		value: function () {
-			var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee22(path, recursive) {
-				var _this14 = this;
+			var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(path, recursive) {
+				var _this11 = this;
 
-				return regeneratorRuntime.wrap(function _callee22$(_context22) {
+				return regeneratorRuntime.wrap(function _callee17$(_context17) {
 					while (1) {
-						switch (_context22.prev = _context22.next) {
+						switch (_context17.prev = _context17.next) {
 							case 0:
-								return _context22.abrupt('return', new Promise(function () {
-									var _ref22 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee21$(_context21) {
+								return _context17.abrupt('return', new Promise(function () {
+									var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee16$(_context16) {
 											while (1) {
-												switch (_context21.prev = _context21.next) {
+												switch (_context16.prev = _context16.next) {
 													case 0:
-														if (_this14.mkdirSync(path, !!recursive)) {
+														if (_this11.mkdirSync(path, !!recursive)) {
 															resolve();
 														} else {
 															reject(new Error('Error: failed to mkdir ' + path));
@@ -10109,27 +10103,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context21.stop();
+														return _context16.stop();
 												}
 											}
-										}, _callee21, _this14);
+										}, _callee16, _this11);
 									}));
 
-									return function (_x39, _x40) {
-										return _ref22.apply(this, arguments);
+									return function (_x31, _x32) {
+										return _ref17.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context22.stop();
+								return _context17.stop();
 						}
 					}
-				}, _callee22, this);
+				}, _callee17, this);
 			}));
 
-			function mkdir(_x37, _x38) {
-				return _ref21.apply(this, arguments);
+			function mkdir(_x29, _x30) {
+				return _ref16.apply(this, arguments);
 			}
 
 			return mkdir;
@@ -10143,7 +10137,7 @@ var IndexedDBFS = function () {
 			}
 
 			// find deepest parent
-			var segments = this._normalizeSegments(path);
+			var segments = path.split('/');
 			var parent = '/'; // '/' for root
 			var segIdx = 0;
 			var _iteratorNormalCompletion6 = true;
@@ -10272,7 +10266,6 @@ var IndexedDBFS = function () {
 		key: 'rmdirSync',
 		value: function rmdirSync(path, recursive) {
 			// check
-			path = path ? path.trim() : '';
 			if (!path || path.length <= 0 || path == '/') {
 				return false;
 			}
@@ -10307,20 +10300,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'rmdir',
 		value: function () {
-			var _ref23 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee24(path, recursive) {
-				var _this15 = this;
+			var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(path, recursive) {
+				var _this12 = this;
 
-				return regeneratorRuntime.wrap(function _callee24$(_context24) {
+				return regeneratorRuntime.wrap(function _callee19$(_context19) {
 					while (1) {
-						switch (_context24.prev = _context24.next) {
+						switch (_context19.prev = _context19.next) {
 							case 0:
-								return _context24.abrupt('return', new Promise(function () {
-									var _ref24 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee23(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee23$(_context23) {
+								return _context19.abrupt('return', new Promise(function () {
+									var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee18$(_context18) {
 											while (1) {
-												switch (_context23.prev = _context23.next) {
+												switch (_context18.prev = _context18.next) {
 													case 0:
-														if (_this15.rmdirSync(path, !!recursive)) {
+														if (_this12.rmdirSync(path, !!recursive)) {
 															resolve();
 														} else {
 															reject(new Error('Error: failed to delete dir: ' + path));
@@ -10328,62 +10321,35 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context23.stop();
+														return _context18.stop();
 												}
 											}
-										}, _callee23, _this15);
+										}, _callee18, _this12);
 									}));
 
-									return function (_x43, _x44) {
-										return _ref24.apply(this, arguments);
+									return function (_x35, _x36) {
+										return _ref19.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context24.stop();
+								return _context19.stop();
 						}
 					}
-				}, _callee24, this);
+				}, _callee19, this);
 			}));
 
-			function rmdir(_x41, _x42) {
-				return _ref23.apply(this, arguments);
+			function rmdir(_x33, _x34) {
+				return _ref18.apply(this, arguments);
 			}
 
 			return rmdir;
 		}()
 	}, {
-		key: '_stringByDeleteLastPathComponent',
-		value: function _stringByDeleteLastPathComponent(p) {
-			if (typeof p == 'string') {
-				var idx = p.lastIndexOf('/');
-				if (idx != -1 && idx > 0) {
-					p = p.substring(0, idx);
-				}
-			}
-			return p;
-		}
-	}, {
-		key: '_lastPathComponent',
-		value: function _lastPathComponent(p) {
-			if (typeof p == 'string') {
-				// remove trailing /
-				while (p.length > 1 && p.endsWith('/')) {
-					p.substring(0, p.length - 1);
-				}
-				var idx = p.lastIndexOf('/');
-				if (idx != -1 && idx < p.length - 1) {
-					p = p.substring(idx + 1);
-				}
-			}
-			return p;
-		}
-	}, {
 		key: 'writeFileSync',
 		value: function writeFileSync(path, data, encoding) {
 			// check
-			path = path ? this._normalizePath(path.trim()) : '';
 			if (!path || path.length <= 0) {
 				return false;
 			}
@@ -10402,7 +10368,7 @@ var IndexedDBFS = function () {
 			}
 
 			// find parent dir, create it if not exist
-			var parentPath = this._stringByDeleteLastPathComponent(path);
+			var parentPath = _utils2.default.stringByDeleteLastPathComponent(path);
 			var parentEntry = this._getPathINodeFromCache(parentPath);
 			if (!parentEntry) {
 				// create parent folder
@@ -10450,7 +10416,7 @@ var IndexedDBFS = function () {
 
 			// write inode and idata
 			var now = Date.now();
-			var filename = this._lastPathComponent(path);
+			var filename = _utils2.default.lastPathComponent(path);
 			if (!entry) {
 				entry = {
 					id: (0, _uuid.v1)(),
@@ -10483,20 +10449,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'writeFile',
 		value: function () {
-			var _ref25 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee26(path, data, encoding) {
-				var _this16 = this;
+			var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(path, data, encoding) {
+				var _this13 = this;
 
-				return regeneratorRuntime.wrap(function _callee26$(_context26) {
+				return regeneratorRuntime.wrap(function _callee21$(_context21) {
 					while (1) {
-						switch (_context26.prev = _context26.next) {
+						switch (_context21.prev = _context21.next) {
 							case 0:
-								return _context26.abrupt('return', new Promise(function () {
-									var _ref26 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee25(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee25$(_context25) {
+								return _context21.abrupt('return', new Promise(function () {
+									var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee20$(_context20) {
 											while (1) {
-												switch (_context25.prev = _context25.next) {
+												switch (_context20.prev = _context20.next) {
 													case 0:
-														if (_this16.writeFileSync(path, data, encoding)) {
+														if (_this13.writeFileSync(path, data, encoding)) {
 															resolve();
 														} else {
 															reject(new Error('Error: failed to write file: ' + path));
@@ -10504,27 +10470,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context25.stop();
+														return _context20.stop();
 												}
 											}
-										}, _callee25, _this16);
+										}, _callee20, _this13);
 									}));
 
-									return function (_x48, _x49) {
-										return _ref26.apply(this, arguments);
+									return function (_x40, _x41) {
+										return _ref21.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context26.stop();
+								return _context21.stop();
 						}
 					}
-				}, _callee26, this);
+				}, _callee21, this);
 			}));
 
-			function writeFile(_x45, _x46, _x47) {
-				return _ref25.apply(this, arguments);
+			function writeFile(_x37, _x38, _x39) {
+				return _ref20.apply(this, arguments);
 			}
 
 			return writeFile;
@@ -10533,7 +10499,6 @@ var IndexedDBFS = function () {
 		key: 'readFileSync',
 		value: function readFileSync(path, encoding, position, length) {
 			// check
-			path = path ? this._normalizePath(path.trim()) : '';
 			if (!path || path.length <= 0) {
 				return;
 			}
@@ -10557,46 +10522,27 @@ var IndexedDBFS = function () {
 				buf = buf.slice(position, position + length);
 			}
 
-			// check encoding, not set means return array buffer
-			if (encoding === undefined) {
-				return buf;
-			} else {
-				switch (encoding) {
-					case 'hex':
-						return _utils2.default.buf2hex(buf);
-					case 'base64':
-						return _utils2.default.arrayBufferToBase64(buf);
-					case 'utf16le':
-					case 'utf-16le':
-					case 'ucs2':
-					case 'ucs-2':
-						return String.fromCharCode.apply(null, new Uint16Array(buf));
-					default:
-						{
-							var d = new TextDecoder();
-							return d.decode(buf);
-						}
-				}
-			}
+			// return
+			return _utils2.default.convertArrayBuffer(buf, encoding);
 		}
 	}, {
 		key: 'readFile',
 		value: function () {
-			var _ref27 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee28(filePath, encoding, position, length) {
-				var _this17 = this;
+			var _ref22 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee23(filePath, encoding, position, length) {
+				var _this14 = this;
 
-				return regeneratorRuntime.wrap(function _callee28$(_context28) {
+				return regeneratorRuntime.wrap(function _callee23$(_context23) {
 					while (1) {
-						switch (_context28.prev = _context28.next) {
+						switch (_context23.prev = _context23.next) {
 							case 0:
-								return _context28.abrupt('return', new Promise(function () {
-									var _ref28 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee27(resolve, reject) {
+								return _context23.abrupt('return', new Promise(function () {
+									var _ref23 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee22(resolve, reject) {
 										var data;
-										return regeneratorRuntime.wrap(function _callee27$(_context27) {
+										return regeneratorRuntime.wrap(function _callee22$(_context22) {
 											while (1) {
-												switch (_context27.prev = _context27.next) {
+												switch (_context22.prev = _context22.next) {
 													case 0:
-														data = _this17.readFileSync(filePath, encoding, position, length);
+														data = _this14.readFileSync(filePath, encoding, position, length);
 
 														if (data) {
 															resolve(data);
@@ -10606,27 +10552,27 @@ var IndexedDBFS = function () {
 
 													case 2:
 													case 'end':
-														return _context27.stop();
+														return _context22.stop();
 												}
 											}
-										}, _callee27, _this17);
+										}, _callee22, _this14);
 									}));
 
-									return function (_x54, _x55) {
-										return _ref28.apply(this, arguments);
+									return function (_x46, _x47) {
+										return _ref23.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context28.stop();
+								return _context23.stop();
 						}
 					}
-				}, _callee28, this);
+				}, _callee23, this);
 			}));
 
-			function readFile(_x50, _x51, _x52, _x53) {
-				return _ref27.apply(this, arguments);
+			function readFile(_x42, _x43, _x44, _x45) {
+				return _ref22.apply(this, arguments);
 			}
 
 			return readFile;
@@ -10634,21 +10580,21 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'saveFile',
 		value: function () {
-			var _ref29 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee30(tempFilePath, filePath) {
-				var _this18 = this;
+			var _ref24 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee25(tempFilePath, filePath) {
+				var _this15 = this;
 
-				return regeneratorRuntime.wrap(function _callee30$(_context30) {
+				return regeneratorRuntime.wrap(function _callee25$(_context25) {
 					while (1) {
-						switch (_context30.prev = _context30.next) {
+						switch (_context25.prev = _context25.next) {
 							case 0:
-								return _context30.abrupt('return', new Promise(function () {
-									var _ref30 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee29(resolve, reject) {
+								return _context25.abrupt('return', new Promise(function () {
+									var _ref25 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee24(resolve, reject) {
 										var savedFilePath;
-										return regeneratorRuntime.wrap(function _callee29$(_context29) {
+										return regeneratorRuntime.wrap(function _callee24$(_context24) {
 											while (1) {
-												switch (_context29.prev = _context29.next) {
+												switch (_context24.prev = _context24.next) {
 													case 0:
-														savedFilePath = _this18.saveFileSync(tempFilePath, filePath);
+														savedFilePath = _this15.saveFileSync(tempFilePath, filePath);
 
 														if (savedFilePath) {
 															resolve(savedFilePath);
@@ -10658,27 +10604,27 @@ var IndexedDBFS = function () {
 
 													case 2:
 													case 'end':
-														return _context29.stop();
+														return _context24.stop();
 												}
 											}
-										}, _callee29, _this18);
+										}, _callee24, _this15);
 									}));
 
-									return function (_x58, _x59) {
-										return _ref30.apply(this, arguments);
+									return function (_x50, _x51) {
+										return _ref25.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context30.stop();
+								return _context25.stop();
 						}
 					}
-				}, _callee30, this);
+				}, _callee25, this);
 			}));
 
-			function saveFile(_x56, _x57) {
-				return _ref29.apply(this, arguments);
+			function saveFile(_x48, _x49) {
+				return _ref24.apply(this, arguments);
 			}
 
 			return saveFile;
@@ -10687,15 +10633,13 @@ var IndexedDBFS = function () {
 		key: 'saveFileSync',
 		value: function saveFileSync(tempFilePath, filePath) {
 			// check params
-			tempFilePath = tempFilePath ? tempFilePath.trim() : '';
-			filePath = filePath ? filePath.trim() : '';
 			if (!tempFilePath || tempFilePath.length <= 0) {
 				return null;
 			}
 
 			// if file path is not set, auto generate it
 			if (!filePath || filePath.length <= 0) {
-				var _filename = this._lastPathComponent(tempFilePath);
+				var _filename = _utils2.default.lastPathComponent(tempFilePath);
 				filePath = _const2.default.LETO_SAVE_DIR + '/' + _filename;
 			}
 
@@ -10716,7 +10660,7 @@ var IndexedDBFS = function () {
 			}
 
 			// find parent dir, create it if not exist
-			var parentPath = this._stringByDeleteLastPathComponent(filePath);
+			var parentPath = _utils2.default.stringByDeleteLastPathComponent(filePath);
 			var parentEntry = this._getPathINodeFromCache(parentPath);
 			if (!parentEntry) {
 				// create parent folder
@@ -10730,7 +10674,7 @@ var IndexedDBFS = function () {
 
 			// write inode and idata
 			var now = Date.now();
-			var filename = this._lastPathComponent(filePath);
+			var filename = _utils2.default.lastPathComponent(filePath);
 			if (!entry) {
 				entry = {
 					id: (0, _uuid.v1)(),
@@ -10763,15 +10707,15 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'unlink',
 		value: function unlink(filePath) {
-			var _this19 = this;
+			var _this16 = this;
 
 			return new Promise(function () {
-				var _ref31 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee31(resolve, reject) {
-					return regeneratorRuntime.wrap(function _callee31$(_context31) {
+				var _ref26 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee26(resolve, reject) {
+					return regeneratorRuntime.wrap(function _callee26$(_context26) {
 						while (1) {
-							switch (_context31.prev = _context31.next) {
+							switch (_context26.prev = _context26.next) {
 								case 0:
-									if (_this19.unlinkSync(filePath)) {
+									if (_this16.unlinkSync(filePath)) {
 										resolve();
 									} else {
 										reject(new Error('Error: failed to unlink file: ' + filePath));
@@ -10779,14 +10723,14 @@ var IndexedDBFS = function () {
 
 								case 1:
 								case 'end':
-									return _context31.stop();
+									return _context26.stop();
 							}
 						}
-					}, _callee31, _this19);
+					}, _callee26, _this16);
 				}));
 
-				return function (_x60, _x61) {
-					return _ref31.apply(this, arguments);
+				return function (_x52, _x53) {
+					return _ref26.apply(this, arguments);
 				};
 			}());
 		}
@@ -10794,7 +10738,6 @@ var IndexedDBFS = function () {
 		key: 'unlinkSync',
 		value: function unlinkSync(filePath) {
 			// check params
-			filePath = filePath ? filePath.trim() : '';
 			if (!filePath || filePath.length <= 0) {
 				return false;
 			}
@@ -10858,11 +10801,10 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'removeSavedFile',
 		value: function removeSavedFile(filePath) {
-			var _this20 = this;
+			var _this17 = this;
 
 			return new Promise(function (resolve, reject) {
 				// check params
-				filePath = filePath ? filePath.trim() : '';
 				if (!filePath || filePath.length <= 0) {
 					reject(new Error('fail file not exist: ' + filePath));
 					return;
@@ -10874,7 +10816,7 @@ var IndexedDBFS = function () {
 				}
 
 				// find file inode, ensure it is a file
-				var entry = _this20._getPathINodeFromCache(filePath);
+				var entry = _this17._getPathINodeFromCache(filePath);
 				if (!entry) {
 					reject(new Error('fail file not exist: ' + filePath));
 					return;
@@ -10885,10 +10827,10 @@ var IndexedDBFS = function () {
 				}
 
 				// remove entry from cache
-				_this20._removeFromCache(entry);
+				_this17._removeFromCache(entry);
 
 				// sync
-				_this20._scheduleSync(PENDING_DELETE_FILE_INODE, { entry: entry });
+				_this17._scheduleSync(PENDING_DELETE_FILE_INODE, { entry: entry });
 
 				// ok
 				resolve();
@@ -10897,20 +10839,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'access',
 		value: function () {
-			var _ref32 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee33(path) {
-				var _this21 = this;
+			var _ref27 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee28(path) {
+				var _this18 = this;
 
-				return regeneratorRuntime.wrap(function _callee33$(_context33) {
+				return regeneratorRuntime.wrap(function _callee28$(_context28) {
 					while (1) {
-						switch (_context33.prev = _context33.next) {
+						switch (_context28.prev = _context28.next) {
 							case 0:
-								return _context33.abrupt('return', new Promise(function () {
-									var _ref33 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee32(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee32$(_context32) {
+								return _context28.abrupt('return', new Promise(function () {
+									var _ref28 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee27(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee27$(_context27) {
 											while (1) {
-												switch (_context32.prev = _context32.next) {
+												switch (_context27.prev = _context27.next) {
 													case 0:
-														if (_this21.accessSync(path)) {
+														if (_this18.accessSync(path)) {
 															resolve(true);
 														} else {
 															reject(new Error('Error: can not access ' + path));
@@ -10918,27 +10860,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context32.stop();
+														return _context27.stop();
 												}
 											}
-										}, _callee32, _this21);
+										}, _callee27, _this18);
 									}));
 
-									return function (_x63, _x64) {
-										return _ref33.apply(this, arguments);
+									return function (_x55, _x56) {
+										return _ref28.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context33.stop();
+								return _context28.stop();
 						}
 					}
-				}, _callee33, this);
+				}, _callee28, this);
 			}));
 
-			function access(_x62) {
-				return _ref32.apply(this, arguments);
+			function access(_x54) {
+				return _ref27.apply(this, arguments);
 			}
 
 			return access;
@@ -10947,9 +10889,13 @@ var IndexedDBFS = function () {
 		key: 'accessSync',
 		value: function accessSync(path) {
 			// check params
-			path = path ? path.trim() : '';
 			if (!path || path.length <= 0) {
 				return false;
+			}
+
+			// 如果不是/开头, 则认为是远程文件
+			if (!path.startsWith('/')) {
+				return true;
 			}
 
 			// find inode
@@ -10964,20 +10910,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'appendFile',
 		value: function () {
-			var _ref34 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee35(filePath, data, encoding) {
-				var _this22 = this;
+			var _ref29 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee30(filePath, data, encoding) {
+				var _this19 = this;
 
-				return regeneratorRuntime.wrap(function _callee35$(_context35) {
+				return regeneratorRuntime.wrap(function _callee30$(_context30) {
 					while (1) {
-						switch (_context35.prev = _context35.next) {
+						switch (_context30.prev = _context30.next) {
 							case 0:
-								return _context35.abrupt('return', new Promise(function () {
-									var _ref35 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee34(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee34$(_context34) {
+								return _context30.abrupt('return', new Promise(function () {
+									var _ref30 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee29(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee29$(_context29) {
 											while (1) {
-												switch (_context34.prev = _context34.next) {
+												switch (_context29.prev = _context29.next) {
 													case 0:
-														if (_this22.appendFileSync(filePath, data, encoding)) {
+														if (_this19.appendFileSync(filePath, data, encoding)) {
 															resolve(true);
 														} else {
 															reject(new Error('Error: can not append file to ' + filePath));
@@ -10985,27 +10931,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context34.stop();
+														return _context29.stop();
 												}
 											}
-										}, _callee34, _this22);
+										}, _callee29, _this19);
 									}));
 
-									return function (_x68, _x69) {
-										return _ref35.apply(this, arguments);
+									return function (_x60, _x61) {
+										return _ref30.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context35.stop();
+								return _context30.stop();
 						}
 					}
-				}, _callee35, this);
+				}, _callee30, this);
 			}));
 
-			function appendFile(_x65, _x66, _x67) {
-				return _ref34.apply(this, arguments);
+			function appendFile(_x57, _x58, _x59) {
+				return _ref29.apply(this, arguments);
 			}
 
 			return appendFile;
@@ -11014,7 +10960,6 @@ var IndexedDBFS = function () {
 		key: 'appendFileSync',
 		value: function appendFileSync(filePath, data, encoding) {
 			// check params
-			filePath = filePath ? filePath.trim() : '';
 			if (!filePath || filePath.length <= 0) {
 				return false;
 			}
@@ -11080,20 +11025,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'copyFile',
 		value: function () {
-			var _ref36 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee37(srcPath, destPath) {
-				var _this23 = this;
+			var _ref31 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee32(srcPath, destPath) {
+				var _this20 = this;
 
-				return regeneratorRuntime.wrap(function _callee37$(_context37) {
+				return regeneratorRuntime.wrap(function _callee32$(_context32) {
 					while (1) {
-						switch (_context37.prev = _context37.next) {
+						switch (_context32.prev = _context32.next) {
 							case 0:
-								return _context37.abrupt('return', new Promise(function () {
-									var _ref37 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee36(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee36$(_context36) {
+								return _context32.abrupt('return', new Promise(function () {
+									var _ref32 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee31(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee31$(_context31) {
 											while (1) {
-												switch (_context36.prev = _context36.next) {
+												switch (_context31.prev = _context31.next) {
 													case 0:
-														if (_this23.copyFileSync(srcPath, destPath)) {
+														if (_this20.copyFileSync(srcPath, destPath)) {
 															resolve(true);
 														} else {
 															reject(new Error('Error: can not copy file to ' + srcPath + ' -> ' + destPath));
@@ -11101,27 +11046,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context36.stop();
+														return _context31.stop();
 												}
 											}
-										}, _callee36, _this23);
+										}, _callee31, _this20);
 									}));
 
-									return function (_x72, _x73) {
-										return _ref37.apply(this, arguments);
+									return function (_x64, _x65) {
+										return _ref32.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context37.stop();
+								return _context32.stop();
 						}
 					}
-				}, _callee37, this);
+				}, _callee32, this);
 			}));
 
-			function copyFile(_x70, _x71) {
-				return _ref36.apply(this, arguments);
+			function copyFile(_x62, _x63) {
+				return _ref31.apply(this, arguments);
 			}
 
 			return copyFile;
@@ -11130,8 +11075,7 @@ var IndexedDBFS = function () {
 		key: 'copyFileSync',
 		value: function copyFileSync(srcPath, destPath) {
 			// check params
-			srcPath = srcPath ? srcPath.trim() : '';
-			if (!srcPath || srcPath.length <= 0) {
+			if (!srcPath || srcPath.length <= 0 || !destPath || destPath.length <= 0) {
 				return false;
 			}
 
@@ -11152,7 +11096,7 @@ var IndexedDBFS = function () {
 			}
 
 			// ensure dest parent exist
-			var parentPath = this._stringByDeleteLastPathComponent(destPath);
+			var parentPath = _utils2.default.stringByDeleteLastPathComponent(destPath);
 			var parentEntry = this._getPathINodeFromCache(parentPath);
 			if (!parentEntry) {
 				// create parent folder
@@ -11164,7 +11108,7 @@ var IndexedDBFS = function () {
 			// write inode and idata
 			var dstBuf = srcBuf.slice(0, srcBuf.byteLength);
 			var now = Date.now();
-			var filename = this._lastPathComponent(destPath);
+			var filename = _utils2.default.lastPathComponent(destPath);
 			if (!entry) {
 				entry = {
 					id: (0, _uuid.v1)(),
@@ -11194,7 +11138,6 @@ var IndexedDBFS = function () {
 		key: 'getFileInfo',
 		value: function getFileInfo(filePath) {
 			// check params
-			filePath = filePath ? filePath.trim() : '';
 			if (!filePath || filePath.length <= 0) {
 				return null;
 			}
@@ -11211,27 +11154,27 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'readdir',
 		value: function () {
-			var _ref38 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee38(dirPath) {
-				var _this24 = this;
+			var _ref33 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee33(dirPath) {
+				var _this21 = this;
 
-				return regeneratorRuntime.wrap(function _callee38$(_context38) {
+				return regeneratorRuntime.wrap(function _callee33$(_context33) {
 					while (1) {
-						switch (_context38.prev = _context38.next) {
+						switch (_context33.prev = _context33.next) {
 							case 0:
-								return _context38.abrupt('return', new Promise(function (resolve, reject) {
-									resolve(_this24.readdirSync(dirPath));
+								return _context33.abrupt('return', new Promise(function (resolve, reject) {
+									resolve(_this21.readdirSync(dirPath));
 								}));
 
 							case 1:
 							case 'end':
-								return _context38.stop();
+								return _context33.stop();
 						}
 					}
-				}, _callee38, this);
+				}, _callee33, this);
 			}));
 
-			function readdir(_x74) {
-				return _ref38.apply(this, arguments);
+			function readdir(_x66) {
+				return _ref33.apply(this, arguments);
 			}
 
 			return readdir;
@@ -11240,7 +11183,6 @@ var IndexedDBFS = function () {
 		key: 'readdirSync',
 		value: function readdirSync(dirPath) {
 			// check params
-			dirPath = dirPath ? dirPath.trim() : '';
 			if (!dirPath || dirPath.length <= 0) {
 				return [];
 			}
@@ -11286,20 +11228,20 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'rename',
 		value: function () {
-			var _ref39 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee40(oldPath, newPath) {
-				var _this25 = this;
+			var _ref34 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee35(oldPath, newPath) {
+				var _this22 = this;
 
-				return regeneratorRuntime.wrap(function _callee40$(_context40) {
+				return regeneratorRuntime.wrap(function _callee35$(_context35) {
 					while (1) {
-						switch (_context40.prev = _context40.next) {
+						switch (_context35.prev = _context35.next) {
 							case 0:
-								return _context40.abrupt('return', new Promise(function () {
-									var _ref40 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee39(resolve, reject) {
-										return regeneratorRuntime.wrap(function _callee39$(_context39) {
+								return _context35.abrupt('return', new Promise(function () {
+									var _ref35 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee34(resolve, reject) {
+										return regeneratorRuntime.wrap(function _callee34$(_context34) {
 											while (1) {
-												switch (_context39.prev = _context39.next) {
+												switch (_context34.prev = _context34.next) {
 													case 0:
-														if (_this25.renameSync(oldPath, newPath)) {
+														if (_this22.renameSync(oldPath, newPath)) {
 															resolve(true);
 														} else {
 															reject(new Error('Error: can not rename file: ' + oldPath + ' -> ' + newPath));
@@ -11307,27 +11249,27 @@ var IndexedDBFS = function () {
 
 													case 1:
 													case 'end':
-														return _context39.stop();
+														return _context34.stop();
 												}
 											}
-										}, _callee39, _this25);
+										}, _callee34, _this22);
 									}));
 
-									return function (_x77, _x78) {
-										return _ref40.apply(this, arguments);
+									return function (_x69, _x70) {
+										return _ref35.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context40.stop();
+								return _context35.stop();
 						}
 					}
-				}, _callee40, this);
+				}, _callee35, this);
 			}));
 
-			function rename(_x75, _x76) {
-				return _ref39.apply(this, arguments);
+			function rename(_x67, _x68) {
+				return _ref34.apply(this, arguments);
 			}
 
 			return rename;
@@ -11336,8 +11278,7 @@ var IndexedDBFS = function () {
 		key: 'renameSync',
 		value: function renameSync(oldPath, newPath) {
 			// check params
-			oldPath = oldPath ? oldPath.trim() : '';
-			if (!oldPath || oldPath.length <= 0) {
+			if (!oldPath || oldPath.length <= 0 || !newPath || newPath.length <= 0) {
 				return false;
 			}
 
@@ -11358,7 +11299,7 @@ var IndexedDBFS = function () {
 			}
 
 			// ensure dest parent exist
-			var parentPath = this._stringByDeleteLastPathComponent(newPath);
+			var parentPath = _utils2.default.stringByDeleteLastPathComponent(newPath);
 			var parentEntry = this._getPathINodeFromCache(parentPath);
 			if (!parentEntry) {
 				// create parent folder
@@ -11372,7 +11313,7 @@ var IndexedDBFS = function () {
 
 			// write inode and idata
 			var now = Date.now();
-			var filename = this._lastPathComponent(newPath);
+			var filename = _utils2.default.lastPathComponent(newPath);
 			if (!entry) {
 				entry = {
 					id: (0, _uuid.v1)(),
@@ -11402,21 +11343,21 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'stat',
 		value: function () {
-			var _ref41 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee42(path, recursive) {
-				var _this26 = this;
+			var _ref36 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee37(path, recursive) {
+				var _this23 = this;
 
-				return regeneratorRuntime.wrap(function _callee42$(_context42) {
+				return regeneratorRuntime.wrap(function _callee37$(_context37) {
 					while (1) {
-						switch (_context42.prev = _context42.next) {
+						switch (_context37.prev = _context37.next) {
 							case 0:
-								return _context42.abrupt('return', new Promise(function () {
-									var _ref42 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee41(resolve, reject) {
+								return _context37.abrupt('return', new Promise(function () {
+									var _ref37 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee36(resolve, reject) {
 										var ret;
-										return regeneratorRuntime.wrap(function _callee41$(_context41) {
+										return regeneratorRuntime.wrap(function _callee36$(_context36) {
 											while (1) {
-												switch (_context41.prev = _context41.next) {
+												switch (_context36.prev = _context36.next) {
 													case 0:
-														ret = _this26.statSync(path, recursive);
+														ret = _this23.statSync(path, recursive);
 
 														if (ret) {
 															resolve(ret);
@@ -11426,27 +11367,27 @@ var IndexedDBFS = function () {
 
 													case 2:
 													case 'end':
-														return _context41.stop();
+														return _context36.stop();
 												}
 											}
-										}, _callee41, _this26);
+										}, _callee36, _this23);
 									}));
 
-									return function (_x81, _x82) {
-										return _ref42.apply(this, arguments);
+									return function (_x73, _x74) {
+										return _ref37.apply(this, arguments);
 									};
 								}()));
 
 							case 1:
 							case 'end':
-								return _context42.stop();
+								return _context37.stop();
 						}
 					}
-				}, _callee42, this);
+				}, _callee37, this);
 			}));
 
-			function stat(_x79, _x80) {
-				return _ref41.apply(this, arguments);
+			function stat(_x71, _x72) {
+				return _ref36.apply(this, arguments);
 			}
 
 			return stat;
@@ -11455,7 +11396,6 @@ var IndexedDBFS = function () {
 		key: 'statSync',
 		value: function statSync(path, recursive) {
 			// check params
-			path = path ? path.trim() : '';
 			if (!path || path.length <= 0) {
 				return false;
 			}
@@ -11517,22 +11457,22 @@ var IndexedDBFS = function () {
 	}, {
 		key: 'unzip',
 		value: function () {
-			var _ref43 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee43(zipFilePath, targetPath) {
-				var _this27 = this;
+			var _ref38 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee38(zipFilePath, targetPath) {
+				var _this24 = this;
 
-				return regeneratorRuntime.wrap(function _callee43$(_context43) {
+				return regeneratorRuntime.wrap(function _callee38$(_context38) {
 					while (1) {
-						switch (_context43.prev = _context43.next) {
+						switch (_context38.prev = _context38.next) {
 							case 0:
-								return _context43.abrupt('return', new Promise(function (resolve, reject) {
-									_this27.readFile(zipFilePath).then(function (data) {
+								return _context38.abrupt('return', new Promise(function (resolve, reject) {
+									_this24.readFile(zipFilePath).then(function (data) {
 										LetoJSZip.loadAsync(data).then(function (zip) {
 											var files = Object.keys(zip.files);
 											var c = files.length;
 											files.forEach(function (filename) {
 												if (!zip.files[filename].dir) {
 													zip.files[filename].async('arraybuffer').then(function (b) {
-														_this27.writeFile(targetPath + '/' + filename, b).then(function (r) {
+														_this24.writeFile(targetPath + '/' + filename, b).then(function (r) {
 															c--;
 															if (c <= 0) {
 																resolve();
@@ -11550,7 +11490,7 @@ var IndexedDBFS = function () {
 														}
 													});
 												} else {
-													_this27.mkdir(targetPath + '/' + filename, true).then(function (r) {
+													_this24.mkdir(targetPath + '/' + filename, true).then(function (r) {
 														c--;
 														if (c <= 0) {
 															resolve();
@@ -11571,14 +11511,14 @@ var IndexedDBFS = function () {
 
 							case 1:
 							case 'end':
-								return _context43.stop();
+								return _context38.stop();
 						}
 					}
-				}, _callee43, this);
+				}, _callee38, this);
 			}));
 
-			function unzip(_x83, _x84) {
-				return _ref43.apply(this, arguments);
+			function unzip(_x75, _x76) {
+				return _ref38.apply(this, arguments);
 			}
 
 			return unzip;
@@ -11591,7 +11531,7 @@ var IndexedDBFS = function () {
 exports.default = IndexedDBFS;
 
 /***/ }),
-/* 40 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11634,7 +11574,7 @@ var Stats_js = function () {
 exports.default = Stats_js;
 
 /***/ }),
-/* 41 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11797,7 +11737,7 @@ var predefinedColor = exports.predefinedColor = {
 };
 
 /***/ }),
-/* 42 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11993,7 +11933,7 @@ var storage = {
 exports.default = storage;
 
 /***/ }),
-/* 43 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12069,7 +12009,7 @@ var DownloadTask = function () {
 exports.default = DownloadTask;
 
 /***/ }),
-/* 44 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12091,7 +12031,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var md5 = __webpack_require__(45);
+var md5 = __webpack_require__(43);
 
 var DownloadTask_js = function () {
 	function DownloadTask_js(params) {
@@ -12108,7 +12048,7 @@ var DownloadTask_js = function () {
 		this.headersReceivedCallbacks = [];
 
 		// create xhr
-		this.xhr = new XMLHttpRequest();
+		this.xhr = new window.NativeGlobal.XMLHttpRequest();
 		this.xhr.open('GET', params.url, true);
 		this.xhr.responseType = 'arraybuffer';
 		this.xhr.timeout = params.timeout || 0;
@@ -12244,14 +12184,14 @@ var DownloadTask_js = function () {
 exports.default = DownloadTask_js;
 
 /***/ }),
-/* 45 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function(){
-  var crypt = __webpack_require__(46),
-      utf8 = __webpack_require__(17).utf8,
-      isBuffer = __webpack_require__(47),
-      bin = __webpack_require__(17).bin,
+  var crypt = __webpack_require__(44),
+      utf8 = __webpack_require__(16).utf8,
+      isBuffer = __webpack_require__(45),
+      bin = __webpack_require__(16).bin,
 
   // The core
   md5 = function (message, options) {
@@ -12410,7 +12350,7 @@ exports.default = DownloadTask_js;
 
 
 /***/ }),
-/* 46 */
+/* 44 */
 /***/ (function(module, exports) {
 
 (function() {
@@ -12512,7 +12452,7 @@ exports.default = DownloadTask_js;
 
 
 /***/ }),
-/* 47 */
+/* 45 */
 /***/ (function(module, exports) {
 
 /*!
@@ -12539,7 +12479,7 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 48 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12615,7 +12555,7 @@ var UploadTask = function () {
 exports.default = UploadTask;
 
 /***/ }),
-/* 49 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12693,7 +12633,7 @@ var UploadTask_js = function () {
 		}
 
 		// create xhr
-		this.xhr = new XMLHttpRequest();
+		this.xhr = new window.NativeGlobal.XMLHttpRequest();
 		this.xhr.timeout = params.timeout || 0;
 		if (_typeof(params.header) == 'object') {
 			for (var key in params.header) {
@@ -12809,7 +12749,7 @@ var UploadTask_js = function () {
 exports.default = UploadTask_js;
 
 /***/ }),
-/* 50 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12880,7 +12820,7 @@ var RequestTask = function () {
 exports.default = RequestTask;
 
 /***/ }),
-/* 51 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12934,7 +12874,7 @@ var RequestTask_js = function () {
 		this.headersReceivedCallbacks = [];
 
 		// create xhr
-		this.xhr = new XMLHttpRequest();
+		this.xhr = new window.NativeGlobal.XMLHttpRequest();
 		this.xhr.open(params.method, params.url, true);
 		this.xhr.responseType = params.responseType;
 		this.xhr.timeout = params.timeout;
@@ -13076,7 +13016,7 @@ var RequestTask_js = function () {
 exports.default = RequestTask_js;
 
 /***/ }),
-/* 52 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13131,7 +13071,46 @@ var LoadSubpackageTask = function () {
 exports.default = LoadSubpackageTask;
 
 /***/ }),
-/* 53 */
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _bridge = __webpack_require__(0);
+
+var _bridge2 = _interopRequireDefault(_bridge);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LoadSubpackage_js = function () {
+	function LoadSubpackage_js(params) {
+		_classCallCheck(this, LoadSubpackage_js);
+
+		// just ok, we don't support sub package
+		_bridge2.default.simulateOK('loadSubpackage', params);
+	}
+
+	_createClass(LoadSubpackage_js, [{
+		key: 'onProgressUpdate',
+		value: function onProgressUpdate(fn) {}
+	}]);
+
+	return LoadSubpackage_js;
+}();
+
+exports.default = LoadSubpackage_js;
+
+/***/ }),
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13305,7 +13284,7 @@ var SocketTask = function () {
 exports.default = SocketTask;
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13375,7 +13354,7 @@ var VersionUpdateManager = function () {
 exports.default = VersionUpdateManager;
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13516,7 +13495,7 @@ var BannerAd = function () {
 exports.default = BannerAd;
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13654,7 +13633,7 @@ var RewardedVideoAd = function () {
 exports.default = RewardedVideoAd;
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13793,7 +13772,7 @@ var InterstitialAd = function () {
 exports.default = InterstitialAd;
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13930,7 +13909,7 @@ var GameIcon = function () {
 exports.default = GameIcon;
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14053,7 +14032,7 @@ var GamePortal = function () {
 exports.default = GamePortal;
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14087,7 +14066,7 @@ var OpenDataContext = function () {
 exports.default = OpenDataContext;
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14100,7 +14079,7 @@ if ("undefined" == typeof navigator) {
 }
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14158,7 +14137,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 }());
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14209,7 +14188,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 }(), "undefined" == typeof console.group && (console.group = function () {}), "undefined" == typeof console.groupEnd && (console.groupEnd = function () {});
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14785,7 +14764,7 @@ function createContext() {
 exports.default = InnerAudioContext;
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14873,7 +14852,7 @@ var BackgroundAudioManager = function () {
 exports.default = BackgroundAudioManager;
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14992,7 +14971,7 @@ var RecorderManager = function () {
 exports.default = RecorderManager;
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15029,7 +15008,7 @@ var GameClubButton = function (_WXButton) {
 exports.default = GameClubButton;
 
 /***/ }),
-/* 68 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15066,7 +15045,7 @@ var UserInfoButton = function (_WXButton) {
 exports.default = UserInfoButton;
 
 /***/ }),
-/* 69 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15103,7 +15082,7 @@ var OpenSettingButton = function (_WXButton) {
 exports.default = OpenSettingButton;
 
 /***/ }),
-/* 70 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15140,7 +15119,7 @@ var FeedbackButton = function (_WXButton) {
 exports.default = FeedbackButton;
 
 /***/ }),
-/* 71 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15177,7 +15156,7 @@ var GameClubButton_js = function (_WXButton_js) {
 exports.default = GameClubButton_js;
 
 /***/ }),
-/* 72 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15214,7 +15193,7 @@ var UserInfoButton_js = function (_WXButton_js) {
 exports.default = UserInfoButton_js;
 
 /***/ }),
-/* 73 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15251,7 +15230,7 @@ var OpenSettingButton_js = function (_WXButton_js) {
 exports.default = OpenSettingButton_js;
 
 /***/ }),
-/* 74 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15288,7 +15267,7 @@ var FeedbackButton_js = function (_WXButton_js) {
 exports.default = FeedbackButton_js;
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15300,7 +15279,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _util = __webpack_require__(13);
+var _util = __webpack_require__(19);
 
 var _util2 = _interopRequireDefault(_util);
 
@@ -15318,22 +15297,22 @@ var LogManager = function () {
 	_createClass(LogManager, [{
 		key: 'debug',
 		value: function debug() {
-			logxx(_util2.default.format.apply(this, arguments) + '\n');
+			console.log(_util2.default.format.apply(this, arguments) + '\n');
 		}
 	}, {
 		key: 'info',
 		value: function info() {
-			logxx(_util2.default.format.apply(this, arguments) + '\n');
+			console.log(_util2.default.format.apply(this, arguments) + '\n');
 		}
 	}, {
 		key: 'log',
 		value: function log() {
-			logxx(_util2.default.format.apply(this, arguments) + '\n');
+			console.log(_util2.default.format.apply(this, arguments) + '\n');
 		}
 	}, {
 		key: 'warn',
 		value: function warn() {
-			logxx(_util2.default.format.apply(this, arguments) + '\n');
+			console.log(_util2.default.format.apply(this, arguments) + '\n');
 		}
 	}], [{
 		key: 'getInstance',
@@ -15351,7 +15330,47 @@ var LogManager = function () {
 exports.default = LogManager;
 
 /***/ }),
+/* 75 */
+/***/ (function(module, exports) {
+
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+
+/***/ }),
 /* 76 */
+/***/ (function(module, exports) {
+
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+
+/***/ }),
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15473,7 +15492,7 @@ function iterateCallbackArray(cbArr, e) {
 		try {
 			fn(e);
 		} catch (x) {
-			logxx('event callback error at ' + x.stack);
+			console.log('event callback error at ' + x.stack);
 		}
 	});
 }
@@ -15498,7 +15517,7 @@ function listenEventWithCallbackMap(ev, cbMap, key, preprocess, postprocess) {
 				try {
 					fn(e);
 				} catch (x) {
-					logxx('event callback error at ' + x.stack);
+					console.log('event callback error at ' + x.stack);
 				}
 			});
 
@@ -16813,7 +16832,7 @@ window.wd.onAppShow(function () {
 });
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16855,7 +16874,7 @@ var Performance = function () {
 exports.default = Performance;
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16871,23 +16890,23 @@ var _bridge = __webpack_require__(0);
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _guessYouLikeGame = __webpack_require__(79);
+var _guessYouLikeGame = __webpack_require__(80);
 
 var _guessYouLikeGame2 = _interopRequireDefault(_guessYouLikeGame);
 
-var _topgame = __webpack_require__(80);
+var _topgame = __webpack_require__(81);
 
 var _topgame2 = _interopRequireDefault(_topgame);
 
-var _challengeResult = __webpack_require__(81);
+var _challengeResult = __webpack_require__(82);
 
 var _challengeResult2 = _interopRequireDefault(_challengeResult);
 
-var _ladderResult = __webpack_require__(82);
+var _ladderResult = __webpack_require__(83);
 
 var _ladderResult2 = _interopRequireDefault(_ladderResult);
 
-var _liveDefeat = __webpack_require__(83);
+var _liveDefeat = __webpack_require__(84);
 
 var _liveDefeat2 = _interopRequireDefault(_liveDefeat);
 
@@ -16899,27 +16918,27 @@ var _const = __webpack_require__(1);
 
 var _const2 = _interopRequireDefault(_const);
 
-var _extendedAd = __webpack_require__(84);
+var _extendedAd = __webpack_require__(85);
 
 var _extendedAd2 = _interopRequireDefault(_extendedAd);
 
-var _feedAd = __webpack_require__(85);
+var _feedAd = __webpack_require__(86);
 
 var _feedAd2 = _interopRequireDefault(_feedAd);
 
-var _lottery = __webpack_require__(86);
+var _lottery = __webpack_require__(87);
 
 var _lottery2 = _interopRequireDefault(_lottery);
 
-var _dailyTask = __webpack_require__(87);
+var _dailyTask = __webpack_require__(88);
 
 var _dailyTask2 = _interopRequireDefault(_dailyTask);
 
-var _upgradeGiftIcon = __webpack_require__(88);
+var _upgradeGiftIcon = __webpack_require__(89);
 
 var _upgradeGiftIcon2 = _interopRequireDefault(_upgradeGiftIcon);
 
-var _withdrawIcon = __webpack_require__(89);
+var _withdrawIcon = __webpack_require__(90);
 
 var _withdrawIcon2 = _interopRequireDefault(_withdrawIcon);
 
@@ -16950,7 +16969,7 @@ var apiObj = {
   * 得到base url
   */
 	getAppBaseUrl: function getAppBaseUrl() {
-		var href = window.location.href;
+		var href = "" + window.location.origin + window.location.pathname;
 		if (href.endsWith('.html')) {
 			var idx = href.lastIndexOf('/');
 			if (idx != -1 && idx > 0) {
@@ -17557,7 +17576,7 @@ var apiObj = {
 exports.default = apiObj;
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17608,7 +17627,7 @@ var GuessYouLike = function () {
 exports.default = GuessYouLike;
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17624,7 +17643,7 @@ var _bridge = __webpack_require__(0);
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _EventEmitter = __webpack_require__(16);
+var _EventEmitter = __webpack_require__(15);
 
 var _EventEmitter2 = _interopRequireDefault(_EventEmitter);
 
@@ -17686,7 +17705,7 @@ var TopGame = function () {
 exports.default = TopGame;
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17743,7 +17762,7 @@ var ChallengeResult = function () {
 exports.default = ChallengeResult;
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17808,7 +17827,7 @@ var LadderResult = function () {
 exports.default = LadderResult;
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17863,7 +17882,7 @@ var LiveDefeat = function () {
 exports.default = LiveDefeat;
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18164,7 +18183,7 @@ Object.defineProperties(ExtendedAd, {
 exports.default = ExtendedAd;
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18317,7 +18336,7 @@ var FeedAd = function () {
 exports.default = FeedAd;
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18380,7 +18399,7 @@ var Lottery = function () {
 exports.default = Lottery;
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18443,7 +18462,7 @@ var DailyTask = function () {
 exports.default = DailyTask;
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18522,7 +18541,7 @@ var UpgradeGiftIcon = function () {
 exports.default = UpgradeGiftIcon;
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18538,7 +18557,7 @@ var _bridge = __webpack_require__(0);
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _sceneConst = __webpack_require__(19);
+var _sceneConst = __webpack_require__(18);
 
 var _sceneConst2 = _interopRequireDefault(_sceneConst);
 
@@ -18609,7 +18628,7 @@ var WithdrawIcon = function () {
 exports.default = WithdrawIcon;
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18631,34 +18650,11 @@ var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _socketTask_js = __webpack_require__(18);
+var _socketTask_js = __webpack_require__(17);
 
 var _socketTask_js2 = _interopRequireDefault(_socketTask_js);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// directly succeed
-function simulateOK(event, params, data) {
-	params = params || {};
-	params.__fake_result = params.__fake_result || {};
-	params.__fake_result.errCode = _const2.default.RESULT_OK;
-	if (data) {
-		params.__fake_result = Object.assign(params.__fake_result, data);
-	}
-	setTimeout(function () {
-		_bridge2.default.invokeMethod(event, params);
-	}, 0);
-}
-
-// directly fail
-function simulateFail(event, params) {
-	params = params || {};
-	params.__fake_result = params.__fake_result || {};
-	params.__fake_result.errCode = _const2.default.RESULT_FAIL;
-	setTimeout(function () {
-		_bridge2.default.invokeMethod(event, params);
-	}, 0);
-}
 
 /**
  * js implementation for some api
@@ -18675,13 +18671,13 @@ var apiObj_js = {
 			},
 			success: function success(res) {
 				if (res.data.code != 200) {
-					simulateFail('login', params);
+					_bridge2.default.simulateFail('login', params);
 				} else {
-					simulateOK('login', params, res.data.data);
+					_bridge2.default.simulateOK('login', params, res.data.data);
 				}
 			},
 			fail: function fail(res) {
-				simulateFail('getUserInfo', params);
+				_bridge2.default.simulateFail('getUserInfo', params);
 			}
 		});
 	},
@@ -18696,18 +18692,18 @@ var apiObj_js = {
 			},
 			success: function success(res) {
 				if (res.data.code != 200) {
-					simulateFail('getUserInfo', params);
+					_bridge2.default.simulateFail('getUserInfo', params);
 				} else {
-					simulateOK('getUserInfo', params, res.data.data);
+					_bridge2.default.simulateOK('getUserInfo', params, res.data.data);
 				}
 			},
 			fail: function fail(res) {
-				simulateFail('getUserInfo', params);
+				_bridge2.default.simulateFail('getUserInfo', params);
 			}
 		});
 	},
 	authorize: function authorize(params) {
-		simulateOK('authorize', params);
+		_bridge2.default.simulateOK('authorize', params);
 	},
 	code2Session: function code2Session(params) {
 		window.mgc.request({
@@ -18719,22 +18715,22 @@ var apiObj_js = {
 			},
 			success: function success(res) {
 				if (res.data.code != 200) {
-					simulateFail('code2Session', params);
+					_bridge2.default.simulateFail('code2Session', params);
 				} else {
-					simulateOK('code2Session', params, res.data);
+					_bridge2.default.simulateOK('code2Session', params, res.data);
 				}
 			},
 			fail: function fail(res) {
-				simulateFail('code2Session', params);
+				_bridge2.default.simulateFail('code2Session', params);
 			}
 		});
 	},
 	checkSession: function checkSession(params) {
 		// XXX: 现在都让他失败, 貌似native上也这样
-		simulateFail('checkSession', params);
+		_bridge2.default.simulateFail('checkSession', params);
 	},
 	getLetoVersions: function getLetoVersions(params) {
-		simulateOK('getLetoVersions', params, window.mgc.getLetoVersionsSync());
+		_bridge2.default.simulateOK('getLetoVersions', params, window.mgc.getLetoVersionsSync());
 	},
 	getLetoVersionsSync: function getLetoVersionsSync(params) {
 		return {
@@ -18745,7 +18741,7 @@ var apiObj_js = {
 	},
 	getSystemInfo: function getSystemInfo(params) {
 		var info = window.mgc.getSystemInfoSync();
-		simulateOK('getSystemInfo', params, info);
+		_bridge2.default.simulateOK('getSystemInfo', params, info);
 	},
 	getSystemInfoSync: function getSystemInfoSync(params) {
 		return {
@@ -18800,7 +18796,7 @@ var apiObj_js = {
 	},
 	getAppInfo: function getAppInfo(params) {
 		var appInfo = window.mgc.getAppInfoSync();
-		simulateOK('getAppInfo', params, appInfo);
+		_bridge2.default.simulateOK('getAppInfo', params, appInfo);
 	},
 	getAppInfoSync: function getAppInfoSync(params) {
 		return {
@@ -18812,43 +18808,43 @@ var apiObj_js = {
 		};
 	},
 	setNavigationBarColor: function setNavigationBarColor(params) {
-		simulateOK('setNavigationBarColor', params);
+		_bridge2.default.simulateOK('setNavigationBarColor', params);
 	},
 	setNavigationBarTitle: function setNavigationBarTitle(params) {
-		simulateOK('setNavigationBarTitle', params);
+		_bridge2.default.simulateOK('setNavigationBarTitle', params);
 	},
 	showNavigationBarLoading: function showNavigationBarLoading(params) {
-		simulateOK('showNavigationBarLoading', params);
+		_bridge2.default.simulateOK('showNavigationBarLoading', params);
 	},
 	hideNavigationBarLoading: function hideNavigationBarLoading(params) {
-		simulateOK('hideNavigationBarLoading', params);
+		_bridge2.default.simulateOK('hideNavigationBarLoading', params);
 	},
 	stopPullDownRefresh: function stopPullDownRefresh(params) {
-		simulateOK('stopPullDownRefresh', params);
+		_bridge2.default.simulateOK('stopPullDownRefresh', params);
 	},
 	pageScrollTo: function pageScrollTo(params) {
-		simulateOK('pageScrollTo', params);
+		_bridge2.default.simulateOK('pageScrollTo', params);
 	},
 	chooseImage: function chooseImage(params) {
-		simulateFail('chooseImage', params);
+		_bridge2.default.simulateFail('chooseImage', params);
 	},
 	previewImage: function previewImage(params) {
-		simulateFail('previewImage', params);
+		_bridge2.default.simulateFail('previewImage', params);
 	},
 	getImageInfo: function getImageInfo(params) {
-		simulateFail('getImageInfo', params);
+		_bridge2.default.simulateFail('getImageInfo', params);
 	},
 	startRecord: function startRecord(params) {
-		simulateFail('startRecord', params);
+		_bridge2.default.simulateFail('startRecord', params);
 	},
 	chooseVideo: function chooseVideo(params) {
-		simulateFail('chooseVideo', params);
+		_bridge2.default.simulateFail('chooseVideo', params);
 	},
 	getLocation: function getLocation(params) {
 		var navigator = window.NativeGlobal ? window.NativeGlobal.navigator : global.navigator;
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(function (loc) {
-				simulateOK('getLocation', params, {
+				_bridge2.default.simulateOK('getLocation', params, {
 					latitude: loc.coords.latitude,
 					longitude: loc.coords.longitude,
 					speed: loc.coords.speed,
@@ -18858,27 +18854,27 @@ var apiObj_js = {
 					horizontalAccuracy: loc.coords.accuracy
 				});
 			}, function (e) {
-				simulateFail('getLocation', params);
+				_bridge2.default.simulateFail('getLocation', params);
 			});
 		} else {
-			simulateFail('getLocation', params);
+			_bridge2.default.simulateFail('getLocation', params);
 		}
 	},
 	getLocationSync: function getLocationSync(params) {
 		// get location can not be synchronized
-		simulateFail('getLocationSync', params);
+		_bridge2.default.simulateFail('getLocationSync', params);
 	},
 	openLocation: function openLocation(params) {
 		// TODO not implemented, just fail
-		simulateFail('openLocation', params);
+		_bridge2.default.simulateFail('openLocation', params);
 	},
 	chooseLocation: function chooseLocation(params) {
 		// TODO not implemented, just fail
-		simulateFail('chooseLocation', params);
+		_bridge2.default.simulateFail('chooseLocation', params);
 	},
 	getNetworkType: function getNetworkType(params) {
 		var nt = window.mgc.getNetworkTypeSync(params);
-		simulateOK('getNetworkType', params, {
+		_bridge2.default.simulateOK('getNetworkType', params, {
 			networkType: nt
 		});
 	},
@@ -18904,59 +18900,59 @@ var apiObj_js = {
 	},
 	addCard: function addCard(params) {
 		// TODO not implemented, just fail
-		simulateFail('addCard', params);
+		_bridge2.default.simulateFail('addCard', params);
 	},
 	openCard: function openCard(params) {
 		// TODO not implemented, just fail
-		simulateFail('addCard', params);
+		_bridge2.default.simulateFail('addCard', params);
 	},
 	saveFile: function saveFile(params) {
-		simulateFail('saveFile', params);
+		_bridge2.default.simulateFail('saveFile', params);
 	},
 	showModal: function showModal(params) {
 		window.alert(params.content);
-		simulateOK('showModal', params);
+		_bridge2.default.simulateOK('showModal', params);
 	},
 	showToast: function showToast(params) {
 		// TODO not implemented, just fail
-		simulateFail('showToast', params);
+		_bridge2.default.simulateFail('showToast', params);
 	},
 	showLoading: function showLoading(params) {
 		// TODO not implemented, just fail
-		simulateFail('showLoading', params);
+		_bridge2.default.simulateFail('showLoading', params);
 	},
 	hideLoading: function hideLoading(params) {
 		// TODO not implemented, just fail
-		simulateFail('hideLoading', params);
+		_bridge2.default.simulateFail('hideLoading', params);
 	},
 	showActionSheet: function showActionSheet(params) {
 		// TODO not implemented, just fail
-		simulateFail('showActionSheet', params);
+		_bridge2.default.simulateFail('showActionSheet', params);
 	},
 	getSavedFileList: function getSavedFileList(params) {
-		simulateFail('getSavedFileList', params);
+		_bridge2.default.simulateFail('getSavedFileList', params);
 	},
 	getSavedFileInfo: function getSavedFileInfo(params) {
-		simulateFail('getSavedFileInfo', params);
+		_bridge2.default.simulateFail('getSavedFileInfo', params);
 	},
 	getFileInfo: function getFileInfo(params) {
-		simulateFail('getFileInfo', params);
+		_bridge2.default.simulateFail('getFileInfo', params);
 	},
 	removeSavedFile: function removeSavedFile(params) {
-		simulateFail('removeSavedFile', params);
+		_bridge2.default.simulateFail('removeSavedFile', params);
 	},
 	getClipboardData: function getClipboardData(params) {
 		var navigator = window.NativeGlobal ? window.NativeGlobal.navigator : global.navigator;
 		if (navigator.clipboard && navigator.clipboard.readText) {
 			navigator.clipboard.readText().then(function (t) {
-				simulateOK('getClipboardData', params, {
+				_bridge2.default.simulateOK('getClipboardData', params, {
 					data: t
 				});
 			}).catch(function (e) {
-				simulateFail('getClipboardData', params);
+				_bridge2.default.simulateFail('getClipboardData', params);
 			});
 		} else {
-			simulateFail('getClipboardData', params);
+			_bridge2.default.simulateFail('getClipboardData', params);
 		}
 	},
 	setClipboardData: function setClipboardData(params) {
@@ -18965,47 +18961,47 @@ var apiObj_js = {
 			navigator.permissions.query({ name: "clipboard-write" }).then(function (r) {
 				if (r.state == "granted" || r.state == "prompt") {
 					navigator.clipboard.writeText(params.data).then(function (r) {
-						simulateOK('setClipboardData', params);
+						_bridge2.default.simulateOK('setClipboardData', params);
 					}).catch(function (e) {
-						simulateFail('setClipboardData', params);
+						_bridge2.default.simulateFail('setClipboardData', params);
 					});
 				}
 			}).catch(function (e) {
-				simulateFail('setClipboardData', params);
+				_bridge2.default.simulateFail('setClipboardData', params);
 			});
 		} else {
-			simulateFail('setClipboardData', params);
+			_bridge2.default.simulateFail('setClipboardData', params);
 		}
 	},
 	getAvailableAudioSources: function getAvailableAudioSources(params) {
-		simulateOK('getAvailableAudioSources', params, {
+		_bridge2.default.simulateOK('getAvailableAudioSources', params, {
 			audioSources: ['auto']
 		});
 	},
 	updateKeyboard: function updateKeyboard(params) {
 		// TODO not implemented, just fail
-		simulateFail('updateKeyboard', params);
+		_bridge2.default.simulateFail('updateKeyboard', params);
 	},
 	showKeyboard: function showKeyboard(params) {
 		// TODO not implemented, just fail
-		simulateFail('showKeyboard', params);
+		_bridge2.default.simulateFail('showKeyboard', params);
 	},
 	hideKeyboard: function hideKeyboard(params) {
 		// TODO not implemented, just fail
-		simulateFail('hideKeyboard', params);
+		_bridge2.default.simulateFail('hideKeyboard', params);
 	},
 	getTextLineHeight: function getTextLineHeight(params) {
 		// TODO not implemented
 		return params.fontSize;
 	},
 	triggerGC: function triggerGC(params) {
-		simulateOK('triggerGC', params);
+		_bridge2.default.simulateOK('triggerGC', params);
 	},
 	exitMiniProgram: function exitMiniProgram(params) {
 		window.history.go(-1);
 	},
 	getBatteryInfo: function getBatteryInfo(params) {
-		simulateOK('getBatteryInfo', params, {
+		_bridge2.default.simulateOK('getBatteryInfo', params, {
 			level: 100,
 			isCharging: false
 		});
@@ -19021,21 +19017,21 @@ var apiObj_js = {
 		if (navigator.vibrate) {
 			navigator.vibrate(20);
 		}
-		simulateOK('vibrateShort', params);
+		_bridge2.default.simulateOK('vibrateShort', params);
 	},
 	vibrateLong: function vibrateLong(params) {
 		var navigator = window.NativeGlobal ? window.NativeGlobal.navigator : global.navigator;
 		if (navigator.vibrate) {
 			navigator.vibrate(200);
 		}
-		simulateOK('vibrateLong', params);
+		_bridge2.default.simulateOK('vibrateLong', params);
 	},
 	getScreenBrightness: function getScreenBrightness(params) {
 		var value = 1;
 		if (window.screen && window.screen.mozBrightness) {
 			value = window.screen.mozBrightness;
 		}
-		simulateOK('getScreenBrightness', params, {
+		_bridge2.default.simulateOK('getScreenBrightness', params, {
 			value: value
 		});
 	},
@@ -19045,68 +19041,65 @@ var apiObj_js = {
 		if (window.screen && window.screen.mozBrightness) {
 			window.screen.mozBrightness = value;
 		}
-		simulateOK('setScreenBrightness', params);
+		_bridge2.default.simulateOK('setScreenBrightness', params);
 	},
 	setKeepScreenOn: function setKeepScreenOn(params) {
-		simulateFail('setKeepScreenOn', params);
+		_bridge2.default.simulateFail('setKeepScreenOn', params);
 	},
 	startDeviceMotionListening: function startDeviceMotionListening(params) {
 		// TODO not implemented
-		simulateOK('startDeviceMotionListening', params);
+		_bridge2.default.simulateOK('startDeviceMotionListening', params);
 	},
 	stopDeviceMotionListening: function stopDeviceMotionListening(params) {
 		// TODO not implemented
-		simulateOK('stopDeviceMotionListening', params);
+		_bridge2.default.simulateOK('stopDeviceMotionListening', params);
 	},
 	startAccelerometer: function startAccelerometer(params) {
 		// TODO not implemented
-		simulateOK('startAccelerometer', params);
+		_bridge2.default.simulateOK('startAccelerometer', params);
 	},
 	stopAccelerometer: function stopAccelerometer(params) {
 		// TODO not implemented
-		simulateOK('stopAccelerometer', params);
+		_bridge2.default.simulateOK('stopAccelerometer', params);
 	},
 	startCompass: function startCompass(params) {
 		// TODO not implemented
-		simulateOK('startCompass', params);
+		_bridge2.default.simulateOK('startCompass', params);
 	},
 	stopCompass: function stopCompass(params) {
 		// TODO not implemented
-		simulateOK('stopCompass', params);
+		_bridge2.default.simulateOK('stopCompass', params);
 	},
 	startGyroscope: function startGyroscope(params) {
 		// TODO not implemented
-		simulateOK('startGyroscope', params);
+		_bridge2.default.simulateOK('startGyroscope', params);
 	},
 	stopGyroscope: function stopGyroscope(params) {
 		// TODO not implemented
-		simulateOK('stopGyroscope', params);
-	},
-	loadSubpackage: function loadSubpackage(params) {
-		simulateOK('loadSubpackage', params);
+		_bridge2.default.simulateOK('stopGyroscope', params);
 	},
 	showShareMenu: function showShareMenu(params) {
 		// TODO not implemented
-		simulateOK('showShareMenu', params);
+		_bridge2.default.simulateOK('showShareMenu', params);
 	},
 	updateShareMenu: function updateShareMenu(params) {
 		// TODO not implemented
-		simulateOK('updateShareMenu', params);
+		_bridge2.default.simulateOK('updateShareMenu', params);
 	},
 	hideShareMenu: function hideShareMenu(params) {
 		// TODO not implemented
-		simulateOK('hideShareMenu', params);
+		_bridge2.default.simulateOK('hideShareMenu', params);
 	},
 	shareAppMessage: function shareAppMessage(params) {
 		// TODO not implemented
-		simulateOK('shareAppMessage', params);
+		_bridge2.default.simulateOK('shareAppMessage', params);
 	},
 	getShareInfo: function getShareInfo(params) {
 		// TODO not implemented
-		simulateOK('getShareInfo', params);
+		_bridge2.default.simulateOK('getShareInfo', params);
 	},
 	getSetting: function getSetting(params) {
-		simulateOK('getSetting', params, {
+		_bridge2.default.simulateOK('getSetting', params, {
 			authSetting: {
 				"scope.userInfo": true,
 				"scope.userLocation": true,
@@ -19120,63 +19113,71 @@ var apiObj_js = {
 		});
 	},
 	openSetting: function openSetting(params) {
-		simulateOK('openSetting', params);
+		_bridge2.default.simulateOK('openSetting', params);
 	},
 	navigateBackMiniProgram: function navigateBackMiniProgram(params) {
 		window.history.go(-1);
 	},
 	navigateToMiniProgram: function navigateToMiniProgram(params) {
+		var deviceId = _utils2.default.getOrCreateDeviceId();
+		var channelId = window.mgc.getChannelId();
+		var userId = _utils2.default.getOrCreateUserId();
 		var rootUrl = window.mgc.getJSGameRootUrl();
-		window.location = rootUrl + '/' + params.appId + '/__start__.html';
+		window.location = rootUrl + '/' + params.appId + '/__start__.html?userId=' + userId + '&channelId=' + channelId + '&deviceId=' + deviceId;
 	},
 	removeUserCloudStorage: function removeUserCloudStorage(params) {
 		// TODO not implemented
-		simulateFail('removeUserCloudStorage', params);
+		_bridge2.default.simulateFail('removeUserCloudStorage', params);
 	},
 	setUserCloudStorage: function setUserCloudStorage(params) {
 		// TODO not implemented
-		simulateFail('setUserCloudStorage', params);
+		_bridge2.default.simulateFail('setUserCloudStorage', params);
 	},
 	requestMidasPayment: function requestMidasPayment(params) {
 		// TODO not implemented
-		simulateFail('requestMidasPayment', params);
+		_bridge2.default.simulateFail('requestMidasPayment', params);
 	},
 	navigateToMoreMiniProgram: function navigateToMoreMiniProgram(params) {
 		// TODO not implemented
-		simulateFail('navigateToMoreMiniProgram', params);
+		_bridge2.default.simulateFail('navigateToMoreMiniProgram', params);
 	},
 	getGameReward: function getGameReward(params) {
 		// TODO not implemented
-		simulateFail('getGameReward', params);
+		_bridge2.default.simulateFail('getGameReward', params);
 	},
 	showRewardToast: function showRewardToast(params) {
 		// TODO not implemented
-		simulateFail('showRewardToast', params);
+		_bridge2.default.simulateFail('showRewardToast', params);
 	},
 	getMenuButtonBoundingClientRect: function getMenuButtonBoundingClientRect(params) {
-		// TODO 做一个h5实现的menu?
-		simulateOK('getMenuButtonBoundingClientRect', params, {
-			left: 0,
-			right: 0,
-			top: 0,
-			bottom: 0,
-			width: 0,
-			height: 0
-		});
+		var doc = window.NativeGlobal.document;
+		var menuBar = doc.getElementById('menu_bar');
+		if (menuBar) {
+			return menuBar.getBoundingClientRect();
+		} else {
+			return {
+				left: 0,
+				right: 0,
+				top: 0,
+				bottom: 0,
+				width: 0,
+				height: 0
+			};
+		}
 	},
 	setMenuStyle: function setMenuStyle(params) {
 		// TODO 做一个h5实现的menu?
-		simulateOK('setMenuStyle', params);
+		_bridge2.default.simulateOK('setMenuStyle', params);
 	},
 	setStatusBarStyle: function setStatusBarStyle(params) {
-		simulateOK('setStatusBarStyle', params);
+		_bridge2.default.simulateOK('setStatusBarStyle', params);
 	},
 	closeSocket: function closeSocket(params) {
 		params = params || {};
 		var task = _socketTask_js2.default.getLastTask();
 		if (task) {
 			var fn = function fn(res) {
-				simulateOK('closeSocket', params);
+				_bridge2.default.simulateOK('closeSocket', params);
 				task.offClose(fn);
 			};
 			task.onClose(fn);
@@ -19274,7 +19275,7 @@ exports.default = apiObj_js;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19336,7 +19337,7 @@ window.wx = window.mgc;
 // }
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19403,7 +19404,7 @@ var _require = function _require(path) {
 		throw new Error('require args must be a string');
 	}
 	var moduleObj = moduleArr[path];
-	logxx('require ' + path + ', and module is ' + moduleObj);
+	console.log('require ' + path + ', and module is ' + moduleObj);
 	if (!moduleObj) return {}; //throw new Error('module "' + path + '" is not defined')
 	if (moduleObj.status === statusDefineFlag) {
 		// we need set a requiring flag to avoid loop require
@@ -19428,7 +19429,7 @@ window.require = _require;
 window.__WAServiceEndTime__ = Date.now();
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19438,7 +19439,7 @@ var _utils = __webpack_require__(2);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _database = __webpack_require__(94);
+var _database = __webpack_require__(95);
 
 var _database2 = _interopRequireDefault(_database);
 
@@ -19495,7 +19496,7 @@ window.mgc.cloud = Cloud;
 module.exports = Cloud;
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19507,7 +19508,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _collection = __webpack_require__(95);
+var _collection = __webpack_require__(96);
 
 var _collection2 = _interopRequireDefault(_collection);
 
@@ -19539,7 +19540,7 @@ var Database = function () {
 exports.default = Database;
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19551,11 +19552,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _document = __webpack_require__(96);
+var _document = __webpack_require__(97);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _query = __webpack_require__(97);
+var _query = __webpack_require__(98);
 
 var _query2 = _interopRequireDefault(_query);
 
@@ -19615,7 +19616,7 @@ var Collection = function () {
 exports.default = Collection;
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19687,7 +19688,7 @@ var Document = function () {
 exports.default = Document;
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19708,13 +19709,13 @@ var Query = function Query(rule) {
 exports.default = Query;
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(99);
+__webpack_require__(100);
 
 // save native reference
 var __global = {
@@ -19738,7 +19739,7 @@ var __global = {
 window.NativeGlobal = __global;
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
