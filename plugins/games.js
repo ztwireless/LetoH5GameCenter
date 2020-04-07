@@ -1967,31 +1967,6 @@ export const NEWGAMES = [
 				"version": "1.1.1"
 			}
 		]
-	},
-	{
-		id: "31",
-		name: "六边形消除",
-		compact: "10",
-		styleCode: "bigPic",
-		showmore: "2",
-		categoryList: [],
-		rankList: [],
-		gameList: [
-			{
-				id: "364286",
-				name: "六边形消除",
-				icon: "http://download.mgc-games.com/access/upload/20190304/5c7d2f4c173e9.png",
-				packageurl: "http://download.mgc-games.com/sdkgame/364286/hexagonelimination_pack.zip",
-				version: "1.0",
-				deviceOrientation: "portrait",
-				play_num: "245",
-				pic: "http://download.mgc-games.com/access/gamecenter/pic/lbxxc.jpg",
-				publicity: "全新玩法，纵横变换，烧脑有趣，创意满满！",
-				tags: ["休闲", "消除", "六边形"],
-				classify: "7",
-				backgroundcolor: ""
-			}
-		]
 	}
 ]
 
