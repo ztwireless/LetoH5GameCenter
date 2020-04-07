@@ -11,9 +11,9 @@
                 <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>游戏中心</h2>
-                    <div v-if="backable" class="withdraw_red" @click="withdraw"></div>
-                    <div v-if="backable" class="withdraw" @click="withdraw"></div>
-                    <div v-if="backable" class="withdraw_tx" @click="withdraw">提现</div>
+                    <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">提现</div>
                 </header>
 
                 <div class="content">
@@ -261,8 +261,8 @@ export default {
    data() {
        let vm = this;
         return {
-            backable: true, //头部是否显示后退按钮
-
+            backable: false, //头部是否显示后退按钮
+            showWithdraw: false,
             lastClickTime: 0,
 
             games: [],
