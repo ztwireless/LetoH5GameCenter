@@ -3,7 +3,7 @@ let webpack = require('webpack');
 let dayjs = require('dayjs');
 
 // TODO: 正式发布时需要修改
-const routerBase = process.env.NODE_ENV == 'development' ? '' : '/~maruojie/dist'
+const routerBase = process.env.NODE_ENV == 'development' ? '/~maruojie/dist' : ''
 
 module.exports = {
     mode: 'spa',

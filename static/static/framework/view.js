@@ -19123,7 +19123,7 @@ var apiObj_js = {
 		var channelId = window.mgc.getChannelId();
 		var userId = _utils2.default.getOrCreateUserId();
 		var rootUrl = window.mgc.getJSGameRootUrl();
-		window.location = rootUrl + '/' + params.appId + '/__start__.html?userId=' + userId + '&channelId=' + channelId + '&deviceId=' + deviceId;
+		window.location = rootUrl + '/' + params.appId + '/__start__.html?userId=' + userId + '&channelId=' + channelId + '&deviceId=' + deviceId + '&t=' + Date.now();
 	},
 	removeUserCloudStorage: function removeUserCloudStorage(params) {
 		// TODO not implemented
