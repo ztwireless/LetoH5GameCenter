@@ -2,8 +2,8 @@ let config = require('./config');
 let webpack = require('webpack');
 let dayjs = require('dayjs');
 
-// TODO: 正式发布时需要修改
-const routerBase = process.env.NODE_ENV == 'development' ? '/~maruojie/dist' : ''
+// router base, 如果相对路径有变化时需要设置
+const routerBase = ''
 
 module.exports = {
     mode: 'spa',
