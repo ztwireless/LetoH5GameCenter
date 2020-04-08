@@ -33,7 +33,7 @@
         "log4js": "^2.8.0",
         "md5": "^2.2.1",
         "nuxt": "^2.12.2",
-        "nuxt-custom-headers": "^2.0.0",
+        "nuxt-custom-headers": "^2.1.0",
         "qs": "^6.5.2",
         "sha1": "^1.1.1",
         "source-map-support": "^0.4.15",
