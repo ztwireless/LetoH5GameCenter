@@ -332,11 +332,11 @@ export default {
     mounted() {
     	// 设置游戏根目录
         mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-            'http://192.168.1.104/~maruojie/leto_ad_test/games/games' :
+            'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
             'http://test.mgc-games.com/games/games')
 
         // ensure channel id is set
-        mgc.setChannelId('364775')
+        mgc.setChannelId('1001187')
 
         this.loadRemote()
 
@@ -359,7 +359,7 @@ export default {
 			let args = {
 				dt: 0,
 				open_token: '0023a78e02fb489528a99b7f9cb39ec',
-				app_id: appInfo.appId,
+				app_id: mgc.getChannelId(),
 				client_id: 334,
 				packagename: appInfo.packageName,
 				leto_version: sysInfo.LetoVersion,
