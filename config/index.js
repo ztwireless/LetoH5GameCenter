@@ -15,6 +15,8 @@ module.exports = {
     mgcProdOverseaUrl: 'http://miniapi.zeninto.com',
     mgcApiPathPrefix: '/api/v7/',
     mgcApiGetGameCenterData: 'charge/groups',
+    mgcApiGetGameCenterMoreData: 'charge/more',
+
 
     // 前缀URL
     apiBaseUrl: 'http://api.pezy.cn/bc-activity-service',

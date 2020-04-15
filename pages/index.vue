@@ -60,16 +60,19 @@
                             <div class="list list-left">
                                 <!-- title -->
                                 <div class="row-game title">
-                                    <div class="like"></div>
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <!-- gallery item -->
                                 <div class="mgc-games-row">
-                                    <div class="mgc-like" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
+                                    <div class="mgc-like" style="margin-bottom: 0.2rem" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.pic" />
                                         <div class="name">
                                             <img v-lazy="item.icon" class="icon-img" />
@@ -87,12 +90,15 @@
                         <template v-else-if="i.styleCode == 'horizontalList'">
                             <div class="list list-left">
                                 <!-- title -->
-                                <div class="row-game title text-active">
-                                    <div class="coin"></div>
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -103,8 +109,8 @@
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
-                                        <div class="btn" v-if="index == 2">玩一玩</div>
-                                        <div class="btn-border" v-else>玩一玩</div>
+                                        <div class="btn" v-if="index == 2">马上玩</div>
+                                        <div class="btn-border" v-else>马上玩</div>
                                     </div>
                                 </div>
                             </div>
@@ -115,12 +121,15 @@
                         <template v-else-if="i.styleCode == 'bigPic'">
                             <div class="list list-left bottom32">
                                 <!-- title -->
-                                <div class="row-game title text-active">
-                                    <div class="coin"></div>
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <!-- item -->
@@ -133,7 +142,7 @@
                                             <div class="name">{{i.gameList[0].name}}</div>
                                             <div class="play">{{i.gameList[0].play_num}}万人玩过</div>
                                         </div>
-                                        <div class="btn-border" @click="startMGCGame(i.gameList[0])">玩一玩</div>
+                                        <div class="btn-border" @click="startMGCGame(i.gameList[0])">马上玩</div>
                                     </div>
                                 </div>
                             </div>
@@ -144,11 +153,14 @@
                             <div class="list list-padding-without-bottom">
                                 <!-- title -->
                                 <div class="row-game title">
-                                    <div class="rank"></div>
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,i.rankList[0].id)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <!-- list -->
@@ -161,14 +173,13 @@
 
                                     <!-- game icon, name, etc. -->
                                     <img v-lazy="item.icon" alt="">
-                                    <div class="game-info">
+                                    <div class="game-info-rank">
                                         <div class="name row-name">
                                             {{item.name}}
                                         </div>
-                                        <div class="des">{{item.publicity}}</div>
-                                        <div class="play">{{item.play_num}}万人玩过</div>
+                                        <div class="desRank">{{item.publicity}}</div>
                                     </div>
-                                    <div class="btn-border">玩一玩</div>
+                                    <div class="btn-border">马上玩</div>
                                 </div>
                             </div>
                         </template>
@@ -177,20 +188,268 @@
                         <template v-else-if="i.styleCode == 'moreRanking'">
                         </template>
 
-                        <!-- TODO: 分类排行样式 -->
+                        <!-- TODO: 8 分类排行样式 -->
                         <template v-else-if="i.styleCode == 'category'">
+                            <div class="list list-left">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                    </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesFl(i.id,i.name,i.categoryList[0].id,i.categoryList)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                </div>
+
+                                <!-- grid items -->
+                                <div class="mgc-games-row">
+                                    <div class="mgc-game-row-fl">
+                                        <div v-if="index  % 2== 0" v-for="(item, index) in i.categoryList"
+                                             :key="index" @click="moreGamesFl(i.id,i.name,item.id,i.categoryList)"
+                                             style="background:#F5F5F5;border-radius:0.1rem;margin-bottom: 0.2rem;">
+                                            <div style="display:flex;align-items: center;height:0.77rem;width: 1.75rem;margin: 0 auto">
+                                                <img v-lazy="item.icon" style="width: 0.35rem;height: 0.35rem;margin: 0rem 0rem 0rem 0rem;border-radius: 0rem;"/>
+                                                <p>{{cutFive(item.name)}}</p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="mgc-game-row-fl">
+                                        <div v-if="index  % 2== 1" v-for="(item, index) in i.categoryList"
+                                             :key="index" @click="moreGamesFl(i.id,i.name,item.id,i.categoryList)"
+                                             style="background:#F5F5F5;border-radius:0.1rem;margin-bottom: 0.2rem;">
+                                            <div style="display:flex;align-items: center;height:0.77rem;width: 1.75rem;margin: 0 auto">
+                                                <img v-lazy="item.icon" style="width: 0.35rem;height: 0.35rem;margin: 0rem 0rem 0rem 0rem;border-radius: 0rem;"/>
+                                                <p>{{cutFive(item.name)}}</p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </template>
+
+                        <!-- 3  单排游戏列表	singleHorizontalList -->
+                        <template v-else-if="i.styleCode == 'singleHorizontalList'">
+                            <div class="list list-left">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                    </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                </div>
+
+                                <!-- grid item -->
+                                <div class="mgc-games-row">
+                                    <div class="mgc-game-row mgc-bottom-qp"
+                                         v-for="(item, index) in i.gameList"
+                                         :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.icon" />
+                                        <div class="name">{{cutFive(item.name)}}</div>
+                                        <div class="btn" v-if="index == 2">马上玩</div>
+                                        <div class="btn-border" v-else>马上玩</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </template>
+
+
+                        <!-- 23  单张轮播图	singleHorizontalList -->
+                        <template v-else-if="i.styleCode == 'signRotationChart'">
+                            <!-- grid item -->
+                            <div class="mgc-games-row">
+                                <div class="" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
+                                    <img v-lazy="item.pic" />
+                                </div>
+                            </div>
+                        </template>
+
+
+
+                        <!-- TODO: 2  多排游戏列表 -->
+                        <template v-else-if="i.styleCode == 'moreHorizontalList'">
+                            <div class="list list-left bottom32">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                    </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                </div>
+
+                                <!-- grid items -->
+                                <div class="mgc-games-row">
+                                    <!-- row 1 -->
+                                    <div class="mgc-game-row-three"
+                                         v-if="index %3 == 0"
+                                         v-for="(item, index) in i.gameList"
+                                         :key="index" @click="startMGCGame(item)">
+
+                                        <div class="row-game inline">
+                                            <img v-lazy="item.icon" style="margin-left: 0px"/>
+                                            <div class="game-info" style="width: 40%">
+                                                <div class="name row-name">{{cutFive(item.name)}}</div>
+                                                <div class="des">{{item.publicity}}</div>
+                                                <div class="play">
+                                                    <div class="play_tags" v-for="(item_tag, index_tag) in item.tags">
+                                                        {{item_tag}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="btn-border">马上玩</div>
+                                        </div>
+
+                                    </div>
+
+                                    <br>
+
+                                    <!-- row 2 -->
+                                    <div class="mgc-game-row-three"
+                                         v-if="index % 3 ==1"
+                                         v-for="(item, index) in i.gameList"
+                                         :key="index" @click="startMGCGame(item)">
+                                        <div class="row-game inline" >
+                                            <img v-lazy="item.icon" style="margin-left: 0px"/>
+                                            <div class="game-info" style="width: 40%">
+                                                <div class="name row-name">{{cutFive(item.name)}}</div>
+                                                <div class="des">{{item.publicity}}</div>
+                                                <div class="play">
+                                                    <div class="play_tags" v-for="(item_tag, index_tag) in item.tags">
+                                                        {{item_tag}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="btn-border">马上玩</div>
+                                        </div>
+                                    </div>
+
+                                    <br>
+                                    <!-- row 3 -->
+                                    <div class="mgc-game-row-three"
+                                         v-if="index % 3 ==2"
+                                         v-for="(item, index) in i.gameList"
+                                         :key="index" @click="startMGCGame(item)">
+                                        <div class="row-game inline" style="margin-bottom: 0rem;">
+                                            <img v-lazy="item.icon" style="margin-left: 0px"/>
+                                            <div class="game-info" style="width: 40%">
+                                                <div class="name row-name">{{cutFive(item.name)}}</div>
+                                                <div class="des">{{item.publicity}}</div>
+                                                <div class="play">
+                                                    <div class="play_tags" v-for="(item_tag, index_tag) in item.tags">
+                                                        {{item_tag}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="btn-border">马上玩</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+
+                        <!-- 12 棋盘格布局 -->
+                        <template v-else-if="i.styleCode == 'chessboard'">
+                            <div class="list list-left">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
+                                    <p>{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                    </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                </div>
+
+                                <!-- grid items -->
+                                <div class="mgc-games-row">
+                                    <div class="mgc-game-row-qp">
+                                        <div v-if="index %3 == 0" v-for="(item, index) in i.gameList"
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
+                                                <img v-lazy="item.pic" />
+                                                <div v-if="!item. backgroundcolor" class="name">
+                                                    <div class="mgc-text" >
+                                                        {{cutFive(item.name)}}
+                                                        <p>{{item.play_num}}万人玩过</p>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="name"  v-bind:style="{ background: item.backgroundcolor}">
+                                                    <div class="mgc-text" >
+                                                        {{cutFive(item.name)}}
+                                                        <p>{{item.play_num}}万人玩过</p>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <div class="mgc-game-row-qp">
+                                        <div v-if="index %3 == 1" v-for="(item, index) in i.gameList"
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
+                                            <img v-lazy="item.pic" />
+                                            <div v-if="!item. backgroundcolor" class="name" >
+                                                <div class="mgc-text" >
+                                                    {{cutFive(item.name)}}
+                                                    <p>{{item.play_num}}万人玩过</p>
+                                                </div>
+                                            </div>
+                                            <div v-else class="name"  v-bind:style="{ background: item.backgroundcolor}">
+                                                <div class="mgc-text" >
+                                                    {{cutFive(item.name)}}
+                                                    <p>{{item.play_num}}万人玩过</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mgc-game-row-qp">
+                                        <div v-if="index %3 == 2" v-for="(item, index) in i.gameList"
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
+                                            <img v-lazy="item.pic" />
+                                            <div v-if="!item. backgroundcolor" class="name" >
+                                                <div class="mgc-text" >
+                                                    {{cutFive(item.name)}}
+                                                    <p>{{item.play_num}}万人玩过</p>
+                                                </div>
+                                            </div>
+                                            <div v-else class="name"  v-bind:style="{ background: item.backgroundcolor}">
+                                                <div class="mgc-text" >
+                                                    {{cutFive(item.name)}}
+                                                    <p>{{item.play_num}}万人玩过</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </template>
+
 
                         <!-- 双行grid, 后跟大图, 这个作为缺省样式 -->
                         <template v-else>
                             <div class="list list-left bottom32">
                                 <!-- title -->
                                 <div class="row-game title">
-                                    <div class="common-game"></div>
+                                    <div v-if="!i.icon" class="coin"></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:no-repeat}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
+                                    <div v-if= "i.showmore == 1"  class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -203,8 +462,8 @@
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
-                                        <div class="btn" v-if="index == 2">玩一玩</div>
-                                        <div class="btn-border" v-else>玩一玩</div>
+                                        <div class="btn" v-if="index == 2">马上玩</div>
+                                        <div class="btn-border" v-else>马上玩</div>
                                     </div>
 
                                     <br>
@@ -217,7 +476,7 @@
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
-                                        <div class="btn-border">玩一玩</div>
+                                        <div class="btn-border">马上玩</div>
                                     </div>
                                 </div>
                             </div>
@@ -265,9 +524,12 @@ export default {
             showWithdraw: false,
             lastClickTime: 0,
 
+            goldShow: false, //是否显示金币样式
+
             games: [],
             favoriteGameList: [],
             recentGameList: [],
+
 
             nowIndex: 0,
             swiperOption: {
@@ -321,6 +583,7 @@ export default {
                     // return
 					return {
 						backable: query.backable,
+                        goldShow: query.gold,
                         newGames: dataList,
 						banners: banners
 					}
@@ -336,7 +599,7 @@ export default {
             'http://test.mgc-games.com/games/games')
 
         // ensure channel id is set
-        mgc.setChannelId('364775')
+        mgc.setChannelId('364354')
 
         this.loadRemote()
 
@@ -359,7 +622,7 @@ export default {
 			let args = {
 				dt: 0,
 				open_token: '0023a78e02fb489528a99b7f9cb39ec',
-				app_id: appInfo.appId,
+				app_id: appInfo.channelId,
 				client_id: 334,
 				packagename: appInfo.packageName,
 				leto_version: sysInfo.LetoVersion,
@@ -368,7 +631,7 @@ export default {
 				device_md5: sysInfo.deviceId
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
+			let url = `${config.mgcTestUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
@@ -418,9 +681,19 @@ export default {
 			// TODO how to exit webview?
         },
 
-        //关闭
+        //提现
         withdraw() {
             window.mgc.showWithdraw();
+        },
+        //更多游戏
+        moreGames(id,title,lid){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid}});
+
+        },
+        //更多游戏类别
+        moreGamesFl(id,title,lid,categoryList){
+            this.$router.push({path: './detailfl', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,categoryList:JSON.stringify(categoryList)}});
+
         },
 
         // 启动 梦工厂 游戏
@@ -450,8 +723,8 @@ export default {
         },
 
         cutFive(str) {
-            if (str.length > 6 ) {
-                str = str.substring(0, 6);
+            if (str.length > 5 ) {
+                str = str.substring(0, 5);
 
                 return str + '...'
             };
@@ -751,6 +1024,8 @@ export default {
         justify-content: space-between;
     }
 
+
+
     .content {
         padding: 1rem 0 0 0;
     }
@@ -871,21 +1146,21 @@ export default {
     .like {
         width: 0.3rem;
         height: 0.38rem;
-        background: url('~assets/img/hybrid/game/like.png') no-repeat;
+        background: url('~assets/img/hybrid/game/chidou.png') no-repeat;
         background-size: 100%;
     }
 
     .coin {
         width: 0.36rem;
         height: 0.38rem;
-        background: url('~assets/img/hybrid/game/coin.png') no-repeat;
+        background: url('~assets/img/hybrid/game/chidou.png') no-repeat;
         background-size: 100%;
     }
 
     .rank {
         width: 0.32rem;
         height: 0.36rem;
-        background: url('~assets/img/hybrid/game/gold-title.png') no-repeat;
+        background: url('~assets/img/hybrid/game/chidou.png') no-repeat;
         background-size: 100%;
     }
 
@@ -906,7 +1181,7 @@ export default {
     .common-game {
         height: 0.36rem;
         width: 0.32rem;
-        background: url('~assets/img/hybrid/game/common-game.png') no-repeat;
+        background: url('~assets/img/hybrid/game/chidou.png') no-repeat;
         background-size: 100%;
     }
 
@@ -940,9 +1215,10 @@ export default {
     .btn {
         width: 1.1rem;
         height: 0.46rem;
-        background-color: #FF9340;
-        color: #FFF;
-        line-height: 0.46rem;
+        background-color: #FFF;
+        color: #3D9AF0;
+        border: 0.02rem solid #3D9AF0;
+        line-height: 0.42rem;
         border-radius: 0.1rem;
         text-align: center;
         font-size: 0.24rem;
@@ -953,8 +1229,8 @@ export default {
         width: 1.1rem;
         height: 0.46rem;
         background-color: #FFF;
-        color: #FF9340;
-        border: 0.02rem solid #FF9340;
+        color: #3D9AF0;
+        border: 0.02rem solid #3D9AF0;
         line-height: 0.42rem;
         border-radius: 0.1rem;
         text-align: center;
@@ -963,7 +1239,7 @@ export default {
     }
 
     .list {
-        border-bottom: 0.2rem solid #F5F5F5;
+        border-bottom: 0.1rem solid #F5F5F5;
 
         .mgc-games-row {
             overflow-x: scroll;
@@ -978,10 +1254,64 @@ export default {
                 margin-bottom: 0.4rem;
             }
 
+            .mgc-bottom-qp {
+                margin-bottom: 0.2rem;
+            }
+
             .mgc-game-row {
                 display: inline-block;
-                margin-right: 0.8rem;
+                margin-right: 0.4rem;
                 width: 20%;
+
+                p {
+                    font-size: 0.22rem;
+                    color: #87898C;
+                    margin-bottom: 0.24rem;
+                    text-align: center;
+                }
+            }
+
+
+            .mgc-game-row-qp {
+                display: inline-block;
+                margin-right: 0.2rem;
+                float: left;
+                width: 30%;
+                text-align: center;
+
+                p {
+                    font-size: 0.14rem;
+                    color: #FFF;
+                    margin-bottom: 0.22rem;
+                    text-align: left;
+                }
+            }
+
+            .mgc-game-row-fl {
+                display: inline-block;
+                margin-right: 0.2rem;
+                float: left;
+                width: 46.5%;
+                text-align: center;
+                margin-bottom: 0.1rem;
+
+                p {
+                    color: #000000;
+                    width:1.15rem;
+                    height:0.38rem;
+                    font-size:0.27rem;
+                    font-weight:400;
+                    line-height:0.38rem;
+                    letter-spacing:2px;
+                    margin-left: 0.25rem;
+                }
+            }
+
+
+            .mgc-game-row-three {
+                display: inline-block;
+                margin-right: 0.5rem;
+                width: 90%;
 
                 p {
                     font-size: 0.22rem;
@@ -1052,6 +1382,61 @@ export default {
             }
         }
 
+        .mgc-like-qp {
+            //margin-right: 0.1rem;
+            //margin-bottom: 0.24rem;
+            position: relative;
+            width:2.09rem;
+            margin:0rem auto;
+            margin-bottom: 1.04rem;
+
+            img {
+                width:2.09rem;
+                height:2.13rem;
+                margin-bottom: -0.1rem;
+                border-radius: 0rem;
+                border-top-left-radius: 0.16rem;
+                border-top-right-radius: 0.16rem;
+            }
+
+            .name {
+                margin-bottom: 0;
+                position: absolute;
+                width:100%;
+                height: 0.8rem;
+                color: #FFF;
+                display: flex;
+                align-items: center;
+                padding-left: 0.1rem;
+                padding-top: 0.18rem;
+                background: url('~assets/img/hybrid/game/mask-img.png') no-repeat;
+                background-size: 100%;
+                border-bottom-right-radius: 0.16rem;
+                border-bottom-left-radius: 0.16rem;
+                background: #4D8FFF;
+            }
+
+            .mgc-text {
+                text-align: left;
+                font-size: 0.28rem;
+
+            }
+
+            .icon-img {
+                width: 0.76rem;
+                height: 0.76rem;
+                border-radius: 100%;
+                margin: 0;
+                padding: 0;
+                margin-right: 0.18rem;
+            }
+
+            p {
+                font-size: 0.18rem;
+            }
+        }
+
+
 
         .inline {
             margin-bottom: 0.34rem;
@@ -1070,7 +1455,7 @@ export default {
             .rank-1 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybrid/game/rank-1.png') no-repeat;
+                background: url('~assets/img/hybrid/game/jin.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }
@@ -1078,7 +1463,7 @@ export default {
             .rank-2 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybrid/game/rank-2.png') no-repeat;
+                background: url('~assets/img/hybrid/game/tong.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }
@@ -1086,7 +1471,7 @@ export default {
             .rank-3 {
                 width: 0.48rem;
                 height: 0.56rem;
-                background: url('~assets/img/hybrid/game/rank-3.png') no-repeat;
+                background: url('~assets/img/hybrid/game/yin.png') no-repeat;
                 background-size: 100%;
                 margin-right: 0.24rem;
             }
@@ -1113,9 +1498,36 @@ export default {
                 text-overflow: ellipsis;
             }
 
+            .game-info-rank {
+                flex: 1;
+                margin-left: 0.26rem;
+                margin-right: 0.1rem;
+                width: 40%;
+            }
+
+            .desRank {
+                color: #87898C;
+                font-size: 0.24rem;
+                line-height: 0.24rem; // the height of one text line
+                overflow: auto;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                -o-text-overflow:ellipsis;
+                width:100%;
+            }
+
             .play {
                 color: #87898C;
                 font-size: 0.18rem;
+            }
+
+            .play_tags{
+                display: inline;
+                color: #3D9AF0;
+                background: #EBF4FD;
+                border-radius: 0.1rem;
+                padding: 0.05rem;
+                margin-right: 0.1rem;
             }
 
             .start-btn {
@@ -1225,5 +1637,19 @@ export default {
     padding:  0.44rem 0  0 0;
     color:  #383B3D;
     z-index: 99;
+}
+.showMore{
+    float: right;
+    font-size: .28rem;
+    font-weight: normal;
+    color: #666666;
+    height: 0.3rem;
+}
+.showMoreImage{
+    float: right;
+    width: 0.3rem;
+    height: 0.3rem;
+    background: url('~assets/img/hybrid/common/quanbu.png') no-repeat;
+    background-size: cover;
 }
 </style>
