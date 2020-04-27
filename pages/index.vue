@@ -746,6 +746,9 @@ export default {
                 id: `mgc_${game.id}`
             });
 
+            // save to recent game list
+            mgc.saveRecentGame(game)
+
             // start
 			mgc.navigateToMiniProgram({ appId: game.id.toString() })
         },
