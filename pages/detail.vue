@@ -30,11 +30,20 @@
                                     {{item.name}}
                                 </div>
                                 <div class="des">{{item.publicity}}</div>
-                                <div class="play">
+                                <div v-if= "is_day == 0" class="play">
                                     <div class="play_tags" v-for="(item_tag, index_tag) in item.tags">
                                         {{item_tag}}
                                     </div>
                                 </div>
+                                <div v-else class="play">
+                                    <div class="play_tags_day">
+                                        推荐日期 :
+                                    </div>
+                                    <div class="play_tags_date">
+                                        {{item.game_date}}
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="btn-border">马上玩</div>
                         </div>
@@ -88,6 +97,7 @@ export default {
             loading:false,
             footerText:'上滑加载更多',
             json_data: {},
+            is_day: 0,
 
             games: [],
             favoriteGameList: [],
@@ -147,7 +157,8 @@ export default {
                         title: query.title,
 						backable: query.backable,
                         newGames: dataList,
-						banners: banners
+						banners: banners,
+                        is_day: query.is_day,
 					}
                 }
             })).catch((e) => {
@@ -1001,6 +1012,20 @@ export default {
                 border-radius: 0.1rem;
                 padding: 0.05rem;
                 margin-right: 0.1rem;
+            }
+
+            .play_tags_day{
+                display: inline;
+                color: #3D9AF0;
+                padding: 0.05rem;
+            }
+
+            .play_tags_date{
+                display: inline;
+                color: #3D9AF0;
+                background: #EBF4FD;
+                border-radius: 0.1rem;
+                padding: 0.05rem;
             }
 
             .start-btn {

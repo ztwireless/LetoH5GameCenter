@@ -10,7 +10,7 @@
             <div class="new-51">
                 <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
-                    <h2>游戏中心</h2>
+                    <h2>闲聊小游戏</h2>
                     <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
                     <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
                     <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">提现</div>
@@ -437,6 +437,38 @@
                         </template>
 
 
+
+                        <!-- 11 一天一个好游戏 -->
+                        <template v-else-if="i.styleCode == 'dayGames'">
+                            <div class="list list-left" style="background-image: linear-gradient(#7E72FB, #60D1FD);">
+                                <!-- title -->
+                                <div class="row-game title">
+                                    <div v-if="!i.icon" class="coin" ></div>
+                                    <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
+                                    <p style="color: #FFFFFF">{{i.name}}</p>
+                                    <div class="add-flex">
+                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                    </div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1)" style="color: #FFFFFF">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1)"></div>
+                                </div>
+
+                                <!-- grid item -->
+                                <div class="mgc-games-row" >
+                                    <div class="mgc-game-row" style="width: 15%; margin-bottom: 0.2rem;"
+                                         v-for="(item, index) in i.gameList"
+                                         :key="index" @click="startMGCGame(item)">
+                                        <img v-lazy="item.icon" style="width: 1rem;height: 1rem"/>
+                                        <div class="name" style="color: #FFFFFF;font-size: 0.24rem;font-weight:600">{{cutFive(item.name)}}</div>
+                                        <p></p>
+                                        <div class="btn-border" style="background-color: rgba(0,0,0,0.2);border-radius:0.3rem;color:#FFFFFF;font-size: 0.26rem; ">{{item.game_date}}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </template>
+
+
                         <!-- 双行grid, 后跟大图, 这个作为缺省样式 -->
                         <template v-else>
                             <div class="list list-left bottom32">
@@ -687,7 +719,11 @@ export default {
         },
         //更多游戏
         moreGames(id,title,lid){
-            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid}});
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
+
+        },
+        moreGamesDay(id,title,lid,is_day){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
 
         },
         //更多游戏类别
@@ -1008,7 +1044,7 @@ export default {
 
         h2 {
             font-size: 0.36rem;
-            font-weight: normal;
+            font-weight:normal;
             color: #17181A;
             text-align: center;
             margin: 0;
@@ -1027,7 +1063,7 @@ export default {
 
 
     .content {
-        padding: 1rem 0 0 0;
+        padding: 0.8rem 0 0 0;
     }
 
     .list-banner {
@@ -1650,6 +1686,13 @@ export default {
     width: 0.3rem;
     height: 0.3rem;
     background: url('~assets/img/hybrid/common/quanbu.png') no-repeat;
+    background-size: cover;
+}
+.showMoreImageWhite{
+    float: right;
+    width: 0.3rem;
+    height: 0.3rem;
+    background: url('~assets/img/hybrid/common/quanbubai.png') no-repeat;
     background-size: cover;
 }
 </style>
