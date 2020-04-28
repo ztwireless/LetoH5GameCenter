@@ -35,7 +35,15 @@ module.exports = {
             rel: 'icon',
             type: 'image/x-icon',
             href: '/favicon.ico'
-        }],
+        },
+            {
+                rel: 'apple-touch-icon',
+                href: '/favicon.ico'
+            },
+            {
+                rel: 'apple-touch-startup-image',
+                href: '/favicon.ico'
+            }],
         // html head 中创建 script 标签
         script: [
             {

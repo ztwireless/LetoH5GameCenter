@@ -223,7 +223,7 @@ export default {
 				device_md5: sysInfo.deviceId
 			}
 			let first = true
-			let url = `${config.mgcTestUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterMoreData}`
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterMoreData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'

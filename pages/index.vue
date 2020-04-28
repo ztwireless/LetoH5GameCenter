@@ -457,7 +457,8 @@
                                 <div class="mgc-games-row" >
                                     <div class="mgc-game-row" style="width: 15%; margin-bottom: 0.2rem;"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item)">
+                                         :key="index" @click="startMGCGame(item)"
+                                         v-if = "item.game_date">
                                         <img v-lazy="item.icon" style="width: 1rem;height: 1rem"/>
                                         <div class="name" style="color: #FFFFFF;font-size: 0.24rem;font-weight:600">{{cutFive(item.name)}}</div>
                                         <p></p>
@@ -518,7 +519,7 @@
 
                 <!-- footer -->
                 <div class="footer">
-                    不断更新更多好玩的<em>游戏</em>
+                    不断更新更多好玩的<em style="color: #3D9AF0">游戏</em>
                 </div>
             </div>
         </template>
@@ -631,7 +632,7 @@ export default {
             'http://test.mgc-games.com/games/games')
 
         // ensure channel id is set
-        mgc.setChannelId('364354')
+        mgc.setChannelId('1001187')
 
         this.loadRemote()
 
@@ -663,7 +664,7 @@ export default {
 				device_md5: sysInfo.deviceId
 			}
 			let first = true
-			let url = `${config.mgcTestUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
