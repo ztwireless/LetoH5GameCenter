@@ -59,7 +59,6 @@
         "eslint-plugin-promise": "^3.4.0",
         "eslint-plugin-standard": "^3.0.1",
         "fingerprintjs2": "^1.8.1",
-        "jquery": "^2.2.3",
         "less": "^3.0.4",
         "less-loader": "^4.1.0",
         "nodemon": "^1.18.9",
