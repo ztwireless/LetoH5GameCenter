@@ -626,13 +626,13 @@ export default {
     },
 
     mounted() {
-    	// 设置游戏根目录
-        mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-            'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
-            'http://test.mgc-games.com/games/games')
-
-        // ensure channel id is set
-        mgc.setChannelId('1001187')
+    	// XXX - MGC REPLACE START
+        // 渠道需要设置的参数
+		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
+			'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
+			'http://test.mgc-games.com/games/games')
+		mgc.setChannelId('1001187')
+		// XXX - MGC REPLACE END
 
         this.loadRemote()
 
