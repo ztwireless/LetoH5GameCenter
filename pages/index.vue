@@ -522,7 +522,7 @@
                     <div  v-if = "1 == add_desktop" class="add-win" id="add_win">
                         <div class="add-win-txt"><span>选择“添加到主屏幕”</span><br/><span>即可收藏游戏到桌面</span></div>
                         <img src="~assets/img/hybrid/common/sx.png" class="add-win-line" style="height: 50px;"/>
-                        <div class="add-win-class" @click="closewin();"><span>关闭</span></div>
+                        <div class="add-win-class" @click="closewin()"><span>关闭</span></div>
                     </div>
 
                 </div>
