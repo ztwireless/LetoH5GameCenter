@@ -626,14 +626,27 @@ export default {
     },
 
     mounted() {
-    	// 设置游戏根目录
-        mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-            'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
-            'http://test.mgc-games.com/games/games')
+        // 设置游戏根路径
+		mgc.setJSGameRootUrl('http://xianliao.com')
 
-        // ensure channel id is set
-        mgc.setChannelId('1001187')
+        // save channel id from url, parameter name is c
+        let channelId = null
+		let qs = window.location.search
+		if(qs.startsWith('?')) {
+			qs = qs.substring(1)
+		}
+		let pairs = qs.split('&')
+		for(let pair of pairs) {
+			let kv = pair.split('=')
+			if(kv.length == 2 && kv[0] == 'c') {
+				channelId = kv[1]
+                break
+			}
+		}
+		channelId = channelId || '1001187'
+        mgc.setChannelId(channelId)
 
+        // load remote game list
         this.loadRemote()
 
 		// update recent game list
