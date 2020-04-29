@@ -630,6 +630,7 @@ export default {
 		mgc.setJSGameRootUrl('http://xianliao.com')
 
         // save channel id from url, parameter name is c
+        let channelId = null
 		let qs = window.location.search
 		if(qs.startsWith('?')) {
 			qs = qs.substring(1)
@@ -638,10 +639,12 @@ export default {
 		for(let pair of pairs) {
 			let kv = pair.split('=')
 			if(kv.length == 2 && kv[0] == 'c') {
-				mgc.setChannelId(kv[1])
+				channelId = kv[1]
                 break
 			}
 		}
+		channelId = channelId || '1001187'
+        mgc.setChannelId(channelId)
 
         // load remote game list
         this.loadRemote()
