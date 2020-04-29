@@ -7,7 +7,8 @@
         </header>
 
         <template>
-            <div class="new-51">
+            <transition name='fade'>
+            <div class="new-51" id="gameContent" v-if="show">
                 <header class="header" style="display: none">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>闲聊小游戏</h2>
@@ -38,24 +39,27 @@
                     </div>
 
                     <!-- recent played games -->
-                    <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
-                        <div class="row-game title">
-                            <div class="recently"></div>
-                            <p class="add-flex">我的游戏</p>
-                            <div class="arrow-right"></div>
-                        </div>
 
-                        <div class="mgc-games-row">
-                            <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
-                                <img :src="item.icon" />
-                                <div class="name">{{cutFive(item.name)}}</div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- 所有游戏 -->
                     <div v-for="(i, k) in newGames" :key="k">
                         <!-- gallery样式 -->
+                        <template v-if="k == 2">
+                            <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
+                                <div class="row-game title">
+                                    <div class="recently"></div>
+                                    <p class="add-flex">我的游戏</p>
+                                    <div class="arrow-right"></div>
+                                </div>
+
+                                <div class="mgc-games-row">
+                                    <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
+                                        <img :src="item.icon" />
+                                        <div class="name">{{cutFive(item.name)}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                         <template v-if="i.styleCode == 'gallery'">
                             <div class="list list-left">
                                 <!-- title -->
@@ -515,12 +519,23 @@
                             </div>
                         </template>
                     </div>
+                    <div  v-if = "1 == add_desktop" class="add-win" id="add_win">
+                        <div class="add-win-txt"><span>选择“添加到主屏幕”</span><br/><span>即可收藏游戏到桌面</span></div>
+                        <img src="~assets/img/hybrid/common/sx.png" class="add-win-line" style="height: 50px;"/>
+                        <div class="add-win-class" @click="closewin();"><span>关闭</span></div>
+                    </div>
+
                 </div>
+
 
                 <!-- footer -->
                 <div class="footer">
                     不断更新更多好玩的<em style="color: #3D9AF0">游戏</em>
                 </div>
+            </div>
+            </transition>
+            <div class="add-win-page" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)">
+
             </div>
         </template>
     </div>
@@ -558,11 +573,13 @@ export default {
             lastClickTime: 0,
 
             goldShow: false, //是否显示金币样式
+            add_desktop :localStorage.getItem('add_desktop') || 1,
 
             games: [],
             favoriteGameList: [],
             recentGameList: [],
-
+            show: false,
+            splash_show: sessionStorage.getItem('splash_show') || 1,
 
             nowIndex: 0,
             swiperOption: {
@@ -627,7 +644,9 @@ export default {
 
     mounted() {
         // 设置游戏根路径
-		mgc.setJSGameRootUrl('http://xianliao.com')
+		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
+            'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
+            'http://test.mgc-games.com/games/games')
 
         // save channel id from url, parameter name is c
         let channelId = null
@@ -646,8 +665,13 @@ export default {
 		channelId = channelId || '1001187'
         mgc.setChannelId(channelId)
 
+
         // load remote game list
         this.loadRemote()
+
+        this.setSplashShow();
+        setTimeout(this.getElevatorList, 1000);
+		this.isWeiXin();
 
 		// update recent game list
 		let newRecent = mgc.getRecentGameList()
@@ -740,10 +764,29 @@ export default {
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
 
         },
+        getElevatorList(){
+            document.getElementById("splashContent").click();
+		    sessionStorage.setItem("splash_show",2);
+        },
+        setSplashShow(){
+            if(2 == this.splash_show){
+                this.show = true;
+            }
+        },
         //更多游戏类别
         moreGamesFl(id,title,lid,categoryList){
             this.$router.push({path: './detailfl', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,categoryList:JSON.stringify(categoryList)}});
 
+        },
+        closewin() {
+            document.getElementById("add_win").style.display = 'none';
+            localStorage.setItem('add_desktop',2);
+        },
+        isWeiXin() {
+            var ua = window.navigator.userAgent.toLowerCase();
+            if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+                this.add_desktop = 2;
+            }
         },
 
         // 启动 梦工厂 游戏
@@ -998,8 +1041,6 @@ export default {
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
     opacity: 0;
 }
-
-
 
 .new-51 {
 
@@ -1711,5 +1752,67 @@ export default {
     height: 0.3rem;
     background: url('~assets/img/hybrid/common/quanbubai.png') no-repeat;
     background-size: cover;
+}
+.add-win-page {
+    width: 100%;
+    height: 100%;
+    background: url("~assets/img/hybrid/common/splash.png") no-repeat center top;
+    background-color:#12b1eb;
+    background-size: 100%;
+    background-position-y: bottom;
+    position: absolute;
+    z-index: 10;
+}
+
+.add-win {
+    display: block;
+    background: url("~assets/img/hybrid/common/ts.png") no-repeat;
+    width: 244px;
+    height: 136px;
+    background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    position: fixed;
+    bottom: 0px;
+    left: 50%;
+    margin-left: -127px;
+    //top: 70%;
+}
+
+.add-win img {
+    display: inline-block;
+    float: left;
+}
+
+.add-win div {
+    display: inline-block;
+    float: left;
+}
+
+
+
+.add-win-add-btn {
+    margin-top: 66px;
+    margin-left: 15px;
+}
+
+.add-win-line {
+    margin-top: 60px;
+}
+
+.add-win-txt {
+    margin-top: 65px;
+    margin-left: 35px;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.add-win-class {
+    margin-top: 36px;
+    margin-left: 15px;
+    color: #3D9AF0;
+}
+
+.add-win-class span {
+    font-size: 16px;
 }
 </style>
