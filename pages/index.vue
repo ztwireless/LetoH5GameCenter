@@ -626,12 +626,8 @@ export default {
     },
 
     mounted() {
-    	// XXX - MGC REPLACE START
-        // 渠道需要设置的参数
-		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-			'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
-			'http://test.mgc-games.com/games/games')
-		// XXX - MGC REPLACE END
+        // 设置游戏根路径
+		mgc.setJSGameRootUrl('http://xianliao.com')
 
         // save channel id from url, parameter name is c
 		let qs = window.location.search
