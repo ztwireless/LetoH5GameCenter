@@ -627,7 +627,9 @@ export default {
 
     mounted() {
         // 设置游戏根路径
-		mgc.setJSGameRootUrl('http://xianliao.com')
+		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
+			'http://localhost/~maruojie/leto_ad_test/games/games' :
+			'http://test.mgc-games.com/games/games')
 
         // save channel id from url, parameter name is c
         let channelId = null
