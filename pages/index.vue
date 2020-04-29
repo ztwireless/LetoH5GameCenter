@@ -515,7 +515,15 @@
                             </div>
                         </template>
                     </div>
+                    <div v-if="1 == add_desktop" class="add-win" id="add_win">
+                        <div class="add-win-txt"><span>选择“添加到主屏幕”</span><br/><span>即可收藏游戏到桌面</span></div>
+                        <img src="~assets/img/hybrid/common/sx.png" class="add-win-line" style="height: 50px;"/>
+                        <div class="add-win-class" @click="closewin();"><span>关闭</span></div>
+                    </div>
+                    <div class="add-win-page">
+                    </div>
                 </div>
+
 
                 <!-- footer -->
                 <div class="footer">
@@ -558,6 +566,7 @@ export default {
             lastClickTime: 0,
 
             goldShow: false, //是否显示金币样式
+            add_desktop :localStorage.getItem('add_desktop') || 1,
 
             games: [],
             favoriteGameList: [],
@@ -645,6 +654,7 @@ export default {
 		}
 		channelId = channelId || '1001187'
         mgc.setChannelId(channelId)
+
 
         // load remote game list
         this.loadRemote()
@@ -744,6 +754,10 @@ export default {
         moreGamesFl(id,title,lid,categoryList){
             this.$router.push({path: './detailfl', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,categoryList:JSON.stringify(categoryList)}});
 
+        },
+        closewin() {
+            document.getElementById("add_win").style.display = 'none';
+            localStorage.setItem('add_desktop',2);
         },
 
         // 启动 梦工厂 游戏
@@ -1711,5 +1725,63 @@ export default {
     height: 0.3rem;
     background: url('~assets/img/hybrid/common/quanbubai.png') no-repeat;
     background-size: cover;
+}
+.add-win-page {
+    width: 100%;
+    height: 100%;
+    background-image: url("~assets/img/hybrid/common/splash.png") no-repeat;
+   background-size: 100% 100%;
+}
+
+.add-win {
+    display: block;
+    background: url("~assets/img/hybrid/common/ts.png") no-repeat;
+    width: 244px;
+    height: 136px;
+    background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    position: fixed;
+    bottom: 0px;
+    left: 50%;
+    margin-left: -127px;
+    //top: 70%;
+}
+
+.add-win img {
+    display: inline-block;
+    float: left;
+}
+
+.add-win div {
+    display: inline-block;
+    float: left;
+}
+
+
+
+.add-win-add-btn {
+    margin-top: 66px;
+    margin-left: 15px;
+}
+
+.add-win-line {
+    margin-top: 60px;
+}
+
+.add-win-txt {
+    margin-top: 65px;
+    margin-left: 35px;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.add-win-class {
+    margin-top: 36px;
+    margin-left: 15px;
+    color: #3D9AF0;
+}
+
+.add-win-class span {
+    font-size: 16px;
 }
 </style>
