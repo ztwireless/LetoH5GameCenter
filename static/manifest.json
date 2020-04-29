@@ -1,0 +1,15 @@
+{
+    "name": "闲聊小游戏",
+    "description": "xianliao",
+    "launch_path": "/index.html",
+    "icons": {
+        "512": "/favicon.ico",
+        "128": "/favicon.ico"
+    },
+    "developer": {
+        "name": "梦工厂",
+        "url": "http://mgc-games.com"
+    },
+    "default_locale": "en",
+    "chrome": { "navigation": true }
+}

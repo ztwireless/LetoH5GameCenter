@@ -1,14 +1,14 @@
 <template>
     <div class="game" ref="root">
         <!-- 小游戏头部 -->
-        <header class="header">
+        <header class="header" style="display: none">
             <div v-if="backable" class="back" @click="back"></div>
-            <h2>游戏大厅</h2>
+            <h2>闲聊小游戏</h2>
         </header>
 
         <template>
             <div class="new-51">
-                <header class="header">
+                <header class="header" style="display: none">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>闲聊小游戏</h2>
                     <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
@@ -546,7 +546,7 @@ export default {
 
     head() {
         return {
-            title: '游戏大厅'
+            title: '闲聊小游戏'
         }
     },
 
@@ -1067,7 +1067,7 @@ export default {
 
 
     .content {
-        padding: 0.8rem 0 0 0;
+        padding: 0 0 0 0;
     }
 
     .list-banner {

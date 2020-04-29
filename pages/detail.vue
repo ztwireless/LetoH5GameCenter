@@ -3,7 +3,7 @@
         <!-- 小游戏头部 -->
         <header class="header">
             <div v-if="backable" class="back" @click="back"></div>
-            <h2>游戏大厅</h2>
+            <h2>闲聊小游戏</h2>
         </header>
 
         <template>
@@ -81,7 +81,7 @@ export default {
 
     head() {
         return {
-            title: '游戏大厅'
+            title: '闲聊小游戏'
         }
     },
 

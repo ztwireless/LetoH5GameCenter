@@ -38,11 +38,11 @@ module.exports = {
         },
             {
                 rel: 'apple-touch-icon',
-                href: '/favicon.ico'
+                href: '/tjzm.png'
             },
             {
                 rel: 'apple-touch-startup-image',
-                href: '/favicon.ico'
+                href: '/tjzm.png'
             }],
         // html head 中创建 script 标签
         script: [
