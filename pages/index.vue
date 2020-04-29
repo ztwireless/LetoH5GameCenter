@@ -631,9 +631,23 @@ export default {
 		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
 			'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
 			'http://test.mgc-games.com/games/games')
-		mgc.setChannelId('1001187')
 		// XXX - MGC REPLACE END
 
+        // save channel id from url, parameter name is c
+		let qs = window.location.search
+		if(qs.startsWith('?')) {
+			qs = qs.substring(1)
+		}
+		let pairs = qs.split('&')
+		for(let pair of pairs) {
+			let kv = pair.split('=')
+			if(kv.length == 2 && kv[0] == 'c') {
+				mgc.setChannelId(kv[1])
+                break
+			}
+		}
+
+        // load remote game list
         this.loadRemote()
 
 		// update recent game list
