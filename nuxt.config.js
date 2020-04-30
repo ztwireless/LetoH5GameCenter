@@ -66,7 +66,7 @@ module.exports = {
                 charset: 'utf-8'
             },
             {
-                src: `${routerBase}/static/framework/script/view.js`,
+                src: `${routerBase}/static/framework/script/view_gc.js`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
