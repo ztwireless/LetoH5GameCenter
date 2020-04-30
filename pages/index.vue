@@ -765,8 +765,10 @@ export default {
 
         },
         getElevatorList(){
-            document.getElementById("splashContent").click();
-		    sessionStorage.setItem("splash_show",2);
+            if(!this.show&&(1 == this.splash_show)){
+                document.getElementById("splashContent").click();
+                sessionStorage.setItem("splash_show",2);
+            }
         },
         setSplashShow(){
             if(2 == this.splash_show){
