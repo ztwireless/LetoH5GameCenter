@@ -645,7 +645,7 @@ export default {
     mounted() {
         // 设置游戏根路径
 		mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-            'http://192.168.1.102/~maruojie/leto_ad_test/games/games' :
+            'http://localhost/~maruojie/leto_ad_test/games/games' :
             'http://test.mgc-games.com/games/games')
 
         // save channel id from url, parameter name is c
