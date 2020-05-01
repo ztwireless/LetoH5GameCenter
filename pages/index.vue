@@ -449,7 +449,7 @@
                                 <div class="row-game title">
                                     <div v-if="!i.icon" class="coin" ></div>
                                     <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
-                                    <p style="color: #FFFFFF">{{i.name}}1</p>
+                                    <p style="color: #FFFFFF">{{i.name}}</p>
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
