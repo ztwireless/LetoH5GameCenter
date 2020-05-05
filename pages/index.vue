@@ -9,12 +9,13 @@
         <template>
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header" style="display: none">
+                <header class="header" v-if="showWithdraw">
                     <div v-if="backable" class="back" @click="back"></div>
-                    <h2>闲聊小游戏</h2>
+                    <div v-if="showWithdraw" class="withdraw_pic" @click="recentPlay"></div>
+                    <div v-if="showWithdraw" class="withdraw_play" @click="recentPlay">最近在玩</div>
                     <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
                     <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">提现</div>
+                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">设置</div>
                 </header>
 
                 <div class="content">
@@ -534,7 +535,7 @@
                 </div>
             </div>
             </transition>
-            <div class="add-win-page" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)">
+            <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)">
 
             </div>
         </template>
@@ -714,6 +715,22 @@ export default {
 			return http.get(url)
 		},
 
+        getMGCGameCenterDataTest() {
+		    //let args = "{\"point_id\":691,\"type\":3,\"mobile\":\"13552886455\",\"agentgame\":\"\",\"app_id\":\"364775\",\"channel_id\":364775,\"client_id\":\"334\",\"device\":{\"device_id\":\"351ad57b19cf9c976faefbb08a41ccd8\",\"deviceinfo\":\"android10\",\"idfa\":\"\",\"idfv\":\"\",\"ipaddrid\":\"\",\"local_ip\":\"192.168.101.27\",\"mac\":\"48:2c:a0:77:5a:8c\",\"userua\":\"Mozilla/5.0 (Linux; Android 10; MI 8 Build/QKQ1.190828.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.96 Mobile Safari/537.36\"},\"device_md5\":\"802F44C2F157068A825A09623D5EF23C\",\"framework_version\":\"3.2.0\",\"from\":\"11\",\"leto_version\":\"android_v3.9.2\",\"packagename\":\"com.mgc.letobox.happy\",\"timestamp\":1588578150234,\"user_token\":\"dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK\"}";
+		    let  url ="http://search.mgc-games.com:8711/api/v7/wx/preapply?data={%22point_id%22:691,%22type%22:3,%22mobile%22:%2213552886455%22,%22agentgame%22:%22%22,%22app_id%22:%22364775%22,%22channel_id%22:364775,%22client_id%22:%22334%22,%22device%22:{%22device_id%22:%22351ad57b19cf9c976faefbb08a41ccd8%22,%22deviceinfo%22:%22android10%22,%22idfa%22:%22%22,%22idfv%22:%22%22,%22ipaddrid%22:%22%22,%22local_ip%22:%22192.168.101.27%22,%22mac%22:%2248:2c:a0:77:5a:8c%22,%22userua%22:%22Mozilla/5.0%20(Linux;%20Android%2010;%20MI%208%20Build/QKQ1.190828.002;%20wv)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Version/4.0%20Chrome/78.0.3904.96%20Mobile%20Safari/537.36%22},%22device_md5%22:%22802F44C2F157068A825A09623D5EF23C%22,%22framework_version%22:%223.2.0%22,%22from%22:%2211%22,%22leto_version%22:%22android_v3.9.2%22,%22packagename%22:%22com.mgc.letobox.happy%22,%22timestamp%22:1588578150234,%22user_token%22:%22dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK%22}";
+            return http.get(url)
+        },
+        loadRemoteTest(){
+            this.getMGCGameCenterDataTest().then(mgcResp => {
+                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
+                    // save
+                    console.log("success = " + JSON.stringify(mgcResp));
+                } else {
+                    console.log("faile = " + JSON.stringify(mgcResp));
+                }
+            })
+        },
+
 		loadRemote() {
 			this.getMGCGameCenterData().then(mgcResp => {
 				if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
@@ -751,7 +768,15 @@ export default {
 
         //提现
         withdraw() {
-            window.mgc.showWithdraw();
+            //window.mgc.showWithdraw();
+            //alert('提现设置');
+            //this.loadRemoteTest();
+        },
+        //最近玩
+        recentPlay(){
+		    //alert("最近玩");
+		    //alert(JSON.stringify(this.recentGameList));
+            this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'最近使用',is_day:0}});
         },
         //更多游戏
         moreGames(id,title,lid){
@@ -1066,11 +1091,21 @@ export default {
         .withdraw {
             width: 0.54rem;
             height: 0.54rem;
-            background: url("~assets/img/hybrid/common/withdraw_pic.png") no-repeat;
+            background: url("~assets/img/hybrid/common/shezhi.png") no-repeat;
             background-size: 100%;
             position: absolute;
             top: 0.26rem;
             right: 0.85rem;
+        }
+
+        .withdraw_pic {
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybrid/common/shoucang.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.26rem;
+            right: 2.65rem;
         }
 
         .withdraw_tx {
@@ -1079,6 +1114,18 @@ export default {
             position: absolute;
             top: 0.26rem;
             right: 0.22rem;
+            font-size: 0.3rem;
+            font-weight: normal;
+            line-height: 0.54rem;
+            text-align: center;
+        }
+
+        .withdraw_play {
+            width: 1.2rem;
+            height: 0.54rem;
+            position: absolute;
+            top: 0.26rem;
+            right: 1.44rem;
             font-size: 0.3rem;
             font-weight: normal;
             line-height: 0.54rem;
@@ -1760,6 +1807,15 @@ export default {
     background-color:#12b1eb;
     background-size: 100%;
     background-position-y: bottom;
+    position: absolute;
+    z-index: 10;
+}
+
+.add-win-page-new {
+    width: 100%;
+    height: 100%;
+    background: url("~assets/img/hybrid/common/splash2.png") no-repeat center top;
+    background-size: auto  100%;
     position: absolute;
     z-index: 10;
 }
