@@ -9,7 +9,7 @@
         <template>
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header">
+                <header class="header" v-if = "showRencent">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -772,7 +772,7 @@ export default {
             //window.mgc.showWithdraw();
             //alert('提现设置');
             //this.loadRemoteTest();//mgc.getCoinConfig()
-            console.log('config='+JSON.stringify(mgc.getCoinConfig()));
+            alert(mgc.getCoinConfig());
         },
         //最近玩
         recentPlay(){
