@@ -9,10 +9,10 @@
         <template>
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header" v-if="showWithdraw">
+                <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
-                    <div v-if="showWithdraw" class="withdraw_pic" @click="recentPlay"></div>
-                    <div v-if="showWithdraw" class="withdraw_play" @click="recentPlay">最近在玩</div>
+                    <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
+                    <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
                     <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
                     <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
                     <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">设置</div>
@@ -570,7 +570,8 @@ export default {
        let vm = this;
         return {
             backable: false, //头部是否显示后退按钮
-            showWithdraw: false,
+            showWithdraw: true,
+            showRencent: false,
             lastClickTime: 0,
 
             goldShow: false, //是否显示金币样式
@@ -770,7 +771,8 @@ export default {
         withdraw() {
             //window.mgc.showWithdraw();
             //alert('提现设置');
-            //this.loadRemoteTest();
+            //this.loadRemoteTest();//mgc.getCoinConfig()
+            console.log('config='+JSON.stringify(mgc.getCoinConfig()));
         },
         //最近玩
         recentPlay(){
@@ -1105,7 +1107,7 @@ export default {
             background-size: 100%;
             position: absolute;
             top: 0.26rem;
-            right: 2.65rem;
+            right: 1.45rem;
         }
 
         .withdraw_tx {
@@ -1125,7 +1127,7 @@ export default {
             height: 0.54rem;
             position: absolute;
             top: 0.26rem;
-            right: 1.44rem;
+            right: 0.22rem;
             font-size: 0.3rem;
             font-weight: normal;
             line-height: 0.54rem;
