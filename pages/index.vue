@@ -860,8 +860,8 @@ export default {
 			mgc.navigateToMiniProgram({ appId: game.id.toString() })
 
             // report
-            if(window.mgc.reportH5GameCenterGameLaunched) {
-            	window.mgc.reportH5GameCenterGameLaunched(game.id.toString(), compact, position)
+            if(window.mgc.reportH5GameCenterGameClicked) {
+            	window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
             }
         },
 
