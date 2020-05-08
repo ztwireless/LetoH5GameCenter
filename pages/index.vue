@@ -8,16 +8,17 @@
 
         <template>
 
-
+              <!--
              <button style="font-size: 0.3rem" @click="modalShow=1" >全国公祭日弹窗</button>
             <button  style="font-size: 0.3rem" @click="modalShow=2"  >实名认证提示1</button>
             <button  style="font-size: 0.3rem" @click="modalShow=3" >实名认证提示2</button>
             <button style="font-size: 0.3rem" @click="modalShow=4" >广告</button>
+            -->
              <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
 
             <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
             <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
-            <Ad v-if="this.modalShow==4" :img_url="ad.img_url"  @close="modalShow=0"  @openGame="openGame"> </Ad>
+
 
 
             <transition name='fade'>
@@ -548,9 +549,9 @@
                 </div>
             </div>
             </transition>
-            <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)">
+            <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)"></div>
 
-            </div>
+            <Ad v-if="this.modalShow==4"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="modalShow=0"  @openGame="openGame"> </Ad>
         </template>
     </div>
 </template>
@@ -680,7 +681,6 @@ export default {
     mounted() {
         // 设置游戏根路径
 		mgc.setJSGameRootUrl('http://download.mgc-games.com/games/games')
-
         // save channel id from url, parameter name is c
         let channelId = null
 		let qs = window.location.search
@@ -702,6 +702,7 @@ export default {
         // load remote game list
         this.loadRemote()
 
+        //设置
         this.setSplashShow();
         setTimeout(this.getElevatorList, 1000);
 		this.isWeiXin();
@@ -733,7 +734,6 @@ export default {
 			// get info from native
 			let appInfo = mgc.getAppInfoSync()
 			let sysInfo = mgc.getSystemInfoSync()
-
 			// build url
 			let args = {
 				dt: 0,

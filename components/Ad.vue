@@ -1,6 +1,6 @@
 <template>
-    <div class="alert">
-        <div class="mask"></div>
+    <div class="alert" @touchmove.prevent>
+        <div class="mask" @touchmove.prevent></div>
         <div class="body">
             <div class="main">
                 <div class="cover">
@@ -69,12 +69,12 @@ export default {
             })
 
             ad.onLoad(()=> {
-                console.log('信息流加载成功')
+               alert('信息流加载成功')
                 ad.show()
             })
 
             ad.onError(()=>{
-                console.log('信息流加载失败')
+                alert('信息流加载失败')
             })
             ad.load()
         }
