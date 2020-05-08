@@ -4,6 +4,7 @@ let dayjs = require('dayjs');
 
 // router base, 如果相对路径有变化时需要设置
 const routerBase = ''
+var  random=Math.random()
 
 module.exports = {
     mode: 'spa',
@@ -34,7 +35,7 @@ module.exports = {
         link: [{
             rel: 'icon',
             type: 'image/x-icon',
-            href: '/favicon.ico'
+            href: '/  .ico'
         },
             {
                 rel: 'apple-touch-icon',
@@ -85,7 +86,7 @@ module.exports = {
 
     server: {
         port: 3000, // default: 3000
-        host: '0.0.0.0', // default: localhost,
+        host: "localhost", // default: localhost,
         timing: {
             total: true
         }
@@ -189,7 +190,7 @@ module.exports = {
             }) => isDev ? '[name].js' : 'chunk-[id].[chunkhash].js',
             css: ({
                 isDev
-            }) => isDev ? '[name].css' : 'css-[id].[contenthash].css',
+            }) => isDev ? random+'[name].css' :  random+'css-[id].[  ].css',
             img: ({
                 isDev
             }) => isDev ? '[path][name].[ext]' : 'img/[hash:7].[ext]',

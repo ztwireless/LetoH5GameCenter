@@ -7,6 +7,19 @@
         </header>
 
         <template>
+
+
+             <button style="font-size: 0.3rem" @click="modalShow=1" >全国公祭日弹窗</button>
+            <button  style="font-size: 0.3rem" @click="modalShow=2"  >实名认证提示1</button>
+            <button  style="font-size: 0.3rem" @click="modalShow=3" >实名认证提示2</button>
+            <button style="font-size: 0.3rem" @click="modalShow=4" >广告</button>
+             <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
+
+            <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
+            <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
+            <Ad v-if="this.modalShow==4" :img_url="ad.img_url"  @close="modalShow=0"  @openGame="openGame"> </Ad>
+
+
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
                 <header class="header" v-if = "showRencent">
@@ -29,7 +42,7 @@
                                     v-for="(item, index) in banners.gameList"
                                     :key="index"
                                     :class="[{'shadow' : nowIndex == index}]"
-                                    @click="startMGCGame(item, 1, index)"
+                                    @click="startMGCGame(item)"
                                 >
                             </div>
                         </div>
@@ -54,7 +67,7 @@
                                 </div>
 
                                 <div class="mgc-games-row">
-                                    <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item, 5, index)">
+                                    <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
                                         <img :src="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                     </div>
@@ -77,7 +90,7 @@
 
                                 <!-- gallery item -->
                                 <div class="mgc-games-row">
-                                    <div class="mgc-like" style="margin-bottom: 0.2rem" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item, 6, index)">
+                                    <div class="mgc-like" style="margin-bottom: 0.2rem" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.pic" />
                                         <div class="name">
                                             <img v-lazy="item.icon" class="icon-img" />
@@ -110,7 +123,7 @@
                                 <div class="mgc-games-row">
                                     <div class="mgc-game-row mgc-bottom"
                                         v-for="(item, index) in i.gameList"
-                                        :key="index" @click="startMGCGame(item, 3, index)">
+                                        :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
@@ -139,7 +152,7 @@
 
                                 <!-- item -->
                                 <div class="list-banner list-padding-without-top" v-if="i.gameList && i.gameList.length > 0">
-                                    <img class="banner-img" @click="startMGCGame(i.gameList[0], 10, 0)" :src="i.gameList[0].pic" alt="">
+                                    <img class="banner-img" @click="startMGCGame(i.gameList[0])" :src="i.gameList[0].pic" alt="">
 
                                     <div class="row-game">
                                         <img :src="i.gameList[0].icon" alt="">
@@ -147,7 +160,7 @@
                                             <div class="name">{{i.gameList[0].name}}</div>
                                             <div class="play">{{i.gameList[0].play_num}}万人玩过</div>
                                         </div>
-                                        <div class="btn-border" @click="startMGCGame(i.gameList[0], 10, 0)">马上玩</div>
+                                        <div class="btn-border" @click="startMGCGame(i.gameList[0])">马上玩</div>
                                     </div>
                                 </div>
                             </div>
@@ -169,7 +182,7 @@
                                 </div>
 
                                 <!-- list -->
-                                <div class="row-game inline" v-for="(item, index) in i.rankList[0].gameList" :key="index" @click="startMGCGame(item, 9, index)">
+                                <div class="row-game inline" v-for="(item, index) in i.rankList[0].gameList" :key="index" @click="startMGCGame(item)">
                                     <!-- rank icon -->
                                     <div class="rank-1" v-if="index == 0"></div>
                                     <div class="rank-2" v-else-if="index == 1"></div>
@@ -255,7 +268,7 @@
                                 <div class="mgc-games-row">
                                     <div class="mgc-game-row mgc-bottom-qp"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item, 3, index)">
+                                         :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <div class="btn" v-if="index == 2">马上玩</div>
@@ -271,7 +284,7 @@
                         <template v-else-if="i.styleCode == 'signRotationChart'">
                             <!-- grid item -->
                             <div class="mgc-games-row">
-                                <div class="" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item, 1, index)">
+                                <div class="" v-for="(item, index) in i.gameList" :key="index" @click="startMGCGame(item)">
                                     <img v-lazy="item.pic" />
                                 </div>
                             </div>
@@ -300,7 +313,7 @@
                                     <div class="mgc-game-row-three"
                                          v-if="index %3 == 0"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item, 2, index)">
+                                         :key="index" @click="startMGCGame(item)">
 
                                         <div class="row-game inline">
                                             <img v-lazy="item.icon" style="margin-left: 0px"/>
@@ -324,7 +337,7 @@
                                     <div class="mgc-game-row-three"
                                          v-if="index % 3 ==1"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item, 2, index)">
+                                         :key="index" @click="startMGCGame(item)">
                                         <div class="row-game inline" >
                                             <img v-lazy="item.icon" style="margin-left: 0px"/>
                                             <div class="game-info" style="width: 40%">
@@ -345,7 +358,7 @@
                                     <div class="mgc-game-row-three"
                                          v-if="index % 3 ==2"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item, 2, index)">
+                                         :key="index" @click="startMGCGame(item)">
                                         <div class="row-game inline" style="margin-bottom: 0rem;">
                                             <img v-lazy="item.icon" style="margin-left: 0px"/>
                                             <div class="game-info" style="width: 40%">
@@ -384,7 +397,7 @@
                                 <div class="mgc-games-row">
                                     <div class="mgc-game-row-qp">
                                         <div v-if="index %3 == 0" v-for="(item, index) in i.gameList"
-                                             :key="index" @click="startMGCGame(item, 12, index)" class="mgc-like-qp">
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
                                                 <img v-lazy="item.pic" />
                                                 <div v-if="!item. backgroundcolor" class="name">
                                                     <div class="mgc-text" >
@@ -402,7 +415,7 @@
                                     </div>
                                     <div class="mgc-game-row-qp">
                                         <div v-if="index %3 == 1" v-for="(item, index) in i.gameList"
-                                             :key="index" @click="startMGCGame(item, 12, index)" class="mgc-like-qp">
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
                                             <img v-lazy="item.pic" />
                                             <div v-if="!item. backgroundcolor" class="name" >
                                                 <div class="mgc-text" >
@@ -420,7 +433,7 @@
                                     </div>
                                     <div class="mgc-game-row-qp">
                                         <div v-if="index %3 == 2" v-for="(item, index) in i.gameList"
-                                             :key="index" @click="startMGCGame(item, 12, index)" class="mgc-like-qp">
+                                             :key="index" @click="startMGCGame(item)" class="mgc-like-qp">
                                             <img v-lazy="item.pic" />
                                             <div v-if="!item. backgroundcolor" class="name" >
                                                 <div class="mgc-text" >
@@ -462,7 +475,7 @@
                                 <div class="mgc-games-row" >
                                     <div class="mgc-game-row" style="width: 15%; margin-bottom: 0.2rem;"
                                          v-for="(item, index) in i.gameList"
-                                         :key="index" @click="startMGCGame(item, 11, index)"
+                                         :key="index" @click="startMGCGame(item)"
                                          v-if = "item.game_date">
                                         <img v-lazy="item.icon" style="width: 1rem;height: 1rem"/>
                                         <div class="name" style="color: #FFFFFF;font-size: 0.24rem;font-weight:600">{{cutFive(item.name)}}</div>
@@ -496,7 +509,7 @@
                                     <div class="mgc-game-row mgc-bottom"
                                         v-if="index %2 == 0"
                                         v-for="(item, index) in i.gameList"
-                                        :key="index" @click="startMGCGame(item, 13, index)">
+                                        :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
@@ -510,7 +523,7 @@
                                     <div class="mgc-game-row"
                                         v-if="index % 2 !=0"
                                         v-for="(item, index) in i.gameList"
-                                        :key="index" @click="startMGCGame(item, 13, index)">
+                                        :key="index" @click="startMGCGame(item)">
                                         <img v-lazy="item.icon" />
                                         <div class="name">{{cutFive(item.name)}}</div>
                                         <p>{{item.play_num}}万人玩过</p>
@@ -546,6 +559,12 @@ import {http, qs} from '~/plugins/axios';
 import config from '~/config';
 
 import Share from '~/components/Share';
+import Ad from '~/components/Ad';
+import Modal from '~/components/Modal';
+import LoginModal from '~/components/LoginModal';
+
+
+
 import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
@@ -558,6 +577,9 @@ export default {
         Share,
         Empty,
         TimeBtn,
+        Ad,
+        Modal,
+        LoginModal
     },
 
     head() {
@@ -604,7 +626,18 @@ export default {
             },
 
             newGames: NEWGAMES,
-            banners: BANNER
+            banners: BANNER,
+
+            //广告数据
+            ad:{
+
+            },
+            modalData:{
+                title:'温馨提示',
+                content:'梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。'
+            },
+            modalShow:4,
+            adShow:true,
         }
     },
 
@@ -675,19 +708,27 @@ export default {
 
 		// update recent game list
 		let newRecent = mgc.getRecentGameList()
+        console.log('newRecent',newRecent)
 		let newLen = newRecent.gameList ? newRecent.gameList.length : 0
 		let oldLen = this.recentGameList.gameList ? this.recentGameList.gameList.length : 0
 		if(newLen != oldLen) {
 			this.recentGameList = newRecent
 		}
-
-		// report
-        if(window.mgc.reportH5GameCenterEnter) {
-        	window.mgc.reportH5GameCenterEnter()
-        }
     },
 
     methods: {
+
+        openGame(){
+            console.log('sadsad')
+        },
+
+
+
+        //关闭广告
+        adClose(){
+            this.adShow=false
+        },
+
 		getMGCGameCenterData() {
 			// get info from native
 			let appInfo = mgc.getAppInfoSync()
@@ -789,38 +830,20 @@ export default {
         moreGames(id,title,lid){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
 
-            // report
-            if(window.mgc.reportH5GameCenterMore) {
-            	window.mgc.reportH5GameCenterMore()
-            }
         },
         moreGamesDay(id,title,lid,is_day){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
 
-			// report
-			if(window.mgc.reportH5GameCenterMore) {
-				window.mgc.reportH5GameCenterMore()
-			}
         },
         getElevatorList(){
             if(!this.show&&(1 == this.splash_show)){
                 document.getElementById("splashContent").click();
                 sessionStorage.setItem("splash_show",2);
-
-				// report
-				if(window.mgc.reportH5GameCenterSplashEnd) {
-					window.mgc.reportH5GameCenterSplashEnd()
-				}
             }
         },
         setSplashShow(){
             if(2 == this.splash_show){
                 this.show = true;
-
-				// report
-				if(window.mgc.reportH5GameCenterSplashExpose) {
-					window.mgc.reportH5GameCenterSplashExpose()
-				}
             }
         },
         //更多游戏类别
@@ -840,7 +863,7 @@ export default {
         },
 
         // 启动 梦工厂 游戏
-        startMGCGame(game, compact, position) {
+        startMGCGame(game) {
 			// avoid quick click
 			let now = Date.now()
             if(now - this.lastClickTime < 500) {
@@ -858,11 +881,6 @@ export default {
 
             // start
 			mgc.navigateToMiniProgram({ appId: game.id.toString() })
-
-            // report
-            if(window.mgc.reportH5GameCenterGameClicked) {
-            	window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
-            }
         },
 
         getFavoriteGameList() {
@@ -910,6 +928,7 @@ export default {
     padding: 0 .24rem .46rem;
     justify-content: space-between;
 }
+
 
 .box-item {
     position:relative;
