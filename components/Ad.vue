@@ -69,12 +69,12 @@ export default {
             })
 
             ad.onLoad(()=> {
-               alert('信息流加载成功')
+               console.log('信息流加载成功')
                 ad.show()
             })
 
             ad.onError(()=>{
-                alert('信息流加载失败')
+                console.log('信息流加载失败')
             })
             ad.load()
         }
