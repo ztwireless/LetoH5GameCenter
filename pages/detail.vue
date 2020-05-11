@@ -209,8 +209,7 @@ export default {
 				framework_version: sysInfo.SDKVersion,
 				from: 11,
                 tid: this.$route.query.type_id,
-                page: this.page,
-				device_md5: sysInfo.deviceId
+                page: this.page
 			}
 			let first = true
 			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterMoreData}`

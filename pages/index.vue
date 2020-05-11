@@ -702,8 +702,7 @@ export default {
 				packagename: appInfo.packageName,
 				leto_version: sysInfo.LetoVersion,
 				framework_version: sysInfo.SDKVersion,
-				from: 11,
-				device_md5: sysInfo.deviceId
+				from: 11
 			}
 			let first = true
 			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
