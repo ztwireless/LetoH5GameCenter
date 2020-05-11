@@ -46,6 +46,10 @@ export default {
         //初始化信息流
         this.createFeedAd()
 
+        // report
+        if(window.mgc.reportH5GameCenterTodayRecommend) {
+        	window.mgc.reportH5GameCenterTodayRecommend()
+        }
     },
 
     methods: {
@@ -71,6 +75,11 @@ export default {
             ad.onLoad(()=> {
                console.log('信息流加载成功')
                 ad.show()
+
+                // report
+                if(window.mgc.reportH5GameCenterTodayRecommendFeedAdExpose) {
+                	window.mgc.reportH5GameCenterTodayRecommendFeedAdExpose()
+                }
             })
 
             ad.onError(()=>{
