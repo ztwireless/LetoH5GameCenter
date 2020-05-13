@@ -704,6 +704,14 @@ export default {
         // load remote game list
         this.loadRemote()
 
+        //渠道配置
+        mgc.getCoinConfig({
+            success: res => {
+                //alert(`got config: ${JSON.stringify(res)}`)
+                localStorage.setItem("app_conf",res);
+            }
+        })
+
         //设置
         this.setSplashShow();
         setTimeout(this.getElevatorList, 1000);

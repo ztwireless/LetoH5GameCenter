@@ -311,9 +311,9 @@ export default {
             window.mgc.showWithdraw();
         },
         point(){
-		    //alert(mgc.getOrCreateUserId());
-            alert(mgc.getCoinConfig());
-            alert(JSON.stringify(mgc.getCoinConfig()));
+		    //alert(mgc.getMgcUserId());
+            alert(localStorage.getItem('app_conf'));
+            alert(JSON.stringify(localStorage.getItem('app_conf')));
             //this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
         },
         //更多游戏
