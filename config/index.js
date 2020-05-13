@@ -10,13 +10,13 @@ module.exports = {
     qrUrl: 'http://meigegou.com.cn',
 
     // 梦工厂url
-    mgcTestUrl: 'http://miniapi_dev.mgc-games.com',
-    mgcProdUrl: 'http://miniapi.mgc-games.com',
+    mgcTestUrl: 'http://h5api_dev.mgc-games.com',
+    mgcProdUrl: 'http://h5api.mgc-games.com',
     mgcProdOverseaUrl: 'http://miniapi.zeninto.com',
     mgcApiPathPrefix: '/api/v7/',
     mgcApiGetGameCenterData: 'charge/groups',
     mgcApiGetGameCenterMoreData: 'charge/more',
-
+    mgcMemCoin: 'wx/memcoin',
 
     // 前缀URL
     apiBaseUrl: 'http://api.pezy.cn/bc-activity-service',

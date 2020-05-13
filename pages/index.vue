@@ -23,7 +23,7 @@
 
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header" v-if = "showRencent">
+                <header class="header" v-if = "showWithdraw">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -65,6 +65,8 @@
                                     <div class="recently"></div>
                                     <p class="add-flex">我的游戏</p>
                                     <div class="arrow-right"></div>
+                                    <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
+                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <div class="mgc-games-row">
@@ -817,7 +819,8 @@ export default {
             //window.mgc.showWithdraw();
             //alert('提现设置');
             //this.loadRemoteTest();//mgc.getCoinConfig()
-            alert(mgc.getCoinConfig());
+            //alert(mgc.getCoinConfig());
+            this.$router.push({path: './my', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的',is_day:0}});
         },
         //最近玩
         recentPlay(){
@@ -829,6 +832,12 @@ export default {
         moreGames(id,title,lid){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
 
+        },
+        //最近玩
+        moreGamesMy(){
+            //alert("最近玩");
+            //alert(JSON.stringify(this.recentGameList));
+            this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
         moreGamesDay(id,title,lid,is_day){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
@@ -1549,7 +1558,7 @@ export default {
                 display: flex;
                 align-items: center;
                 padding-left: 0.18rem;
-                background: url('~assets/img/hybrid/game/mask-img.png') no-repeat;
+                background: url('~assets/img/hybrid/common/huangdi.png') no-repeat;
                 background-size: 100%;
             }
 
