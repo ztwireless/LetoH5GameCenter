@@ -11,7 +11,7 @@
 <!--                    <div class="ad-bg">-->
 
 <!--                    </div>-->
-                    <div class=""  ref="feedAd" style="background-color:12B1EC ">
+                    <div class="" id="today_recommend_feed_container"  ref="feedAd" style="background-color:12B1EC ">
 <!--                        <img src="~assets/img/hybrid/common/tjzm.png" alt="">-->
                     </div>
                 </div>
