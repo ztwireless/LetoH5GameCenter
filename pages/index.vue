@@ -680,7 +680,7 @@ export default {
 
     mounted() {
         // 设置游戏根路径
-		mgc.setJSGameRootUrl('http://download.mgc-games.com/games/games')
+		mgc.setJSGameRootUrl('http://h5.jrutech.com/games/games')
         // save channel id from url, parameter name is c
         let channelId = null
 		let qs = window.location.search
