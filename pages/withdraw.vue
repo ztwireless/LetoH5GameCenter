@@ -204,12 +204,9 @@ export default {
 
     mounted() {
     	// 设置游戏根目录
-        mgc.setJSGameRootUrl(process.env.NODE_ENV == 'development' ?
-            'http://192.168.1.104/~maruojie/leto_ad_test/games/games' :
-            'http://test.mgc-games.com/games/games')
 
         // ensure channel id is set
-        mgc.setChannelId(this.$route.query.channel_id)
+
 
         this.loadRemote()
         this.setMemCoin();
