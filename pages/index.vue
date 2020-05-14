@@ -23,7 +23,7 @@
 
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header" v-if = "showWithdraw">
+                <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -707,7 +707,17 @@ export default {
         //渠道配置
         mgc.getCoinConfig({
             success: res => {
+                //asyncData  预加载
                 //alert(`got config: ${JSON.stringify(res)}`)
+                if(res.hasOwnProperty("is_coin")){
+                    if(0 == res['is_coin']){//普通游戏中心
+                        this.showRencent = true;
+                        this.showWithdraw = false;
+                    }else{//金币游戏中心
+                        this.showRencent = false;
+                        this.showWithdraw = true;
+                    }
+                }
                 localStorage.setItem("app_conf",res);
             }
         })

@@ -246,7 +246,7 @@ export default {
 				packagename: appInfo.packageName,
 				leto_version: sysInfo.LetoVersion,
 				framework_version: sysInfo.SDKVersion,
-                mobile:'13552886455',//mgc.getOrCreateUserId()
+                mobile:mgc.getMgcUserId(),//mgc.getOrCreateUserId()
 				from: 11
 			}
 			let first = true
@@ -294,6 +294,7 @@ export default {
                     if(data.hasOwnProperty("today_coins")){
                         this.my_coin_today = data['today_coins'];
                     }
+                    localStorage.setItem('mem_coins',mgcResp.data.data);
                 }
 			})
 		},
@@ -312,9 +313,9 @@ export default {
         },
         point(){
 		    //alert(mgc.getMgcUserId());
-            alert(localStorage.getItem('app_conf'));
-            alert(JSON.stringify(localStorage.getItem('app_conf')));
-            //this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
+            //alert(localStorage.getItem('app_conf'));
+            console.log(JSON.stringify(localStorage.getItem('app_conf')));
+            this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
         },
         //更多游戏
         moreGames(id){

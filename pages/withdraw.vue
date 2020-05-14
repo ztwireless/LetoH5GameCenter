@@ -20,74 +20,65 @@
                     <template>
                         <div class="list list-left">
 
-                            <div class="mgc-games-row">
-                                <div class="mgc-game-row-coin">
-                                    <img src="~assets/img/hybrid/common/huangdi.png" class="coin_imge"/>
-                                    <div class="name">
-                                        <div class="mgc-text">
-                                            {{my_coin}}
-                                            <p>我的金币余额</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mgc-game-row-coin">
-                                    <img src="~assets/img/hybrid/common/hongdi.png" class="coin_imge"/>
-                                    <div class="name">
-                                        <div class="mgc-text">
-                                            {{my_coin_today}}
-                                            <p>今日获得金币</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mgc-game-row-coin">
-                                    <img src="~assets/img/hybrid/common/landi.png" class="coin_imge"/>
-                                    <div class="name-lj">
-                                        <div class="mgc-text_lj">
-                                            立即提现
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template>
-                        <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
                             <div class="row-game title">
-                                <p class="add-flex" style="margin-left: 0rem;">我的游戏</p>
-                                <div class="arrow-right"></div>
-                                <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
-                                <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
-                            </div>
-
-                            <div class="mgc-games-row">
-                                <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
-                                    <img :src="item.icon" />
-                                    <div class="name">{{cutFive(item.name)}}</div>
+                                <p style="margin-left: 0rem;">金币余额：{{my_coin}}</p>
+                                <div class="add-flex">
+                                    <div class="add-gold">{约0.2元}</div>
                                 </div>
                             </div>
                         </div>
                     </template>
+
                     <template>
                         <div class="list list-left" style="border-bottom: 0.1rem solid #FFFFFF;">
-
-                            <div class="row-game title" @click="cleanLocal()">
-                                <div class="qingchu"></div>
-                                <p class="add-flex-sz" >清除缓存</p>
-                                <div class="arrow-right"></div>
-                                <div class="showSz" ></div>
-                            </div>
-
                             <div class="row-game title">
-                                <div class="daojishi"></div>
-                                <p class="add-flex-sz" >显示游戏内计时器</p>
+                                <p class="add-flex" style="margin-left: 0rem;">提现方式</p>
+                            </div>
+
+                            <div class="mgc-games-row">
+                                <div class="mgc-game-row">
+                                    <div class="name">{{withdraw_type}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template>
+                        <div class="list list-left" style="border-bottom: 0.1rem solid #FFFFFF;" v-if="points.points">
+                            <div class="row-game title">
+                                <p class="add-flex" style="margin-left: 0rem;">提现金额</p>
                                 <div class="arrow-right"></div>
-                                <div class="showSz" @click="showDJS()"></div>
+                            </div>
+                            <div class="mgc-games-row">
+                                <div class="mgc-game-row-point">
+                                    <div v-if="index %2 == 0" v-for="(item, index) in points.points"
+                                         :key="index" @click="withdraw(item.point_id)" >
+                                        <div class="name">{{item.price + item.coin_name}}</div>
+                                    </div>
+                                </div>
+                                <div class="mgc-game-row-point">
+                                    <div v-if="index %2 == 1" v-for="(item, index) in points.points"
+                                         :key="index" @click="withdraw(item.point_id)" >
+                                        <div class="name">{{item.price + item.coin_name}}</div>
+                                    </div>
+                                </div>
+
+
                             </div>
 
 
+
+
+
+                        </div>
+                    </template>
+                    <template>
+                        <div style=" font-size: 0.28rem; margin-bottom: 0.1rem; text-align: center;border-bottom: 0.1rem solid #F5F5F5;background-color: #FFF9E9" >
+
+                            <div>提现说明</div>
+                            <div >
+                                <textarea v-bind:rows="rows_textarea" style="width: 95%;background-color: #FFF9E9;border:none" disabled>{{points.explain}}</textarea>
+                            </div>
                         </div>
                     </template>
 
@@ -137,7 +128,9 @@ export default {
             json_data: {},
             is_day: 0,
             my_coin:0,
-            my_coin_today:0,
+            points:localStorage.getItem('points') || [],
+            rows_textarea:10,
+            withdraw_type: '支付宝提现',
 
             games: [],
             favoriteGameList: [],
@@ -219,7 +212,9 @@ export default {
         mgc.setChannelId(this.$route.query.channel_id)
 
         this.loadRemote()
+        this.setMemCoin();
        // this.listenScroll()
+
 
 		// update recent game list
 		let newRecent = mgc.getRecentGameList()
@@ -250,7 +245,7 @@ export default {
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcPoints}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
@@ -287,17 +282,15 @@ export default {
 
                     // get banner data
                     let data = mgcResp.data.data;
-                    //alert(JSON.stringify(mgcResp.data.data));
-                    if(data.hasOwnProperty("coins")){
-                       this.my_coin = data['coins'];
-                    }
-                    if(data.hasOwnProperty("today_coins")){
-                        this.my_coin_today = data['today_coins'];
-                    }
+                    //alert(JSON.stringify(this.points));
+                    this.points = mgcResp.data.data;
+                    let explain = data.explain;
+                    let arr = explain.split("\n");
+                    this.rows_textarea = arr.length;
+                    localStorage.setItem('points',mgcResp.data.data);
                 }
 			})
 		},
-
         //关闭
         back() {
 			// TODO how to exit webview?
@@ -307,8 +300,8 @@ export default {
         },
 
         //提现
-        withdraw() {
-            window.mgc.showWithdraw();
+        withdraw(point_id) {
+            alert(point_id);
         },
         //更多游戏
         moreGames(id){
@@ -325,7 +318,27 @@ export default {
             //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
+        setMemCoin(){
+            let coins = localStorage.getItem('mem_coins');
+            //alert(JSON.stringify(mgcResp.data.data));
+            if(coins.hasOwnProperty("coins")) {
+                this.my_coin = coins['coins'];
+            };
+            let conf = localStorage.getItem('app_conf');
+            if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
 
+            }else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
+                this.withdraw_type = '提现到银行卡'
+            }else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
+                this.withdraw_type = '金币兑换第三方币'
+            }else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
+                this.withdraw_type = '提现到微信零钱'
+            }else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
+                this.withdraw_type = '第三方提现到微信零钱'
+            }else{
+                this.withdraw_type = '不支持的提现类型'
+            }
+        },
         // 启动 梦工厂 游戏
         startMGCGame(game) {
 			// avoid quick click
@@ -745,10 +758,9 @@ export default {
         }
 
         .add-gold {
-            background-color: #FFF5E0;
-            font-size: 0.3rem;
+            font-size: 0.2rem;
+            color: #666666;
             border-radius: 0.16rem;
-            color: #FA8C00;
             position: relative;
             line-height: 0.32rem;
             padding-right: 0.24rem;
@@ -901,6 +913,19 @@ export default {
             }
 
             .mgc-game-row {
+                display: inline-block;
+                margin-right: 0.8rem;
+                width: 20%;
+
+                p {
+                    font-size: 0.22rem;
+                    color: #87898C;
+                    margin-bottom: 0.24rem;
+                    text-align: center;
+                }
+            }
+
+            .mgc-game-row-point {
                 display: inline-block;
                 margin-right: 0.8rem;
                 width: 20%;

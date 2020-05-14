@@ -17,6 +17,7 @@ module.exports = {
     mgcApiGetGameCenterData: 'charge/groups',
     mgcApiGetGameCenterMoreData: 'charge/more',
     mgcMemCoin: 'wx/memcoin',
+    mgcPoints: 'wx/points',
 
     // 前缀URL
     apiBaseUrl: 'http://api.pezy.cn/bc-activity-service',
