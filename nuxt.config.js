@@ -5,6 +5,7 @@ let dayjs = require('dayjs');
 // router base, 如果相对路径有变化时需要设置
 const routerBase = ''
 var  random=Math.random()
+var t = Date.now()
 
 module.exports = {
     mode: 'spa',
@@ -57,22 +58,22 @@ module.exports = {
                 charset: 'utf-8'
             },
             {
-                src: `${routerBase}/static/__leto__/service-config.js`,
+                src: `${routerBase}/static/__leto__/service-config.js?t=${t}`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: `${routerBase}/static/__leto__/config.js`,
+                src: `${routerBase}/static/__leto__/config.js?t=${t}`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: `${routerBase}/static/framework/script/view_gc.js`,
+                src: `${routerBase}/static/framework/script/view.js?t=${t}`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             },
             {
-                src: `${routerBase}/static/__leto__/app-service.js`,
+                src: `${routerBase}/static/__leto__/app-service.js?t=${t}`,
                 type: 'text/javascript',
                 charset: 'utf-8'
             }
