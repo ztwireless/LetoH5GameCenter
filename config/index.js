@@ -11,13 +11,19 @@ module.exports = {
 
     // 梦工厂url
     mgcTestUrl: 'http://h5api_dev.mgc-games.com',
-    mgcProdUrl: 'http://h5api.mgc-games.com',
+    mgcProdUrl: 'http://h5api_dev.mgc-games.com',
     mgcProdOverseaUrl: 'http://miniapi.zeninto.com',
     mgcApiPathPrefix: '/api/v7/',
     mgcApiGetGameCenterData: 'charge/groups',
     mgcApiGetGameCenterMoreData: 'charge/more',
     mgcMemCoin: 'wx/memcoin',
     mgcPoints: 'wx/points',
+    mgcWithDrawInfo: 'withdraw/checkinfo',
+    mgcAliInfo: 'wx/getaliinfo',
+    mgcSetAliInfo: 'wx/setaliinfo',
+    mgcPreapply: 'wx/preapply',
+    mgcApplyLog: 'wx/applylog',
+
 
     // 前缀URL
     apiBaseUrl: 'http://api.pezy.cn/bc-activity-service',

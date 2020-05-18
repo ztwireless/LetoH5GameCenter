@@ -671,7 +671,6 @@ export default {
                     // return
 					return {
 						backable: query.backable,
-                        goldShow: query.gold,
                         newGames: dataList,
 						banners: banners
 					}
@@ -713,9 +712,11 @@ export default {
                     if(0 == res['is_coin']){//普通游戏中心
                         this.showRencent = true;
                         this.showWithdraw = false;
+                        this.goldShow = false;
                     }else{//金币游戏中心
                         this.showRencent = false;
                         this.showWithdraw = true;
+                        this.goldShow = true;
                     }
                 }
                 localStorage.setItem("app_conf",res);

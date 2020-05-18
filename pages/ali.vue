@@ -18,76 +18,21 @@
                     <div class="button-list" style="border-top: 0.8px solid #E3E3E3;">
                     </div>
                     <template>
-                        <div class="list list-left">
+                        <div style="width: 100%;text-align: center;">
+                            <div style=" font-size: 0.28rem; margin-bottom: 0.1rem; text-align: left;width: 90%;margin-left: 0.32rem; ">
 
-                            <div class="mgc-games-row">
-                                <div class="mgc-game-row-coin">
-                                    <img src="~assets/img/hybrid/common/huangdi.png" class="coin_imge"/>
-                                    <div class="name">
-                                        <div class="mgc-text">
-                                            {{my_coin}}
-                                            <p>我的金币余额</p>
-                                        </div>
-                                    </div>
+                                <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
+                                    支付宝账号:&nbsp &nbsp<input id="account" placeholder="请输入支付宝账号" style="border:none;width:2.71rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
-
-                                <div class="mgc-game-row-coin">
-                                    <img src="~assets/img/hybrid/common/hongdi.png" class="coin_imge"/>
-                                    <div class="name">
-                                        <div class="mgc-text">
-                                            {{my_coin_today}}
-                                            <p>今日获得金币</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mgc-game-row-coin" @click="point()">
-                                    <img src="~assets/img/hybrid/common/landi.png" class="coin_imge"/>
-                                    <div class="name-lj">
-                                        <div class="mgc-text_lj">
-                                            立即提现
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template>
-                        <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
-                            <div class="row-game title">
-                                <p class="add-flex" style="margin-left: 0rem;">我的游戏</p>
-                                <div class="arrow-right"></div>
-                                <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
-                                <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
-                            </div>
-
-                            <div class="mgc-games-row">
-                                <div class="mgc-game-row" v-for="(item, index) in recentGameList.gameList" :key="index" @click="startMGCGame(item)">
-                                    <img :src="item.icon" />
-                                    <div class="name">{{cutFive(item.name)}}</div>
+                                <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
+                                    真实姓名: &nbsp &nbsp&nbsp &nbsp<input id="truename"placeholder="请输入支付宝账号对应的真实姓名"  style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
                             </div>
                         </div>
                     </template>
                     <template>
-                        <div class="list list-left" style="border-bottom: 0.1rem solid #FFFFFF;">
-
-                            <div class="row-game title" @click="cleanLocal()">
-                                <div class="qingchu"></div>
-                                <p class="add-flex-sz" >清除缓存</p>
-                                <div class="arrow-right"></div>
-                                <div class="showSz" ></div>
-                            </div>
-
-                            <div class="row-game title">
-                                <div class="daojishi"></div>
-                                <p class="add-flex-sz" >显示游戏内计时器</p>
-                                <div class="arrow-right"></div>
-                                <div class="showSz" @click="showDJS()"></div>
-                            </div>
-
-
+                        <div style="margin-top: 2rem" @click="doBind()">
+                            <div style="margin:0 auto;width:4.05rem;height:0.81rem;background-color: #3D9AF0;font-size: 0.28rem;font-weight:600;color: #FFFFFF;border-radius:0.41rem;text-align: center;line-height: 0.81rem">确定</div>
                         </div>
                     </template>
 
@@ -138,6 +83,9 @@ export default {
             is_day: 0,
             my_coin:0,
             my_coin_today:0,
+            truename:'',
+            account:'',
+            draw_point_id:0,
 
             games: [],
             favoriteGameList: [],
@@ -214,8 +162,8 @@ export default {
 
         // ensure channel id is set
 
-
-        this.loadRemote()
+        this.aliInfo();
+        //this.loadRemote()
        // this.listenScroll()
 
 		// update recent game list
@@ -244,10 +192,12 @@ export default {
 				leto_version: sysInfo.LetoVersion,
 				framework_version: sysInfo.SDKVersion,
                 mobile:mgc.getMgcUserId(),
+                account:this.account,
+                truename:this.truename,
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcSetAliInfo}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
@@ -277,24 +227,16 @@ export default {
         },
 
 		loadRemote() {
-			this.getMGCGameCenterData().then(mgcResp => {
-				if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
-                    // save
-                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
-
-                    // get banner data
-                    let data = mgcResp.data.data;
-                    //alert(JSON.stringify(mgcResp.data.data));
-                    if(data.hasOwnProperty("coins")){
-                       this.my_coin = data['coins'];
-                    }
-                    if(data.hasOwnProperty("today_coins")){
-                        this.my_coin_today = data['today_coins'];
-                    }
-                    localStorage.setItem('mem_coins',mgcResp.data.data);
+            this.getMGCGameCenterData().then(mgcResp => {
+                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 ) {
+                    localStorage.setItem('is_success',1);
+                    this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
+                }else{
+                    alert(mgcResp.data.msg);
                 }
-			})
-		},
+            })
+        },
+
 
         //关闭
         back() {
@@ -304,6 +246,36 @@ export default {
             history.back();
         },
 
+        //关闭
+        aliInfo() {
+		    let info = localStorage.getItem("ali_info");
+
+            if(info && info.hasOwnProperty("truename")){
+                document.getElementById('truename').value = info['truename']
+            }
+            if(info && info.hasOwnProperty("account")){
+                document.getElementById('account').value = info['account']
+            }
+        },
+        doBind(){
+		    this.draw_point_id = localStorage.getItem('draw_point_id');
+		    if(this.draw_point_id <= 0){
+		        alert("请选择提现金额");
+		        return;
+            }
+            this.truename = document.getElementById('truename').value;
+            this.account = document.getElementById('account').value;
+            if(!this.truename){
+                alert("请输入真实姓名");
+                return;
+            }
+
+            if(!this.account){
+                alert("请输入支付宝账号");
+                return;
+            }
+            this.loadRemote();
+        },
         //提现
         withdraw() {
             window.mgc.showWithdraw();
