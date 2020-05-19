@@ -19952,6 +19952,7 @@ var CoralVideo = function (_Emitter) {
 				handleAdEventName: 'handleAdEvent1', //广告回调事件名称，可不传，默认为handleAdEvent
 				handleAdErrorName: 'handleAdError1', //广告加载出错事件名称，可不传，默认为handleAdError
 				advShowCb: function advShowCb() {
+					alert('coral show, videoplayer: ' + (window.videoPlayer ? true : false));
 					_this2.dispatchEvent(new Event('load'));
 				},
 				advClickCb: function advClickCb() {
