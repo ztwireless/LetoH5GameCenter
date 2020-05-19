@@ -8,16 +8,15 @@
 
         <template>
 
-              <!--
              <button style="font-size: 0.3rem" @click="modalShow=1" >全国公祭日弹窗</button>
             <button  style="font-size: 0.3rem" @click="modalShow=2"  >实名认证提示1</button>
             <button  style="font-size: 0.3rem" @click="modalShow=3" >实名认证提示2</button>
-            <button style="font-size: 0.3rem" @click="modalShow=4" >广告</button>
-            -->
-             <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
+            <button style="font-size: 0.3rem" @click="showAd=true" >广告</button>
 
+            <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
             <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
             <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
+            <GoldenEgg  v-if="this.showGoldenEgg"  @smash="smash"  @receive="receive" :add_coins="this.add_coins" :available_num="this.available_num"  :isLogin="true" ></GoldenEgg>
 
 
 
@@ -551,7 +550,8 @@
             </transition>
             <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)"></div>
 
-            <Ad v-if="this.modalShow==4"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="modalShow=0"  @openGame="openGame"> </Ad>
+            <Ad v-if="this.showAd"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="showAd=false"  @openGame="openGame"> </Ad>
+
         </template>
     </div>
 </template>
@@ -563,8 +563,7 @@ import Share from '~/components/Share';
 import Ad from '~/components/Ad';
 import Modal from '~/components/Modal';
 import LoginModal from '~/components/LoginModal';
-
-
+import GoldenEgg from '~/components/GoldenEgg';
 
 import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
@@ -580,7 +579,8 @@ export default {
         TimeBtn,
         Ad,
         Modal,
-        LoginModal
+        LoginModal,
+        GoldenEgg
     },
 
     head() {
@@ -637,8 +637,13 @@ export default {
                 title:'温馨提示',
                 content:'梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。'
             },
-            modalShow:4,
+            modalShow:5,
+            showAd:false,      //启动广告
+            showGoldenEgg:true,
             adShow:true,
+
+            available_num:0,
+            add_coins:0,
         }
     },
 
@@ -678,8 +683,9 @@ export default {
             })
     },
 
-    mounted() {
+    async mounted() {
         // 设置游戏根路径
+
 		mgc.setJSGameRootUrl('http://h5.jrutech.com/games/games')
         // save channel id from url, parameter name is c
         let channelId = null
@@ -715,15 +721,88 @@ export default {
 		if(newLen != oldLen) {
 			this.recentGameList = newRecent
 		}
+
+
+        //今日推荐只在第一次进入显示
+        if(mgc.showAd===undefined){
+            this.showAd=true
+            mgc.showAd=true
+        }
+
+        //获取金蛋相关的数据
+        let res= (await  this.getGoldeneggsconf()).data
+        this.available_num=res.data.available_num       //剩余砸蛋次数
+        console.log('data',res)
+
     },
 
     methods: {
 
         openGame(){
-            console.log('sadsad')
+
+        },
+
+        //获取金蛋的次数
+        getGoldeneggsconf(){
+            // let url = "http://miniapi.mgc-games.com/api/v7/benefits/getgoldeneggsconf";     //正式服
+            let url = "http://miniapi_dev.mgc-games.com/api/v7/benefits/getgoldeneggsconf"; //测试服
+            let data = {
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id:mgc.getChannelId(),
+                mobile:mgc.getMgcUserId(),
+                dev:true
+            }
+            url=this.urlSplice(url,data);
+            return http.get(url,data)
         },
 
 
+        //砸金蛋
+        async smash(){
+            let  {data}=await this.app_add_coins()
+            this.add_coins=data.data.add_coins
+            let  res=await this.getGoldeneggsconf()
+            this.available_num=res.data.data.available_num
+            console.log('还可以砸',res.data.data)
+        },
+
+        //点击了领取
+        receive(){
+            this.$toast('成功领取了'+this.add_coins+'金币')
+        },
+
+
+        //砸金蛋
+        app_add_coins(){
+            // 正式服：http://miniapi.mgc-games.com/api/v7/app_add_coins
+            // 测试服：http://miniapi_dev.mgc-games.com/api/v7/app_add_coins
+            let url = "http://miniapi_dev.mgc-games.com/api/v7/app_add_coins"; //测试服
+            let data = {
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id:mgc.getChannelId(),
+                mobile:mgc.getMgcUserId(),
+                coins_scene_type:200,
+                dev:true
+            }
+            url=this.urlSplice(url,data);
+            return http.post(url,data)
+        },
+
+
+        //get请求参数拼接
+        urlSplice(url,args){
+            let first = true
+            for(let key in args) {
+                if(first) {
+                    url += '?'
+                    first = false
+                } else {
+                    url += '&'
+                }
+                url += `${key}=${args[key]}`
+            }
+            return url;
+        },
 
         //关闭广告
         adClose(){
