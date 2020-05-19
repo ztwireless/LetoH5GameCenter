@@ -35,7 +35,7 @@
                         <div style="margin-top: 0.13rem"  @click="withdraw">
                             <div class="add-gold-wd">{{my_coin}}</div>
                             <div class="add-gold-rmb">
-                                {{my_coin_rmb}}元
+                                {{my_coin_rmb}} 元
                             </div>
                         </div>
                     </div>
@@ -714,6 +714,7 @@ export default {
 
         // load remote game list
         this.loadRemote()
+        this.loadRemoteCoin()
 
         //渠道配置
         mgc.getCoinConfig({
@@ -798,18 +799,54 @@ export default {
 			return http.get(url)
 		},
 
-        getMGCGameCenterDataTest() {
-		    //let args = "{\"point_id\":691,\"type\":3,\"mobile\":\"13552886455\",\"agentgame\":\"\",\"app_id\":\"364775\",\"channel_id\":364775,\"client_id\":\"334\",\"device\":{\"device_id\":\"351ad57b19cf9c976faefbb08a41ccd8\",\"deviceinfo\":\"android10\",\"idfa\":\"\",\"idfv\":\"\",\"ipaddrid\":\"\",\"local_ip\":\"192.168.101.27\",\"mac\":\"48:2c:a0:77:5a:8c\",\"userua\":\"Mozilla/5.0 (Linux; Android 10; MI 8 Build/QKQ1.190828.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.96 Mobile Safari/537.36\"},\"device_md5\":\"802F44C2F157068A825A09623D5EF23C\",\"framework_version\":\"3.2.0\",\"from\":\"11\",\"leto_version\":\"android_v3.9.2\",\"packagename\":\"com.mgc.letobox.happy\",\"timestamp\":1588578150234,\"user_token\":\"dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK\"}";
-		    let  url ="http://search.mgc-games.com:8711/api/v7/wx/preapply?data={%22point_id%22:691,%22type%22:3,%22mobile%22:%2213552886455%22,%22agentgame%22:%22%22,%22app_id%22:%22364775%22,%22channel_id%22:364775,%22client_id%22:%22334%22,%22device%22:{%22device_id%22:%22351ad57b19cf9c976faefbb08a41ccd8%22,%22deviceinfo%22:%22android10%22,%22idfa%22:%22%22,%22idfv%22:%22%22,%22ipaddrid%22:%22%22,%22local_ip%22:%22192.168.101.27%22,%22mac%22:%2248:2c:a0:77:5a:8c%22,%22userua%22:%22Mozilla/5.0%20(Linux;%20Android%2010;%20MI%208%20Build/QKQ1.190828.002;%20wv)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Version/4.0%20Chrome/78.0.3904.96%20Mobile%20Safari/537.36%22},%22device_md5%22:%22802F44C2F157068A825A09623D5EF23C%22,%22framework_version%22:%223.2.0%22,%22from%22:%2211%22,%22leto_version%22:%22android_v3.9.2%22,%22packagename%22:%22com.mgc.letobox.happy%22,%22timestamp%22:1588578150234,%22user_token%22:%22dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK%22}";
+        getMGCGameCenterDataCoin() {
+            // get info from native
+            let appInfo = mgc.getAppInfoSync()
+            let sysInfo = mgc.getSystemInfoSync()
+
+            // build url
+            let args = {
+                dt: 0,
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id: this.$route.query.channel_id,
+                client_id: 334,
+                packagename: appInfo.packageName,
+                leto_version: sysInfo.LetoVersion,
+                framework_version: sysInfo.SDKVersion,
+                mobile:mgc.getMgcUserId(),
+                from: 11
+            }
+            let first = true
+            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
+            for(let key in args) {
+                if(first) {
+                    url += '?'
+                    first = false
+                } else {
+                    url += '&'
+                }
+                url += `${key}=${args[key]}`
+            }
+            // promise of http
             return http.get(url)
         },
-        loadRemoteTest(){
-            this.getMGCGameCenterDataTest().then(mgcResp => {
+        loadRemoteCoin(){
+            this.getMGCGameCenterDataCoin().then(mgcResp => {
                 if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
                     // save
-                    console.log("success = " + JSON.stringify(mgcResp));
-                } else {
-                    console.log("faile = " + JSON.stringify(mgcResp));
+                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
+
+                    // get banner data
+                    let data = mgcResp.data.data;
+                    //alert(JSON.stringify(mgcResp.data.data));
+                    if(data.hasOwnProperty("coins")){
+                        this.my_coin = data['coins'];
+                        let conf = localStorage.getItem('app_conf');
+                        if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+                            this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+                        }
+                    }
+                    localStorage.setItem('mem_coins',mgcResp.data.data);
                 }
             })
         },
@@ -1167,7 +1204,7 @@ export default {
         left: 0;
         width: 100%;
         z-index: 1000;
-        height: .88rem;
+        height: 1.05rem;
         background: #fff;
 
         .back {
@@ -1362,7 +1399,8 @@ export default {
                 content: '';
                 width: 0.32rem;
                 height: 0.32rem;
-                background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                //background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
                 background-size: 100%;
                 left: 0;
             }
@@ -1994,7 +2032,7 @@ export default {
     padding-top: 0.02rem;
     font-weight: bold;
     background: #FFF5E0;
-    width:1.3rem;
+    width:1.6rem;
     height:0.33rem;
 
     &::before {
@@ -2019,7 +2057,7 @@ export default {
     padding-top: 0.02rem;
     font-weight: bold;
     background: #FFEDED;
-    width:1.3rem;
+    width:1.6rem;
     height:0.33rem;
     margin-top: 0.05rem;
 
@@ -2037,7 +2075,7 @@ export default {
 
 .tx_pic {
     float: right;
-    margin-left: 2.8rem;
+    margin-left: 3.1rem;
     background: url("~assets/img/hybrid/common/tixian.png") no-repeat center top;
     background-size: 100%;
     width:0.79rem;

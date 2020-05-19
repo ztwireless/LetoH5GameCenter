@@ -215,7 +215,7 @@ export default {
         // ensure channel id is set
 
 
-        this.loadRemote()
+        this.setMemCoin()
        // this.listenScroll()
 
 		// update recent game list
@@ -303,7 +303,15 @@ export default {
             //$(window).unbind('scroll');
             history.back();
         },
-
+        setMemCoin(){
+            let coins = localStorage.getItem('mem_coins');
+            if(coins.hasOwnProperty("coins")) {
+                this.my_coin = coins['coins'];
+            };
+            if(coins.hasOwnProperty("today_coins")){
+                this.my_coin_today = coins['today_coins'];
+            }
+        },
         //提现
         withdraw() {
             window.mgc.showWithdraw();

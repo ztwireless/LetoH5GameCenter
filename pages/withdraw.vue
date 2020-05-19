@@ -88,10 +88,11 @@
                                 <textarea v-bind:rows="rows_textarea" style="width: 100%;background-color: #FFF9E9;border:none;padding-left: 0.2rem" disabled>{{points.explain}}</textarea>
                             </div>
                         </div>
+                        <div v-bind:style="{height:this.tc_div_h+'px'}"></div>
                     </div>
                 </template>
                     <template>
-                        <div style="position: fixed;bottom: 0.4rem; width: 100%" @click="doDraw()">
+                        <div style="margin-top:0.3rem;width: 100%" @click="doDraw()">
                             <div style="margin:0 auto;width:4.05rem;height:0.81rem;background-color: #3D9AF0;font-size: 0.28rem;font-weight:600;color: #FFFFFF;border-radius:0.41rem;text-align: center;line-height: 0.81rem">立即提现</div>
                         </div>
                     </template>
@@ -150,6 +151,7 @@ export default {
             is_login:false,
             check_point_id:0,
             check_point_price:0,
+            tc_div_h:0,
 
             games: [],
             favoriteGameList: [],
@@ -239,6 +241,7 @@ export default {
         this.checkWithDrawInfo()
         this.getAliInfo()
        // this.listenScroll()
+        this.tcdiv()
 
 
 		// update recent game list
@@ -297,6 +300,20 @@ export default {
                     self.loading = true;
                 }
             });
+        },
+
+        tcdiv(){
+            let height=document.body.offsetHeight;//获取当前页面总高度
+            let exit_hight = 740;
+            if(height <= exit_hight){
+                this.tc_div_h = 0;
+            }else{
+                this.tc_div_h = height-exit_hight;
+            }
+            alert(this.tc_div_h);
+            //alert(height-148);
+            //var top=height+$(".topdiv").height();//顶部页面的高度（注意height计算的高度没有把顶部嵌套的页面高度加进去）
+             //document.getElementById('tcdiv').css("top",height-148);//给底部页面添加绝对路径距离上面高度
         },
 
 		loadRemote() {
@@ -482,8 +499,10 @@ export default {
 		    let point_name_len =  document.getElementsByName("point_name").length;
             for(var i=0;i<point_name_len;i++){
                 document.getElementsByName("point_name")[i].style.backgroundColor='';
+                document.getElementsByName("point_name")[i].style.color='#000000';
             }
 		    document.getElementById(point_id).style.backgroundColor = '#3D9AF0';
+            document.getElementById(point_id).style.color = '#ffffff';
         },
         withdrawLog() {
             this.$router.push({path: './withdrawlog', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现记录',is_day:0}});
@@ -1576,7 +1595,7 @@ export default {
 
 .dg{
     width:0.41rem;
-    height:0.81rem;
+    height:0.79rem;
     background: url('~assets/img/hybrid/common/duigou.png') no-repeat;
     background-size: 100%;
     background-position-y: bottom;
