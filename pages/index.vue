@@ -716,6 +716,12 @@ export default {
 			this.recentGameList = newRecent
 		}
     },
+    created: function() {
+		// mgc report
+		if(window.mgc.reportH5GameCenterEnter) {
+			window.mgc.reportH5GameCenterEnter()
+		}
+    },
 
     methods: {
 
