@@ -59,7 +59,7 @@
             }
         },
         mounted() {
-			mgc.setChannelId('1001239')
+			mgc.setChannelId('1001290')
 		}
 	}
 </script>
