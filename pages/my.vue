@@ -80,7 +80,7 @@
                                 <div class="showSz" ></div>
                             </div>
 
-                            <div class="row-game title">
+                            <div class="row-game title" v-if = "1 == 2">
                                 <div class="daojishi"></div>
                                 <p class="add-flex-sz" >显示游戏内计时器</p>
                                 <div class="arrow-right"></div>

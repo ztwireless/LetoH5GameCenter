@@ -27,9 +27,19 @@
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
-                    <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">设置</div>
+                    <div v-if="showWithdraw" class="withdraw"></div>
+
+
+                    <div v-if="showWithdraw" class="withdraw_tx_coin" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw_tx_coin_content" @click="withdraw">
+                        <div style="margin-top: 0.13rem"  @click="withdraw">
+                            <div class="add-gold-wd">{{my_coin}}</div>
+                            <div class="add-gold-rmb">
+                                {{my_coin_rmb}}元
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tx_pic"  @click="withdraw"></div>
                 </header>
 
                 <div class="content">
@@ -85,7 +95,7 @@
                                     <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                        <div class="add-gold"  v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0)">查看全部</div>
                                     <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
@@ -468,7 +478,7 @@
                                     <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
                                     <p style="color: #FFFFFF">{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" style="background-color: rgba(0,0,0,0.2);color:#FFFFFF;font-size: 0.26rem;" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1)" style="color: #FFFFFF">查看全部</div>
                                     <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1)"></div>
@@ -641,6 +651,8 @@ export default {
             },
             modalShow:4,
             adShow:true,
+            my_coin:0,
+            my_coin_rmb:0,
         }
     },
 
@@ -736,6 +748,10 @@ export default {
 		if(newLen != oldLen) {
 			this.recentGameList = newRecent
 		}
+
+		//用户信息
+        let mgcUserInfo = mgc.getMgcUserInfo();
+		console.log(JSON.stringify(mgcUserInfo));
     },
 
     methods: {
@@ -1165,13 +1181,13 @@ export default {
         }
 
         .withdraw {
-            width: 0.54rem;
-            height: 0.54rem;
-            background: url("~assets/img/hybrid/common/shezhi.png") no-repeat;
+            width: 0.88rem;
+            height: 0.97rem;
+            background: url("~assets/img/hybrid/common/zajindan.png") no-repeat;
             background-size: 100%;
             position: absolute;
-            top: 0.26rem;
-            right: 0.85rem;
+            top: 0.1rem;
+            right: 0.22rem;
         }
 
         .withdraw_pic {
@@ -1244,7 +1260,7 @@ export default {
 
 
     .content {
-        padding: 0 0 0 0;
+        padding: 1rem 0 0 0;
     }
 
     .list-banner {
@@ -1577,7 +1593,7 @@ export default {
                 display: flex;
                 align-items: center;
                 padding-left: 0.18rem;
-                background: url('~assets/img/hybrid/common/huangdi.png') no-repeat;
+                background: url('~assets/img/hybrid/game/mask-img.png') no-repeat;
                 background-size: 100%;
             }
 
@@ -1946,5 +1962,92 @@ export default {
 
 .add-win-class span {
     font-size: 16px;
+}
+
+.withdraw_tx_coin {
+    width:1.01rem;
+    height:1.01rem;
+    border-radius:0.51rem;
+    border:0.03rem solid rgba(245,245,245,1);
+    position: absolute;
+    margin-left: 0.32rem;
+    background: url("~assets/img/hybrid/common/touxiang.png") no-repeat center top;
+    background-size: 100%;
+}
+.withdraw_tx_coin_content {
+    height:1.01rem;
+    position: absolute;
+    margin-left: 1.33rem;
+    font-size: 0.3rem;
+    font-weight: normal;
+    line-height: 0.54rem;
+}
+
+.add-gold-wd {
+    font-size: 0.2rem;
+    color: #FF9500;
+    border-radius: 0.16rem;
+    position: relative;
+    line-height: 0.32rem;
+    padding-right: 0.24rem;
+    padding-left: 0.4rem;
+    padding-top: 0.02rem;
+    font-weight: bold;
+    background: #FFF5E0;
+    width:1.3rem;
+    height:0.33rem;
+
+    &::before {
+        position: absolute;
+        content: '';
+        width: 0.33rem;
+        height: 0.33rem;
+        background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
+        background-size: 100%;
+        left: 0;
+    }
+}
+
+.add-gold-rmb {
+    font-size: 0.2rem;
+    color: #F35656;
+    border-radius: 0.16rem;
+    position: relative;
+    line-height: 0.32rem;
+    padding-right: 0.24rem;
+    padding-left: 0.4rem;
+    padding-top: 0.02rem;
+    font-weight: bold;
+    background: #FFEDED;
+    width:1.3rem;
+    height:0.33rem;
+    margin-top: 0.05rem;
+
+    &::before {
+        position: absolute;
+        content: '';
+        width: 0.33rem;
+        height: 0.33rem;
+        background: url('~assets/img/hybrid/common/fenbi.png') no-repeat;
+        background-size: 100%;
+        left: 0;
+    }
+}
+
+
+.tx_pic {
+    float: right;
+    margin-left: 2.8rem;
+    background: url("~assets/img/hybrid/common/tixian.png") no-repeat center top;
+    background-size: 100%;
+    width:0.79rem;
+    height:0.38rem;
+    border-radius:0.33rem;
+    position: absolute;
+    font-size: 0.3rem;
+    font-weight: normal;
+    line-height: 0.54rem;
+    margin-top: 0.5rem;
+
 }
 </style>

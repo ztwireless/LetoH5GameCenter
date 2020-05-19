@@ -25,7 +25,7 @@
                             <div class="row-game title">
                                 <p style="margin-left: 0rem;">金币余额：{{my_coin}}</p>
                                 <div class="add-flex">
-                                    <div class="add-gold">{约{{my_coin_rmb}}元}</div>
+                                    <div class="add-gold-wd">{约{{my_coin_rmb}}元}</div>
                                 </div>
                             </div>
                         </div>
@@ -91,7 +91,7 @@
                     </div>
                 </template>
                     <template>
-                        <div style="margin-top: 0.24rem" @click="doDraw()">
+                        <div style="position: fixed;bottom: 0.4rem; width: 100%" @click="doDraw()">
                             <div style="margin:0 auto;width:4.05rem;height:0.81rem;background-color: #3D9AF0;font-size: 0.28rem;font-weight:600;color: #FFFFFF;border-radius:0.41rem;text-align: center;line-height: 0.81rem">立即提现</div>
                         </div>
                     </template>
@@ -992,6 +992,30 @@ export default {
                 width: 0.32rem;
                 height: 0.32rem;
                 background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                background-size: 100%;
+                left: 0;
+            }
+        }
+
+
+        .add-gold-wd {
+            font-size: 0.2rem;
+            color: #666666;
+            border-radius: 0.16rem;
+            position: relative;
+            line-height: 0.32rem;
+            padding-right: 0.24rem;
+            padding-left: 0.4rem;
+            display: inline-block;
+            padding-top: 0.02rem;
+            font-weight: bold;
+
+            &::before {
+                position: absolute;
+                content: '';
+                width: 0.32rem;
+                height: 0.32rem;
+                background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
                 background-size: 100%;
                 left: 0;
             }
