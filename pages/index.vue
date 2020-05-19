@@ -569,6 +569,7 @@ import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
+import Cookie  from '~/plugins/cookie';
 
 export default {
     name: 'games',
@@ -724,9 +725,15 @@ export default {
 
 
         //今日推荐只在第一次进入显示
-        if(mgc.showAd===undefined){
+        //if(mgc.showAd===undefined){
+        //    this.showAd=true
+        //    mgc.showAd=true
+        //}
+        if(sessionStorage.getItem('showAd')===null){
             this.showAd=true
-            mgc.showAd=true
+            sessionStorage.setItem('showAd',true)
+        }else{
+            console.log( '显示过今日推荐了，下次再显示' )
         }
 
         //获取金蛋相关的数据

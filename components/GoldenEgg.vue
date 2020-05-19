@@ -20,23 +20,26 @@
 
                             <!--砸蛋的gif-->
                             <img v-if="this.showSmashEgg && this.showBigEgg==true" class=" egg" src="~assets/img/hybrid/egg/1/smash-egg2.gif">
-                            <div v-if="this.showBtn"  class="jifen" >{{add_coins}}积分</div>
+                            <div v-if="this.showBtn"  class="jifen" >{{add_coins}}<span>积分</span></div>
+
+                            <!--立即领取-->
                             <img class="img-btn"  @click="receive" v-if="this.showBtn" src="~assets/img/hybrid/egg/1/btn.png" >
 
                             <img class="egg-bg" src="~assets/img/hybrid/egg/1/bg.png">
-
                         </div>
-                        <div class="egg-text">砸金蛋领红包</div>
-                        <div class="egg-text close" @click="close">放弃</div>
+
+                        <div class="btn-group">
+                            <div class="egg-text">砸金蛋领红包</div>
+                            <div class="egg-text close" @click="close">放弃</div>
+                        </div>
+
                         <div class="ad" v-show="!this.showFeedAdBg">
                             <div class="feedAd" ref="feedAd">
                             </div>
                         </div>
 
-                        <div class="ad" v-show="this.showFeedAdBg"
-                             style="display: block;width:6.59rem;background-color:#12B1EC;height: auto">
-                            <img style="display: block;margin:auto;width: auto;height: 3rem;" class="ad"
-                                 src="~assets/img/hybrid/common/tjzm.png" alt="">
+                        <div class="ad" v-show="this.showFeedAdBg"  style="display: block;width:6.59rem;background-color:#12B1EC;height: auto">
+                            <img style="display: block;margin:auto;width: auto;height: 3rem;" class="ad"   src="~assets/img/hybrid/common/tjzm.png" alt="">
                         </div>
 
                         <slot/>
@@ -91,16 +94,16 @@
                 this.$emit('close')
                 this.showBigEgg=false
                 this.showAlert=false
-            },
+             },
 
             //显示金蛋
             showEgg(){
                 console.log('显示砸金蛋的活动')
 
-                if(this.available_num<=0){
-                    this.$toast('今天的次数用完啦')
-                    return
-                }
+                // if(this.available_num<=0){
+                //     this.$toast('今天的次数用完啦')
+                //     return
+                // }
 
                 /*先显示蛋跳出来的动画*/
                 this.showEggFadeIn=true
@@ -114,7 +117,7 @@
 
             //点击金蛋
             smash() {
-                console.log('开始砸蛋');
+                console.log('开始砸蛋')
                 this.showSmashEgg=true
                 //显示领取按钮
                 setTimeout(()=>{
@@ -126,7 +129,7 @@
             //领取金币红包
             receive(){
                 console.log('点击了领取')
-                this.$emit('receive');
+                this.$emit('receive')
                 this.redisplayEgg()     //重新显示
             },
 
@@ -173,6 +176,7 @@
         position: absolute;
         top:1rem;
         width: 100vw;
+        transform:scale(0.8,.8);
     }
 
     .alert {
@@ -192,7 +196,7 @@
 
     .small-egg{
         position: fixed;
-        bottom: 10vw;
+        bottom: 24vw;
         right: 10vw;
         z-index: 2;
         img{
@@ -214,14 +218,22 @@
         position: absolute;
         z-index: 1;
         width: 100%;
+        transform:scale(0.8,.8);
     }
 
     .main {
         position: relative;
         display: block;
         width: 100%;
+        .btn-group{
+            display: block;
+            min-height: 2rem;
+            position: relative;
+            padding-top: .3rem;
+        }
 
         .egg-text {
+            position: absolute;
             font-size: 0.39rem;
             font-weight: Medium;
             font-family: PingFangSC-Medium, PingFang SC;
@@ -231,14 +243,17 @@
             color: white;
             width: 3rem;
             text-align: center;
+            left: 0;
+            right: 0;
             margin:0.1rem auto;
-
+            z-index: 3;
         }
 
         .close{
             font-size:0.29rem;
             color:rgba(255,255,255,1);
             opacity: 60%;
+            top: 0.8rem;
         }
 
         .cover {
@@ -273,7 +288,8 @@
 
             .egg {
                 display: block;
-                height: 5rem;
+                /*height: 5rem;*/
+                width: 100%;
                 box-sizing: content-box;
                 position: absolute;
                 z-index: 2;
@@ -296,6 +312,9 @@
                 right: 0;
                 z-index: 2;
                 margin: 0 auto;
+                span{
+                    font-size: 0.39rem;
+                }
             }
 
             .img-btn{

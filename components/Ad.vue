@@ -119,6 +119,8 @@ export default {
     width: 100%;
     height: 100%;
     z-index: 1100;
+    display: flex;
+    align-items: center;
 }
 
 .feedAd{
@@ -140,6 +142,7 @@ export default {
     position: absolute;
     z-index: 1;
     width: 100%;
+    transform:scale(0.8,.8);
 }
 
 .main {
@@ -153,7 +156,7 @@ export default {
         text-align: center;
         width:4.38rem;
         margin: 0 auto;
-        margin-top: 1rem;
+        /*margin-top: 1rem;*/
 
         .cover-img{
             display: inline-block;
