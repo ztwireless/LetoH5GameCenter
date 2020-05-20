@@ -38,7 +38,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tx_pic"  @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="tx_pic"  @click="withdraw"></div>
                 </header>
 
                 <div class="content">
