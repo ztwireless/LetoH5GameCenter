@@ -133,7 +133,12 @@
             //点击金蛋
             smash() {
                 console.log('开始砸蛋')
+                if(this.available_num<=0){
+                    this.$toast('今天的次数用完啦')
+                    return
+                }
                 this.showSmashEgg=true
+                this.showClose=false
                 //显示领取按钮
                 setTimeout(()=>{
                     this.showBtn=true

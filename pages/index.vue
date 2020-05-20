@@ -16,7 +16,7 @@
             <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
             <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
             <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
-            <GoldenEgg  v-if="this.showGoldenEgg"  @smash="smash"  @receive="receive" :add_coins="this.add_coins" :available_num="this.available_num"  :isLogin="true" ></GoldenEgg>
+            <GoldenEgg  ref="egg" v-if="this.showGoldenEgg"  @smash="smash"  @receive="receive" :add_coins="this.add_coins" :available_num="this.available_num"  :isLogin="true" ></GoldenEgg>
 
 
 
@@ -26,7 +26,7 @@
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
-                    <div v-if="showWithdraw" class="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw" @click="zjd"></div>
 
 
                     <div v-if="showWithdraw" class="withdraw_tx_coin" @click="withdraw"></div>
@@ -811,6 +811,15 @@ export default {
             let  res=await this.getGoldeneggsconf()
             this.available_num=res.data.data.available_num
             console.log('还可以砸',res.data.data)
+            this.setAddCoin(this.add_coins)
+        },
+
+        setAddCoin(coins){
+            this.my_coin =  parseInt(this.my_coin) + parseInt(coins);
+            let conf = localStorage.getItem('app_conf');
+            if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+                this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+            }
         },
 
         //点击了领取
@@ -987,6 +996,9 @@ export default {
 		    //alert("最近玩");
 		    //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'最近使用',is_day:0}});
+        },
+        zjd(){
+            this.$refs.egg.showEgg()
         },
         //更多游戏
         moreGames(id,title,lid){

@@ -215,7 +215,7 @@ export default {
         // ensure channel id is set
 
 
-        this.setMemCoin()
+        this.loadRemote()
        // this.listenScroll()
 
 		// update recent game list
