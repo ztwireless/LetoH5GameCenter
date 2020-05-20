@@ -6,7 +6,7 @@
         </div>
         <!--显示中间的弹窗-->
         <div  v-show="this.showAlert"  class="alert" @touchmove.prevent>
-            <img class="fade-egg" v-if="this.showEggFadeIn" src="~assets/img/hybrid/egg/1/22.gif" >
+            <img class="fade-egg" v-if="this.showEggFadeIn && this.showGif1 " src="~assets/img/hybrid/egg/1/22.gif" >
             <div  v-show="this.showBigEgg==true">
                 <div  class="mask" @touchmove.prevent></div>
                 <div  class="body">
@@ -76,7 +76,7 @@
         data() {
             return {
                 showFeedAdBg: true,
-
+                showGif1:true,
                 showAlert:false,
                 showEggFadeIn:false,    //显示渐入的蛋
                 showSmashEgg:false,     //显示砸蛋的gif
@@ -100,19 +100,36 @@
             showEgg(){
                 console.log('显示砸金蛋的活动')
 
-                // if(this.available_num<=0){
-                //     this.$toast('今天的次数用完啦')
-                //     return
-                // }
+                if(this.available_num<=0){
+                    this.$toast('今天的次数用完啦')
+                    return
+                }
+                if( this.showGif1==true ){
+                    /*先显示蛋跳出来的动画*/
+                    this.showAlert=true
+                    this.showEggFadeIn=true
+                    setTimeout(()=>{
+                        try{
+                            this.ad.show()      //显示信息流广告
+                        }catch (e) {
+                        }
 
-                /*先显示蛋跳出来的动画*/
-                this.showEggFadeIn=true
-                this.showAlert=true
-                setTimeout(()=>{
-                    this.ad.show()      //显示信息流广告
+                        this.showGif1=false     //git1不再显示了
+                        this.showBigEgg=true
+                        this.showEggFadeIn=false
+                    },1500)
+                }else {
+                    this.showAlert=true
+                    try{
+                        this.ad.show()      //显示信息流广告
+                    }catch (e) {
+
+                    }
+                    this.showGif1=false     //git1不再显示了
                     this.showBigEgg=true
                     this.showEggFadeIn=false
-                },1500)
+                }
+
             },
 
             //点击金蛋
@@ -251,8 +268,8 @@
 
         .close{
             font-size:0.29rem;
-            color:rgba(255,255,255,1);
-            opacity: 60%;
+            color:rgba(255,255,255,0.6);
+            /*opacity: 60%;*/
             top: 0.8rem;
         }
 

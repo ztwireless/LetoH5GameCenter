@@ -310,7 +310,7 @@ export default {
             }else{
                 this.tc_div_h = height-exit_hight;
             }
-            alert(this.tc_div_h);
+            //alert(this.tc_div_h);
             //alert(height-148);
             //var top=height+$(".topdiv").height();//顶部页面的高度（注意height计算的高度没有把顶部嵌套的页面高度加进去）
              //document.getElementById('tcdiv').css("top",height-148);//给底部页面添加绝对路径距离上面高度

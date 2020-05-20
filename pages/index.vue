@@ -896,7 +896,7 @@ export default {
             let args = {
                 dt: 0,
                 open_token: '0023a78e02fb489528a99b7f9cb39ec',
-                channel_id: this.$route.query.channel_id,
+                channel_id: mgc.getChannelId(),
                 client_id: 334,
                 packagename: appInfo.packageName,
                 leto_version: sysInfo.LetoVersion,
