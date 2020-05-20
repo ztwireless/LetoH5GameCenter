@@ -90,8 +90,18 @@
         },
         methods: {
             close() {
+                console.log('关闭砸蛋活动')
                 this.$emit('close')
+                // this.showBigEgg=false
                 this.showAlert=false
+                // this.showBtn=false
+                // this.showBigEgg=false
+
+                //判断判断下次是否显示蛋滚出来的动画，如果蛋还没砸的时候关闭的，就显示
+                if(!this.showSmashEgg){
+                    this.showGif1=true
+                    this.showBigEgg=false
+                }
             },
 
             //显示金蛋
