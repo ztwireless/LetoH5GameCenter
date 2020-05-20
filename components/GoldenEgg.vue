@@ -90,11 +90,9 @@
         },
         methods: {
             close() {
-                console.log('关闭砸蛋活动')
                 this.$emit('close')
-                this.showBigEgg=false
                 this.showAlert=false
-             },
+            },
 
             //显示金蛋
             showEgg(){

@@ -291,7 +291,7 @@ export default {
                     if(data.hasOwnProperty("today_coins")){
                         this.my_coin_today = data['today_coins'];
                     }
-                    localStorage.setItem('mem_coins',mgcResp.data.data);
+                    localStorage.setItem('h5_mem_coins',mgcResp.data.data);
                 }
 			})
 		},
@@ -304,7 +304,7 @@ export default {
             history.back();
         },
         setMemCoin(){
-            let coins = localStorage.getItem('mem_coins');
+            let coins = localStorage.getItem('h5_mem_coins');
             if(coins.hasOwnProperty("coins")) {
                 this.my_coin = coins['coins'];
             };

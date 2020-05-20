@@ -934,7 +934,7 @@ export default {
                             this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
                         }
                     }
-                    localStorage.setItem('mem_coins',mgcResp.data.data);
+                    localStorage.setItem('h5_mem_coins',mgcResp.data.data);
                 }
             })
         },

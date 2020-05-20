@@ -237,11 +237,11 @@ export default {
         }
 
         this.loadRemote()
-        this.setMemCoin()
         this.checkWithDrawInfo()
         this.getAliInfo()
        // this.listenScroll()
         this.tcdiv()
+        this.setMemCoin()
 
 
 		// update recent game list
@@ -384,7 +384,7 @@ export default {
         },
         checkWithDrawInfo() {
             this.checkWithDrawInfoData().then(mgcResp => {
-                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
+                if(mgcResp && mgcResp.data && mgcResp.data.code == 200) {
                     this.is_login = true;//只考虑用户是否登录
 
                 }else{
@@ -508,19 +508,14 @@ export default {
             this.$router.push({path: './withdrawlog', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现记录',is_day:0}});
         },
         doDraw(){
-		    if(0 == this.check_point_id){
-		        alert("请选择提现金额");
-		        return;
-            }
-		    if(this.check_point_price > this.my_coin_rmb){
-		        alert("您的金币余额不足");
-                return;
-            }
-		    let mobile = mgc.getMgcUserId();
-		    let is_phone = this.isPoneAvailable(mobile);
-		    if(!is_phone || false == this.is_login){
+            let mobile = mgc.getMgcUserId();
+            console.log("doDraw mobile = "+ mobile)
+            let is_phone = this.isPoneAvailable(mobile);
+            console.log("doDraw is_login = "+ this.is_login)
+            if(!is_phone || false == this.is_login){
                 window.mgc.showMgcLogin({
                     success: res => {
+                        this.is_login = true;
                         console.log(`user login success`)
                     },
                     fail: res => {
@@ -529,8 +524,18 @@ export default {
                     }
                 })
             }
-		    localStorage.setItem('draw_point_id',this.check_point_id);
-            this.$router.push({path: './ali', query: {backable:true,channel_id:mgc.getChannelId(),title:'绑定支付宝',is_day:0}});
+            if(this.is_login){
+                if(0 == this.check_point_id){
+                    alert("请选择提现金额");
+                    return;
+                }
+                if(this.check_point_price > this.my_coin_rmb){
+                    alert("您的金币余额不足");
+                    return;
+                }
+                localStorage.setItem('draw_point_id',this.check_point_id);
+                this.$router.push({path: './ali', query: {backable:true,channel_id:mgc.getChannelId(),title:'绑定支付宝',is_day:0}});
+            }
         },
         isPoneAvailable(tel) {
             var reg =/^0?1[3|4|5|6|7|8|9][0-9]\d{8}$/;
@@ -552,7 +557,7 @@ export default {
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
         setMemCoin(){
-            let coins = localStorage.getItem('mem_coins');
+            let coins = localStorage.getItem('h5_mem_coins');
             if(coins.hasOwnProperty("coins")) {
                 this.my_coin = coins['coins'];
             };
