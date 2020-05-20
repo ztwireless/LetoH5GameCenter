@@ -62,7 +62,7 @@ export default {
         openGame(){
             console.log('openGame');
             this.$emit('openGame');
-            window.location.href='http://download.mgc-games.com/games/games/1000054/__start__.html'
+			mgc.navigateToMiniProgram({ appId: '1000054' })
         },
 
         //创建信息流广告
