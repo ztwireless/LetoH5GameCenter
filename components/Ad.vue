@@ -1,5 +1,5 @@
 <template>
-    <div class="alert" @touchmove.prevent>
+    <div class="alert" id = "alert"  @touchmove.prevent>
         <div class="mask" @touchmove.prevent></div>
         <div class="body">
             <div class="main">
@@ -42,7 +42,7 @@ export default {
         },
     },
     mounted(){
-
+        this.gameDivn()
         //初始化信息流
         this.createFeedAd()
 
@@ -53,6 +53,12 @@ export default {
     },
 
     methods: {
+        gameDivn(){
+            let mini = this.$route.query.mini || false;
+            if(mini){
+                document.getElementById('alert').style.top = '1rem';
+            }
+        },
         ok() {
             this.$emit('ok');
         },

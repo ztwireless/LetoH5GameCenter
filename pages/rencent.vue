@@ -1,14 +1,14 @@
 <template>
-    <div class="game" ref="root">
+    <div class="game" ref="root" id = "gameDiv">
         <!-- 小游戏头部 -->
-        <header class="header">
+        <header class="header" style="display: none">
             <div v-if="backable" class="back" @click="back"></div>
             <h2>闲聊小游戏</h2>
         </header>
 
         <template>
             <div class="new-51">
-                <header class="header">
+                <header class="header" id = "headerDiv">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>{{title}}</h2>
                 </header>
@@ -80,6 +80,7 @@ export default {
             backable: false, //头部是否显示后退按钮
             showWithdraw: false,
             lastClickTime: 0,
+            mini:localStorage.getItem('mini') || false,
 
             title: '',
             page: 1,
@@ -164,6 +165,7 @@ export default {
 
         // ensure channel id is set
         mgc.setChannelId(this.$route.query.channel_id)
+        this.gameDivn()
 
         //this.loadRemote()
        // this.listenScroll()
@@ -179,6 +181,12 @@ export default {
 
 
     methods: {
+        gameDivn(){
+            if(this.mini){
+                document.getElementById('gameDiv').style.padding="1.3rem 0 0 0";
+                document.getElementById('headerDiv').style.top="1.3rem";
+            }
+        },
 		getMGCGameCenterData() {
 			// get info from native
 			let appInfo = mgc.getAppInfoSync()

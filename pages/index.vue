@@ -1,5 +1,5 @@
 <template>
-    <div class="game" ref="root">
+    <div class="game" ref="root"  id = "gameDiv">
         <!-- 小游戏头部 -->
         <header class="header" style="display: none">
             <div v-if="backable" class="back" @click="back"></div>
@@ -18,12 +18,18 @@
 
             <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
             <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
-
-
-
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header" v-if = "showRencent">
+                <header class="header_mini" v-if = "mini" >
+                    <div v-if="backable" class="back" @click="back"></div>
+                    <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
+                    <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
+                    <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">mini</div>
+                </header>
+
+                <header class="header" v-if = "!mini && showRencent">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -32,7 +38,7 @@
                     <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">设置</div>
                 </header>
 
-                <div class="content">
+                <div class="content" >
 
                     <!-- banner -->
                     <div class="banner" v-if="banners.gameList && banners.gameList.length > 0">
@@ -593,9 +599,10 @@ export default {
        let vm = this;
         return {
             backable: false, //头部是否显示后退按钮
-            showWithdraw: true,
+            showWithdraw: false,
             showRencent: false,
             lastClickTime: 0,
+            mini:this.$route.query.mini || false,
 
             goldShow: false, //是否显示金币样式
             add_desktop :localStorage.getItem('add_desktop') || 1,
@@ -706,6 +713,7 @@ export default {
         this.setSplashShow();
         setTimeout(this.getElevatorList, 1000);
 		this.isWeiXin();
+        this.gameDivn();
 
 		// update recent game list
 		let newRecent = mgc.getRecentGameList()
@@ -729,6 +737,12 @@ export default {
             console.log('sadsad')
         },
 
+        gameDivn(){
+            localStorage.setItem('mini',this.mini)
+            if(this.mini){
+                document.getElementById('gameDiv').style.padding="1.88rem 0 0 0";
+            }
+        },
 
 
         //关闭广告
@@ -1193,6 +1207,95 @@ export default {
             background-size: 100%;
             position: absolute;
             top: 0.05rem;
+            right: 1.13rem;
+            font-size: 0.18rem;
+            font-weight: normal;
+            text-align: center;
+            color: #ffffff;
+            padding-top: 0.02rem;
+        }
+
+        h2 {
+            font-size: 0.36rem;
+            font-weight:normal;
+            color: #17181A;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 0.88rem;
+            line-height: 0.88rem;
+        }
+    }
+    .header_mini {
+        position: fixed;
+        top: 0rem;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        height: 1.88rem;
+        background: #fff;
+
+        .back {
+            width: 0.36rem;
+            height: 0.36rem;
+            background: url("~assets/img/hybrid/common/back-black.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 0.26rem;
+            left: 0.22rem;
+        }
+
+        .withdraw {
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybrid/common/shezhi.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 1.26rem;
+            right: 0.85rem;
+        }
+
+        .withdraw_pic {
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybrid/common/shoucang.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 1.26rem;
+            right: 1.45rem;
+        }
+
+        .withdraw_tx {
+            width: 0.66rem;
+            height: 0.54rem;
+            position: absolute;
+            top: 1.26rem;
+            right: 0.22rem;
+            font-size: 0.3rem;
+            font-weight: normal;
+            line-height: 0.54rem;
+            text-align: center;
+        }
+
+        .withdraw_play {
+            width: 1.2rem;
+            height: 0.54rem;
+            position: absolute;
+            top: 1.26rem;
+            right: 0.22rem;
+            font-size: 0.3rem;
+            font-weight: normal;
+            line-height: 0.54rem;
+            text-align: center;
+        }
+
+        .withdraw_red {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: url("~assets/img/hybrid/common/leto_mgc_withdraw_bubble_bg2.png") no-repeat;
+            background-size: 100%;
+            position: absolute;
+            top: 1.05rem;
             right: 1.13rem;
             font-size: 0.18rem;
             font-weight: normal;

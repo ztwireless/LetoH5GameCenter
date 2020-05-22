@@ -35,5 +35,6 @@ export default {
 
     // min-height: 100%;
     height: 100%;
+    top: 1rem;
 }
 </style>
