@@ -7,13 +7,14 @@
                     <img @click="openGame" class="cover-img" :src="img_url"  >
                     <img @click="close" class="close"  src="~assets/img/hybrid/ad/close.png"  >
                 </div>
-                <div class="ad">
-<!--                    <div class="ad-bg">-->
 
-<!--                    </div>-->
-                    <div class="" id="today_recommend_feed_container"  ref="feedAd" style="background-color:12B1EC ">
-<!--                        <img src="~assets/img/hybrid/common/tjzm.png" alt="">-->
+                <div class="ad"  v-show="!this.showFeedAdBg" >
+                    <div class="feedAd"  ref="feedAd"  >
                     </div>
+                </div>
+
+                <div class="ad"  v-show="this.showFeedAdBg"  style="display: block;width:6.59rem;background-color:#12B1EC;height: auto">
+                    <img  style="display: block;margin:auto;width: auto;height: 3rem;"  class="ad"   src="~assets/img/hybrid/common/tjzm.png" alt="">
                 </div>
                 <slot />
             </div>
@@ -41,6 +42,12 @@ export default {
             default: '安装'
         },
     },
+    data(){
+        return{
+            showFeedAdBg:true,
+        }
+    },
+
     mounted(){
         this.gameDivn()
         //初始化信息流
@@ -50,6 +57,7 @@ export default {
         if(window.mgc.reportH5GameCenterTodayRecommend) {
         	window.mgc.reportH5GameCenterTodayRecommend()
         }
+
     },
 
     methods: {
@@ -68,19 +76,29 @@ export default {
         openGame(){
             console.log('openGame');
             this.$emit('openGame');
-			mgc.navigateToMiniProgram({ appId: '1000054' })
+
+            let game_url='http://download.mgc-games.com/games/games/1000054/__start__.html';
+
+            mgc.saveRecentGame(game_url)
+            mgc.navigateToMiniProgram({ appId:'1000054' })
+
         },
 
         //创建信息流广告
         createFeedAd(){
              var dom=this.$refs.feedAd
+            var that=this
+
             var ad = mgc.createFeedAd({
                 container:dom
             })
 
             ad.onLoad(()=> {
-               console.log('信息流加载成功')
+
+                console.log('信息流加载成功')
+                that.showFeedAdBg=false
                 ad.show()
+
 
                 // report
                 if(window.mgc.reportH5GameCenterTodayRecommendFeedAdExpose) {
@@ -106,7 +124,16 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 500;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+}
+
+.feedAd{
+    display: block;
+    height: 100%;
+    background-image:image("~assets/img/hybrid/common/tjzm.png");
+
 }
 
 .mask {
@@ -122,6 +149,7 @@ export default {
     position: absolute;
     z-index: 1;
     width: 100%;
+    transform:scale(0.8,.8);
 }
 
 .main {
@@ -135,7 +163,7 @@ export default {
         text-align: center;
         width:4.38rem;
         margin: 0 auto;
-        margin-top: 1rem;
+        /*margin-top: 1rem;*/
 
         .cover-img{
             display: inline-block;
@@ -163,6 +191,7 @@ export default {
         margin: auto;
         box-sizing: content-box;
 
+
         .ad-bg{
             width:7.94rem;
             height: 7.94rem;
@@ -178,6 +207,7 @@ export default {
                 to { transform:rotate(360deg);}
             }
         }
+
 
         .ad-content{
              display: flex;

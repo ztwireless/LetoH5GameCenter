@@ -8,34 +8,54 @@
 
         <template>
 
-              <!--
-             <button style="font-size: 0.3rem" @click="modalShow=1" >全国公祭日弹窗</button>
+             <!-- button style="font-size: 0.3rem" @click="modalShow=1" >全国公祭日弹窗</button>
             <button  style="font-size: 0.3rem" @click="modalShow=2"  >实名认证提示1</button>
             <button  style="font-size: 0.3rem" @click="modalShow=3" >实名认证提示2</button>
-            <button style="font-size: 0.3rem" @click="modalShow=4" >广告</button>
-            -->
-             <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
+            <button style="font-size: 0.3rem" @click="showAd=true" >广告</button -->
 
+            <Modal v-if="this.modalShow==1"  @close="modalShow=0"  title="根据国务院公告，2020年4月4日为全国哀悼日"  content="梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。"  btn="退出游戏中心" ></Modal>
             <LoginModal  v-if="this.modalShow==2"   @close="modalShow=0"  ></LoginModal>
             <LoginModal  v-if="this.modalShow==3"   @close="modalShow=0"  :isLogin="true" ></LoginModal>
+            <GoldenEgg  ref="egg" v-if="showWithdraw"  @smash="smash"  @receive="receive" :add_coins="this.add_coins" :available_num="this.available_num"  :isLogin="true" ></GoldenEgg>
+
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
                 <header class="header_mini" v-if = "mini" >
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
-                    <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">mini</div>
+                    <div v-if="showWithdraw" class="withdraw" @click="zjd"></div>
+
+
+                    <div v-if="showWithdraw" class="withdraw_tx_coin" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw_tx_coin_content" @click="withdraw">
+                        <div style="margin-top: 0.13rem"  @click="withdraw">
+                            <div class="add-gold-wd">{{my_coin}}</div>
+                            <div class="add-gold-rmb">
+                                {{my_coin_rmb}} 元
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="showWithdraw" class="tx_pic"  @click="withdraw"></div>
                 </header>
 
-                <header class="header" v-if = "!mini && showRencent">
+                <header class="header" v-if = "!mini">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
-                    <div v-if="showWithdraw" class="withdraw_red" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw" @click="withdraw"></div>
-                    <div v-if="showWithdraw" class="withdraw_tx" @click="withdraw">设置</div>
+                    <div v-if="showWithdraw" class="withdraw" @click="zjd"></div>
+
+
+                    <div v-if="showWithdraw" class="withdraw_tx_coin" @click="withdraw"></div>
+                    <div v-if="showWithdraw" class="withdraw_tx_coin_content" @click="withdraw">
+                        <div style="margin-top: 0.13rem"  @click="withdraw">
+                            <div class="add-gold-wd">{{my_coin}}</div>
+                            <div class="add-gold-rmb">
+                                {{my_coin_rmb}} 元
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="showWithdraw" class="tx_pic"  @click="withdraw"></div>
                 </header>
 
                 <div class="content" >
@@ -71,6 +91,8 @@
                                     <div class="recently"></div>
                                     <p class="add-flex">我的游戏</p>
                                     <div class="arrow-right"></div>
+                                    <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
+                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
                                 </div>
 
                                 <div class="mgc-games-row">
@@ -89,7 +111,7 @@
                                     <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
                                     <p>{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                        <div class="add-gold"  v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0)">查看全部</div>
                                     <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
@@ -472,7 +494,7 @@
                                     <div v-else   class="coin" v-bind:style="{backgroundImage:'url('+i.icon+')',backgroundRepeat:'no-repeat'}" ></div>
                                     <p style="color: #FFFFFF">{{i.name}}</p>
                                     <div class="add-flex">
-                                        <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
+                                        <div class="add-gold" style="background-color: rgba(0,0,0,0.2);color:#FFFFFF;font-size: 0.26rem;" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1)" style="color: #FFFFFF">查看全部</div>
                                     <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1)"></div>
@@ -557,7 +579,8 @@
             </transition>
             <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)"></div>
 
-            <Ad v-if="this.modalShow==4"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="modalShow=0"  @openGame="openGame"> </Ad>
+            <Ad v-if="this.showAd"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="showAd=false"  @openGame="openGame"> </Ad>
+
         </template>
     </div>
 </template>
@@ -569,13 +592,13 @@ import Share from '~/components/Share';
 import Ad from '~/components/Ad';
 import Modal from '~/components/Modal';
 import LoginModal from '~/components/LoginModal';
-
-
+import GoldenEgg from '~/components/GoldenEgg';
 
 import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
+import Cookie  from '~/plugins/cookie';
 
 export default {
     name: 'games',
@@ -586,7 +609,8 @@ export default {
         TimeBtn,
         Ad,
         Modal,
-        LoginModal
+        LoginModal,
+        GoldenEgg
     },
 
     head() {
@@ -644,8 +668,16 @@ export default {
                 title:'温馨提示',
                 content:'梦工厂小游戏将于该日:9:50-10:50暂时关闭游戏服务，4月4日全天关闭游戏内交流区，和所有玩家一起表达对抗击新冠肺炎疫情斗争牺牲烈士和逝世同胞的深切哀悼。愿天下再无灾难，人民英雄精神永垂不朽。'
             },
-            modalShow:4,
+            modalShow:5,
+            showAd:false,      //启动广告
+            showGoldenEgg:true,
             adShow:true,
+            my_coin:0,
+            my_coin_rmb:0,
+
+            available_num:0,
+            add_coins:0,
+
         }
     },
 
@@ -676,7 +708,6 @@ export default {
                     // return
 					return {
 						backable: query.backable,
-                        goldShow: query.gold,
                         newGames: dataList,
 						banners: banners
 					}
@@ -685,8 +716,9 @@ export default {
             })
     },
 
-    mounted() {
+    async mounted() {
         // 设置游戏根路径
+
 		mgc.setJSGameRootUrl('http://h5.jrutech.com/games/games')
         // save channel id from url, parameter name is c
         let channelId = null
@@ -708,6 +740,27 @@ export default {
 
         // load remote game list
         this.loadRemote()
+        this.loadRemoteCoin()
+
+        //渠道配置
+        mgc.getCoinConfig({
+            success: res => {
+                //asyncData  预加载
+                //alert(`got config: ${JSON.stringify(res)}`)
+                if(res.hasOwnProperty("is_coin")){
+                    if(0 == res['is_coin']){//普通游戏中心
+                        this.showRencent = true;
+                        this.showWithdraw = false;
+                        this.goldShow = false;
+                    }else{//金币游戏中心
+                        this.showRencent = false;
+                        this.showWithdraw = true;
+                        this.goldShow = true;
+                    }
+                }
+                localStorage.setItem("app_conf",res);
+            }
+        })
 
         //设置
         this.setSplashShow();
@@ -723,6 +776,30 @@ export default {
 		if(newLen != oldLen) {
 			this.recentGameList = newRecent
 		}
+
+
+		//用户信息
+        let mgcUserInfo = mgc.getMgcUserInfo();
+		console.log(JSON.stringify(mgcUserInfo));
+
+
+        //今日推荐只在第一次进入显示
+        //if(mgc.showAd===undefined){
+        //    this.showAd=true
+        //    mgc.showAd=true
+        //}
+        if(sessionStorage.getItem('showAd')===null){
+            this.showAd=true
+            sessionStorage.setItem('showAd',true)
+        }else{
+            console.log( '显示过今日推荐了，下次再显示' )
+        }
+
+        //获取金蛋相关的数据
+        let res= (await  this.getGoldeneggsconf()).data
+        //this.available_num=res.data.available_num       //剩余砸蛋次数
+        console.log('data',res)
+
     },
     created: function() {
 		// mgc report
@@ -734,16 +811,88 @@ export default {
     methods: {
 
         openGame(){
-            console.log('sadsad')
+
         },
 
-        gameDivn(){
-            localStorage.setItem('mini',this.mini)
-            if(this.mini){
-                document.getElementById('gameDiv').style.padding="1.88rem 0 0 0";
+        //获取金蛋的次数
+        getGoldeneggsconf(){
+            // let url = "http://miniapi.mgc-games.com/api/v7/benefits/getgoldeneggsconf";     //正式服
+            let url = "http://miniapi_dev.mgc-games.com/api/v7/benefits/getgoldeneggsconf"; //测试服
+            let data = {
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id:mgc.getChannelId(),
+                mobile:mgc.getMgcUserId(),
+                dev:true
+            }
+            url=this.urlSplice(url,data);
+            return http.get(url,data)
+        },
+
+
+        //砸金蛋
+        async smash(){
+            let  {data}=await this.app_add_coins()
+            this.add_coins=data.data.add_coins
+            let  res=await this.getGoldeneggsconf()
+            this.available_num=res.data.data.available_num
+            console.log('还可以砸',res.data.data)
+            this.setAddCoin(this.add_coins)
+        },
+
+        setAddCoin(coins){
+            this.my_coin =  parseInt(this.my_coin) + parseInt(coins);
+            let conf = localStorage.getItem('app_conf');
+            if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+                this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
             }
         },
 
+
+        gameDivn() {
+            localStorage.setItem('mini', this.mini)
+            if (this.mini) {
+                document.getElementById('gameDiv').style.padding = "1.88rem 0 0 0";
+            }
+        },
+
+        //点击了领取
+        receive(){
+            this.$toast('成功领取了'+this.add_coins+'金币')
+        },
+
+
+        //砸金蛋
+        app_add_coins(){
+            // 正式服：http://miniapi.mgc-games.com/api/v7/app_add_coins
+            // 测试服：http://miniapi_dev.mgc-games.com/api/v7/app_add_coins
+            let url = "http://miniapi_dev.mgc-games.com/api/v7/app_add_coins"; //测试服
+            let data = {
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id:mgc.getChannelId(),
+                mobile:mgc.getMgcUserId(),
+                coins_scene_type:200,
+                dev:true
+            }
+            url=this.urlSplice(url,data);
+            return http.post(url,data)
+
+        },
+
+
+        //get请求参数拼接
+        urlSplice(url,args){
+            let first = true
+            for(let key in args) {
+                if(first) {
+                    url += '?'
+                    first = false
+                } else {
+                    url += '&'
+                }
+                url += `${key}=${args[key]}`
+            }
+            return url;
+        },
 
         //关闭广告
         adClose(){
@@ -781,18 +930,54 @@ export default {
 			return http.get(url)
 		},
 
-        getMGCGameCenterDataTest() {
-		    //let args = "{\"point_id\":691,\"type\":3,\"mobile\":\"13552886455\",\"agentgame\":\"\",\"app_id\":\"364775\",\"channel_id\":364775,\"client_id\":\"334\",\"device\":{\"device_id\":\"351ad57b19cf9c976faefbb08a41ccd8\",\"deviceinfo\":\"android10\",\"idfa\":\"\",\"idfv\":\"\",\"ipaddrid\":\"\",\"local_ip\":\"192.168.101.27\",\"mac\":\"48:2c:a0:77:5a:8c\",\"userua\":\"Mozilla/5.0 (Linux; Android 10; MI 8 Build/QKQ1.190828.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.96 Mobile Safari/537.36\"},\"device_md5\":\"802F44C2F157068A825A09623D5EF23C\",\"framework_version\":\"3.2.0\",\"from\":\"11\",\"leto_version\":\"android_v3.9.2\",\"packagename\":\"com.mgc.letobox.happy\",\"timestamp\":1588578150234,\"user_token\":\"dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK\"}";
-		    let  url ="http://search.mgc-games.com:8711/api/v7/wx/preapply?data={%22point_id%22:691,%22type%22:3,%22mobile%22:%2213552886455%22,%22agentgame%22:%22%22,%22app_id%22:%22364775%22,%22channel_id%22:364775,%22client_id%22:%22334%22,%22device%22:{%22device_id%22:%22351ad57b19cf9c976faefbb08a41ccd8%22,%22deviceinfo%22:%22android10%22,%22idfa%22:%22%22,%22idfv%22:%22%22,%22ipaddrid%22:%22%22,%22local_ip%22:%22192.168.101.27%22,%22mac%22:%2248:2c:a0:77:5a:8c%22,%22userua%22:%22Mozilla/5.0%20(Linux;%20Android%2010;%20MI%208%20Build/QKQ1.190828.002;%20wv)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Version/4.0%20Chrome/78.0.3904.96%20Mobile%20Safari/537.36%22},%22device_md5%22:%22802F44C2F157068A825A09623D5EF23C%22,%22framework_version%22:%223.2.0%22,%22from%22:%2211%22,%22leto_version%22:%22android_v3.9.2%22,%22packagename%22:%22com.mgc.letobox.happy%22,%22timestamp%22:1588578150234,%22user_token%22:%22dFGp10vQNjTUcx32ZOz2Bn0ANKmsRum7N9WApSw5ZkWeRo2taRWEs93yMyGIZBqEM2WkcxO0O0OK%22}";
+        getMGCGameCenterDataCoin() {
+            // get info from native
+            let appInfo = mgc.getAppInfoSync()
+            let sysInfo = mgc.getSystemInfoSync()
+
+            // build url
+            let args = {
+                dt: 0,
+                open_token: '0023a78e02fb489528a99b7f9cb39ec',
+                channel_id: mgc.getChannelId(),
+                client_id: 334,
+                packagename: appInfo.packageName,
+                leto_version: sysInfo.LetoVersion,
+                framework_version: sysInfo.SDKVersion,
+                mobile:mgc.getMgcUserId(),
+                from: 11
+            }
+            let first = true
+            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
+            for(let key in args) {
+                if(first) {
+                    url += '?'
+                    first = false
+                } else {
+                    url += '&'
+                }
+                url += `${key}=${args[key]}`
+            }
+            // promise of http
             return http.get(url)
         },
-        loadRemoteTest(){
-            this.getMGCGameCenterDataTest().then(mgcResp => {
+        loadRemoteCoin(){
+            this.getMGCGameCenterDataCoin().then(mgcResp => {
                 if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
                     // save
-                    console.log("success = " + JSON.stringify(mgcResp));
-                } else {
-                    console.log("faile = " + JSON.stringify(mgcResp));
+                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
+
+                    // get banner data
+                    let data = mgcResp.data.data;
+                    //alert(JSON.stringify(mgcResp.data.data));
+                    if(data.hasOwnProperty("coins")){
+                        this.my_coin = data['coins'];
+                        let conf = localStorage.getItem('app_conf');
+                        if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+                            this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+                        }
+                    }
+                    localStorage.setItem('h5_mem_coins',mgcResp.data.data);
                 }
             })
         },
@@ -837,7 +1022,8 @@ export default {
             //window.mgc.showWithdraw();
             //alert('提现设置');
             //this.loadRemoteTest();//mgc.getCoinConfig()
-            alert(mgc.getCoinConfig());
+            //alert(mgc.getCoinConfig());
+            this.$router.push({path: './my', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的',is_day:0}});
         },
         //最近玩
         recentPlay(){
@@ -845,10 +1031,19 @@ export default {
 		    //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'最近使用',is_day:0}});
         },
+        zjd(){
+            this.$refs.egg.showEgg()
+        },
         //更多游戏
         moreGames(id,title,lid){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
 
+        },
+        //最近玩
+        moreGamesMy(){
+            //alert("最近玩");
+            //alert(JSON.stringify(this.recentGameList));
+            this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
         moreGamesDay(id,title,lid,is_day){
             this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
@@ -1143,7 +1338,7 @@ export default {
         left: 0;
         width: 100%;
         z-index: 1000;
-        height: .88rem;
+        height: 1.05rem;
         background: #fff;
 
         .back {
@@ -1157,13 +1352,13 @@ export default {
         }
 
         .withdraw {
-            width: 0.54rem;
-            height: 0.54rem;
-            background: url("~assets/img/hybrid/common/shezhi.png") no-repeat;
+            width: 0.88rem;
+            height: 0.97rem;
+            background: url("~assets/img/hybrid/common/zajindan.png") no-repeat;
             background-size: 100%;
             position: absolute;
-            top: 0.26rem;
-            right: 0.85rem;
+            top: 0.1rem;
+            right: 0.22rem;
         }
 
         .withdraw_pic {
@@ -1325,7 +1520,7 @@ export default {
 
 
     .content {
-        padding: 0 0 0 0;
+        padding: 1rem 0 0 0;
     }
 
     .list-banner {
@@ -1427,7 +1622,8 @@ export default {
                 content: '';
                 width: 0.32rem;
                 height: 0.32rem;
-                background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                //background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
+                background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
                 background-size: 100%;
                 left: 0;
             }
@@ -2027,5 +2223,92 @@ export default {
 
 .add-win-class span {
     font-size: 16px;
+}
+
+.withdraw_tx_coin {
+    width:1.01rem;
+    height:1.01rem;
+    border-radius:0.51rem;
+    border:0.03rem solid rgba(245,245,245,1);
+    position: absolute;
+    margin-left: 0.32rem;
+    background: url("~assets/img/hybrid/common/touxiang.png") no-repeat center top;
+    background-size: 100%;
+}
+.withdraw_tx_coin_content {
+    height:1.01rem;
+    position: absolute;
+    margin-left: 1.33rem;
+    font-size: 0.3rem;
+    font-weight: normal;
+    line-height: 0.54rem;
+}
+
+.add-gold-wd {
+    font-size: 0.2rem;
+    color: #FF9500;
+    border-radius: 0.16rem;
+    position: relative;
+    line-height: 0.32rem;
+    padding-right: 0.24rem;
+    padding-left: 0.4rem;
+    padding-top: 0.02rem;
+    font-weight: bold;
+    background: #FFF5E0;
+    width:1.6rem;
+    height:0.33rem;
+
+    &::before {
+        position: absolute;
+        content: '';
+        width: 0.33rem;
+        height: 0.33rem;
+        background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
+        background-size: 100%;
+        left: 0;
+    }
+}
+
+.add-gold-rmb {
+    font-size: 0.2rem;
+    color: #F35656;
+    border-radius: 0.16rem;
+    position: relative;
+    line-height: 0.32rem;
+    padding-right: 0.24rem;
+    padding-left: 0.4rem;
+    padding-top: 0.02rem;
+    font-weight: bold;
+    background: #FFEDED;
+    width:1.6rem;
+    height:0.33rem;
+    margin-top: 0.05rem;
+
+    &::before {
+        position: absolute;
+        content: '';
+        width: 0.33rem;
+        height: 0.33rem;
+        background: url('~assets/img/hybrid/common/fenbi.png') no-repeat;
+        background-size: 100%;
+        left: 0;
+    }
+}
+
+
+.tx_pic {
+    float: right;
+    margin-left: 3.1rem;
+    background: url("~assets/img/hybrid/common/tixian.png") no-repeat center top;
+    background-size: 100%;
+    width:0.79rem;
+    height:0.38rem;
+    border-radius:0.33rem;
+    position: absolute;
+    font-size: 0.3rem;
+    font-weight: normal;
+    line-height: 0.54rem;
+    margin-top: 0.5rem;
+
 }
 </style>
