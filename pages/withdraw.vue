@@ -564,68 +564,33 @@ export default {
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
         loadRemoteCoinNew(){
-            this.getMGCGameCenterDataCoinNew().then(mgcResp => {
-                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
-                    // save
-                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
+			window.mgc.getUserCoin({
+                success: res => {
+					let data = res.data;
+					let coins = data;
+					if(coins.hasOwnProperty("coins")) {
+						this.my_coin = coins['coins'];
+					};
+					let conf = localStorage.getItem('app_conf');
+					if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+						this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+					}
+					if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
 
-                    // get banner data
-                    let data = mgcResp.data.data;
-                    let coins = data;
-                    if(coins.hasOwnProperty("coins")) {
-                        this.my_coin = coins['coins'];
-                    };
-                    let conf = localStorage.getItem('app_conf');
-                    if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
-                        this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
-                    }
-                    if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
-
-                    }else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
-                        //this.withdraw_type = '提现到银行卡'
-                    }else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
-                        // this.withdraw_type = '金币兑换第三方币'
-                    }else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
-                        // this.withdraw_type = '提现到微信零钱'
-                    }else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
-                        // this.withdraw_type = '第三方提现到微信零钱'
-                    }else{
-                        // this.withdraw_type = '不支持的提现类型'
-                    }
-                    localStorage.setItem('h5_mem_coins',mgcResp.data.data);
+					}else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
+						//this.withdraw_type = '提现到银行卡'
+					}else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
+						// this.withdraw_type = '金币兑换第三方币'
+					}else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
+						// this.withdraw_type = '提现到微信零钱'
+					}else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
+						// this.withdraw_type = '第三方提现到微信零钱'
+					}else{
+						// this.withdraw_type = '不支持的提现类型'
+					}
+					localStorage.setItem('h5_mem_coins', res.data);
                 }
             })
-        },
-        getMGCGameCenterDataCoinNew() {
-            // get info from native
-            let appInfo = mgc.getAppInfoSync()
-            let sysInfo = mgc.getSystemInfoSync()
-
-            // build url
-            let args = {
-                dt: 0,
-                open_token: '0023a78e02fb489528a99b7f9cb39ec',
-                channel_id: mgc.getChannelId(),
-                client_id: 334,
-                packagename: appInfo.packageName,
-                leto_version: sysInfo.LetoVersion,
-                framework_version: sysInfo.SDKVersion,
-                mobile:mgc.getMgcUserId(),
-                from: 11
-            }
-            let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
-            for(let key in args) {
-                if(first) {
-                    url += '?'
-                    first = false
-                } else {
-                    url += '&'
-                }
-                url += `${key}=${args[key]}`
-            }
-            // promise of http
-            return http.get(url)
         },
         setMemCoin(){
 

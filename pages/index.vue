@@ -913,54 +913,18 @@ export default {
 			return http.get(url)
 		},
 
-        getMGCGameCenterDataCoin() {
-            // get info from native
-            let appInfo = mgc.getAppInfoSync()
-            let sysInfo = mgc.getSystemInfoSync()
-
-            // build url
-            let args = {
-                dt: 0,
-                open_token: '0023a78e02fb489528a99b7f9cb39ec',
-                channel_id: mgc.getChannelId(),
-                client_id: 334,
-                packagename: appInfo.packageName,
-                leto_version: sysInfo.LetoVersion,
-                framework_version: sysInfo.SDKVersion,
-                mobile:mgc.getMgcUserId(),
-                from: 11
-            }
-            let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcMemCoin}`
-            for(let key in args) {
-                if(first) {
-                    url += '?'
-                    first = false
-                } else {
-                    url += '&'
-                }
-                url += `${key}=${args[key]}`
-            }
-            // promise of http
-            return http.get(url)
-        },
         loadRemoteCoin(){
-            this.getMGCGameCenterDataCoin().then(mgcResp => {
-                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
-                    // save
-                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
-
-                    // get banner data
-                    let data = mgcResp.data.data;
-                    //alert(JSON.stringify(mgcResp.data.data));
-                    if(data.hasOwnProperty("coins")){
-                        this.my_coin = data['coins'];
-                        let conf = localStorage.getItem('app_conf');
-                        if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
-                            this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
-                        }
-                    }
-                    localStorage.setItem('h5_mem_coins',mgcResp.data.data);
+        	window.mgc.getUserCoin({
+                success: res => {
+                	let data = res.data
+					if(data.hasOwnProperty("coins")){
+						this.my_coin = data['coins'];
+						let conf = localStorage.getItem('app_conf');
+						if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+							this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+						}
+					}
+					localStorage.setItem('h5_mem_coins', data);
                 }
             })
         },
