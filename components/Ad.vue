@@ -8,12 +8,12 @@
                     <img @click="close" class="close"  src="~assets/img/hybrid/ad/close.png"  >
                 </div>
 
-                <div class="ad">
+                <div class="ad" ref="feedLayer">
                     <div class="feedAd"  ref="feedAd"  >
                     </div>
                 </div>
 
-                <div class="ad"  v-show="this.showFeedAdBg"  style="display: block;width:6.59rem;background-color:#12B1EC;height: auto">
+                <div class="ad" ref="errorLayer" style="display: none;width:6.59rem;background-color:#12B1EC;height: auto">
                     <img  style="display: block;margin:auto;width: auto;height: 3rem;"  class="ad"   src="~assets/img/hybrid/common/tjzm.png" alt="">
                 </div>
                 <slot />
@@ -44,7 +44,6 @@ export default {
     },
     data(){
         return{
-            showFeedAdBg:true,
         }
     },
 
@@ -96,7 +95,6 @@ export default {
             ad.onLoad(()=> {
 
                 console.log('信息流加载成功')
-                that.showFeedAdBg=false
                 ad.show()
 
 
@@ -108,6 +106,8 @@ export default {
 
             ad.onError(()=>{
                 console.log('信息流加载失败')
+                this.$refs.feedLayer.style.display = 'none'
+                this.$refs.errorLayer.style.display = 'block'
             })
             ad.load()
         }
