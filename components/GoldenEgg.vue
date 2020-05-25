@@ -20,7 +20,7 @@
 
                             <!--砸蛋的gif-->
                             <img v-if="this.showSmashEgg && this.showBigEgg==true" class=" egg" src="~assets/img/hybrid/egg/1/smash-egg2.gif">
-                            <div v-if="this.showBtn"  class="jifen" >{{add_coins}}<span>积分</span></div>
+                            <div v-if="this.showBtn"  class="jifen" >{{add_coins}}<span>金币</span></div>
 
                             <!--立即领取-->
                             <img class="img-btn"  @click="receive" v-if="this.showBtn" src="~assets/img/hybrid/egg/1/btn.png" >
@@ -107,6 +107,11 @@
             //显示金蛋
             showEgg(){
                 console.log('显示砸金蛋的活动')
+
+                if(this.available_num== -1){
+                    this.$toast('砸金蛋未配置')
+                    return
+                }
 
                 if(this.available_num<=0){
                     this.$toast('今天的次数用完啦')

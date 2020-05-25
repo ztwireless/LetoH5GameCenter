@@ -20,7 +20,7 @@
 
             <transition name='fade'>
             <div class="new-51" id="gameContent" v-if="show">
-                <header class="header_mini" v-if = "mini" >
+                <header class="header_mini" :class="{ header_mini_top:mini }" v-if = "mini && (showRencent || showWithdraw)" >
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -39,7 +39,7 @@
                     <div v-if="showWithdraw" class="tx_pic"  @click="withdraw"></div>
                 </header>
 
-                <header class="header" v-if = "!mini">
+                <header class="header" v-if = "!mini && (showRencent || showWithdraw)">
                     <div v-if="backable" class="back" @click="back"></div>
                     <div v-if="showRencent" class="withdraw_pic" @click="recentPlay"></div>
                     <div v-if="showRencent" class="withdraw_play" @click="recentPlay">最近在玩</div>
@@ -58,7 +58,7 @@
                     <div v-if="showWithdraw" class="tx_pic"  @click="withdraw"></div>
                 </header>
 
-                <div class="content" >
+                <div class="content" :class="{ contentpadding:(!showRencent && !showWithdraw) }" >
 
                     <!-- banner -->
                     <div class="banner" v-if="banners.gameList && banners.gameList.length > 0">
@@ -732,7 +732,7 @@ export default {
                 //alert(`got config: ${JSON.stringify(res)}`)
                 if(res.hasOwnProperty("is_coin")){
                     if(0 == res['is_coin']){//普通游戏中心
-                        this.showRencent = true;
+                        this.showRencent = false;
                         this.showWithdraw = false;
                         this.goldShow = false;
                     }else{//金币游戏中心
@@ -780,7 +780,7 @@ export default {
 
         //获取金蛋相关的数据
         let res= (await  this.getGoldeneggsconf()).data
-        //this.available_num=res.data.available_num       //剩余砸蛋次数
+        this.available_num= res.data === null ? -1 : res.data.available_num       //剩余砸蛋次数
         console.log('data',res)
 
     },
@@ -966,6 +966,7 @@ export default {
 
         //提现
         withdraw() {
+            return
             //window.mgc.showWithdraw();
             //alert('提现设置');
             //this.loadRemoteTest();//mgc.getCoinConfig()
@@ -1374,7 +1375,7 @@ export default {
         left: 0;
         width: 100%;
         z-index: 1000;
-        height: 1.88rem;
+        height: 1.05rem;
         background: #fff;
 
         .back {
@@ -1388,13 +1389,13 @@ export default {
         }
 
         .withdraw {
-            width: 0.54rem;
-            height: 0.54rem;
-            background: url("~assets/img/hybrid/common/shezhi.png") no-repeat;
+            width: 0.88rem;
+            height: 0.97rem;
+            background: url("~assets/img/hybrid/common/zajindan.png") no-repeat;
             background-size: 100%;
             position: absolute;
-            top: 1.26rem;
-            right: 0.85rem;
+            top: 0.1rem;
+            right: 0.22rem;
         }
 
         .withdraw_pic {
@@ -1458,6 +1459,11 @@ export default {
         }
     }
 
+    .header_mini_top{
+
+        top: 1.88rem;
+    }
+
     .row-game {
         display: flex;
         align-items: center;
@@ -1468,6 +1474,10 @@ export default {
 
     .content {
         padding: 1rem 0 0 0;
+    }
+
+    .contentpadding{
+        padding: 0;
     }
 
     .list-banner {
