@@ -732,7 +732,7 @@ export default {
                 //alert(`got config: ${JSON.stringify(res)}`)
                 if(res.hasOwnProperty("is_coin")){
                     if(0 == res['is_coin']){//普通游戏中心
-                        this.showRencent = true;
+                        this.showRencent = false;
                         this.showWithdraw = false;
                         this.goldShow = false;
                     }else{//金币游戏中心
