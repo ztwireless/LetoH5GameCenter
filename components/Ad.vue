@@ -8,7 +8,7 @@
                     <img @click="close" class="close"  src="~assets/img/hybrid/ad/close.png"  >
                 </div>
 
-                <div class="ad"  v-show="!this.showFeedAdBg" >
+                <div class="ad">
                     <div class="feedAd"  ref="feedAd"  >
                     </div>
                 </div>
