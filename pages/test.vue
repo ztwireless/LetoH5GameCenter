@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="test_feed_container">
+        <div id="test_feed_container" style="display: none;">
         </div>
         <div style="background-color: #5c696d">
             <a @click="showVideo" class="button">显示视频广告</a><br/><br/>
