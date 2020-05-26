@@ -7,6 +7,7 @@
             <a @click="feedAd()" class="button">显示信息流广告</a>
             <a @click="feedAdHide()" class="button">隐藏信息流广告</a>
             <a @click="feedAdDestroy()" class="button">销毁信息流广告</a><br/><br/>
+            <a @click="syncAccount()" class="button">同步账号</a><br/><br/>
         </div>
     </div>
 </template>
@@ -56,10 +57,15 @@
                     window.__feed_ad.destroy()
                     window.__feed_ad = null
                 }
+            },
+			syncAccount() {
+				window.mgc.syncAccount({
+					isLogin: false
+				})
             }
         },
         mounted() {
-			mgc.setChannelId('1001290')
+			// mgc.setChannelId('1001290')
 		}
 	}
 </script>
