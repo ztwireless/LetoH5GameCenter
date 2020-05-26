@@ -791,7 +791,7 @@ export default {
 		}
 
 		// create vconsole for ios
-        if(window.Leto && window.Leto.isIOS && window.VConsole) {
+        if(window.VConsole && window.Leto && (window.Leto.isIOS || !window.Leto.isWeChat)) {
         	new VConsole()
         }
     },
