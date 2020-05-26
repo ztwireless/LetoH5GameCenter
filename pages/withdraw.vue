@@ -565,30 +565,31 @@ export default {
         },
         loadRemoteCoinNew(){
 			window.mgc.getUserCoin({
-                success: res => {
-					let data = res.data;
+                success: data => {
 					let coins = data;
 					if(coins.hasOwnProperty("coins")) {
 						this.my_coin = coins['coins'];
 					};
 					let conf = localStorage.getItem('app_conf');
-					if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
-						this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
-					}
-					if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
+					if(conf) {
+						if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+							this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
+						}
+						if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
 
-					}else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
-						//this.withdraw_type = '提现到银行卡'
-					}else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
-						// this.withdraw_type = '金币兑换第三方币'
-					}else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
-						// this.withdraw_type = '提现到微信零钱'
-					}else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
-						// this.withdraw_type = '第三方提现到微信零钱'
-					}else{
-						// this.withdraw_type = '不支持的提现类型'
-					}
-					localStorage.setItem('h5_mem_coins', res.data);
+						}else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
+							//this.withdraw_type = '提现到银行卡'
+						}else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
+							// this.withdraw_type = '金币兑换第三方币'
+						}else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
+							// this.withdraw_type = '提现到微信零钱'
+						}else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
+							// this.withdraw_type = '第三方提现到微信零钱'
+						}else{
+							// this.withdraw_type = '不支持的提现类型'
+						}
+                    }
+					localStorage.setItem('h5_mem_coins', data);
                 }
             })
         },

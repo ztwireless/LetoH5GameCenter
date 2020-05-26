@@ -246,16 +246,14 @@ export default {
 
 		loadRemote() {
 			window.mgc.getUserCoin({
-                success: res => {
-					let data = res.data;
-					//alert(JSON.stringify(mgcResp.data.data));
+                success: data => {
 					if(data.hasOwnProperty("coins")){
 						this.my_coin = data['coins'];
 					}
 					if(data.hasOwnProperty("today_coins")){
 						this.my_coin_today = data['today_coins'];
 					}
-					localStorage.setItem('h5_mem_coins', res.data);
+					localStorage.setItem('h5_mem_coins', data);
                 }
             })
 		},

@@ -830,7 +830,7 @@ export default {
         setAddCoin(coins){
             this.my_coin =  parseInt(this.my_coin) + parseInt(coins);
             let conf = localStorage.getItem('app_conf');
-            if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+            if(conf && conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
                 this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
             }
         },
@@ -920,12 +920,11 @@ export default {
 
         loadRemoteCoin(){
         	window.mgc.getUserCoin({
-                success: res => {
-                	let data = res.data
+                success: data => {
 					if(data.hasOwnProperty("coins")){
 						this.my_coin = data['coins'];
 						let conf = localStorage.getItem('app_conf');
-						if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
+						if(conf && conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
 							this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
 						}
 					}
