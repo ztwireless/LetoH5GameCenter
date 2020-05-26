@@ -789,6 +789,11 @@ export default {
 		if(window.mgc.reportH5GameCenterEnter) {
 			window.mgc.reportH5GameCenterEnter()
 		}
+
+		// create vconsole for ios
+        if(window.Leto && window.Leto.isIOS && window.VConsole) {
+        	new VConsole()
+        }
     },
 
     methods: {
