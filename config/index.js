@@ -11,7 +11,7 @@ module.exports = {
 
     // 梦工厂url
     mgcTestUrl: 'http://h5api_dev.mgc-games.com',
-    mgcProdUrl: 'http://h5api.mgc-games.com',
+    mgcProdUrl: 'https://h5api.mgc-games.com',
     mgcProdOverseaUrl: 'http://miniapi.zeninto.com',
     mgcApiPathPrefix: '/api/v7/',
     mgcApiGetGameCenterData: 'charge/groups',
