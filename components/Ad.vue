@@ -89,7 +89,11 @@ export default {
             var that=this
 
             var ad = mgc.createFeedAd({
-                container:dom
+                container:dom,
+                style: {
+                	height: '30vh',
+                    'max-height': '280px'
+                }
             })
 
             ad.onLoad(()=> {
