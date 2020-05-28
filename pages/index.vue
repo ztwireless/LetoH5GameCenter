@@ -970,7 +970,7 @@ export default {
 
         //提现
         withdraw() {
-            return
+
             //window.mgc.showWithdraw();
             //alert('提现设置');
             //this.loadRemoteTest();//mgc.getCoinConfig()
