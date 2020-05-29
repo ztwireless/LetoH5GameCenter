@@ -804,8 +804,8 @@ export default {
 
         //获取金蛋的次数
         getGoldeneggsconf(){
-            // let url = "http://miniapi.mgc-games.com/api/v7/benefits/getgoldeneggsconf";     //正式服
-            let url = "http://miniapi_dev.mgc-games.com/api/v7/benefits/getgoldeneggsconf"; //测试服
+            let url = "http://miniapi.mgc-games.com/api/v7/benefits/getgoldeneggsconf";     //正式服
+            //let url = "http://miniapi_dev.mgc-games.com/api/v7/benefits/getgoldeneggsconf"; //测试服
             let data = {
                 open_token: '0023a78e02fb489528a99b7f9cb39ec',
                 channel_id:mgc.getChannelId(),
@@ -853,7 +853,7 @@ export default {
         app_add_coins(){
             // 正式服：http://miniapi.mgc-games.com/api/v7/app_add_coins
             // 测试服：http://miniapi_dev.mgc-games.com/api/v7/app_add_coins
-            let url = "http://miniapi_dev.mgc-games.com/api/v7/app_add_coins"; //测试服
+            let url = "http://miniapi.mgc-games.com/api/v7/app_add_coins"; //测试服
             let data = {
                 open_token: '0023a78e02fb489528a99b7f9cb39ec',
                 channel_id:mgc.getChannelId(),
