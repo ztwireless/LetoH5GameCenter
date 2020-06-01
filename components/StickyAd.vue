@@ -82,8 +82,8 @@
 
                 ad.onError(()=>{
                     console.log('压屏信息流加载失败')
-                    this.$refs.feedLayer.style.display = 'none'
-                    this.$refs.errorLayer.style.display = 'block'
+                    if(this.$refs.feedLayer==true)this.$refs.feedLayer.style.display = 'none'
+                    if(this.$refs.errorLayer==true)this.$refs.errorLayer.style.display = 'block'
                 })
                 ad.load()
             },
