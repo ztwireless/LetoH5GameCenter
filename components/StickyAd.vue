@@ -1,7 +1,7 @@
 <template>
 
     <StickyBox :top="top"  class="box">
-        <div style="width: 100vw" class="slot stickyAd" ref="stickyAd" >  </div>
+        <div style="width: 100vw;background-color: white" class="slot stickyAd" ref="stickyAd" >  </div>
     </StickyBox>
 
 </template>
@@ -63,15 +63,16 @@
                 var ad = mgc.createFeedAd({
                     container:dom,
                     hide_button:true,
+                    ui_style:2,
                     style: { // 应用于图片的css样式
-                        //"height": "30vh",
+                        // "height": "30vh",
                         "width":"100vw",
-                        //"max-height": "280px"
+                        // "max-height": "280px"
                     }
                 })
 
                 ad.onLoad(()=> {
-                    dom.style.paddingBottom = "20px"
+
                     console.log('压屏信息流加载成功')
                     ad.show()
                     // report
@@ -84,6 +85,8 @@
                     console.log('压屏信息流加载失败')
                     if(this.$refs.feedLayer==true)this.$refs.feedLayer.style.display = 'none'
                     if(this.$refs.errorLayer==true)this.$refs.errorLayer.style.display = 'block'
+                    // this.$refs.feedLayer.style.display = 'none'
+                    // this.$refs.errorLayer.style.display = 'block'
                 })
                 ad.load()
             },
