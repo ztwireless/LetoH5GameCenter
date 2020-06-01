@@ -1,7 +1,7 @@
 <template>
 
     <StickyBox :top="top"  class="box">
-        <div style="width: 100vw;background-color: white" class="slot stickyAd" ref="stickyAd" >  </div>
+        <div style="width: 100vw;background-color: white;padding:10px" class="slot stickyAd" ref="stickyAd" >  </div>
     </StickyBox>
 
 </template>
