@@ -92,7 +92,7 @@
                                     <p class="add-flex">我的游戏</p>
                                     <div class="arrow-right"></div>
                                     <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
-                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0, 5)"></div>
                                 </div>
 
                                 <div class="mgc-games-row">
@@ -113,8 +113,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold"  v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0, 6)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 6)"></div>
                                 </div>
 
                                 <!-- gallery item -->
@@ -144,8 +144,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 3)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 3)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -175,8 +175,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 10)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 10)"></div>
                                 </div>
 
                                 <!-- item -->
@@ -206,8 +206,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,i.rankList[0].id)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,i.rankList[0].id, 9)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 9)"></div>
                                 </div>
 
                                 <!-- list -->
@@ -247,7 +247,7 @@
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesFl(i.id,i.name,i.categoryList[0].id,i.categoryList)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 8)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -289,8 +289,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 3)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 3)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -332,8 +332,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 2)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 2)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -418,8 +418,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 12)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 12)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -496,8 +496,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" style="background-color: rgba(0,0,0,0.2);color:#FFFFFF;font-size: 0.26rem;" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1)" style="color: #FFFFFF">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1, 11)" style="color: #FFFFFF">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1, 11)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -528,8 +528,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1"  class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 13)">查看全部</div>
+                                    <div v-if= "i.showmore == 1"  class="showMoreImage" @click="moreGames(i.id,i.name,0, 13)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -991,8 +991,8 @@ export default {
             this.$refs.egg.showEgg()
         },
         //更多游戏
-        moreGames(id,title,lid){
-            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
+        moreGames(id,title,lid, compact){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0, compact: compact}});
 
 			// report
 			if(window.mgc.reportH5GameCenterMore) {
@@ -1005,8 +1005,8 @@ export default {
             //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
-        moreGamesDay(id,title,lid,is_day){
-            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
+        moreGamesDay(id,title,lid,is_day, compact){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day, compact: compact}});
 
 			// report
 			if(window.mgc.reportH5GameCenterMore) {

@@ -21,7 +21,7 @@
                     <div class="list list-padding-without-bottom">
                         <!-- list -->
 
-                        <div class="row-game inline"  v-for="(item, index) in newGames" :key="index" @click="startMGCGame(item)">
+                        <div class="row-game inline"  v-for="(item, index) in newGames" :key="index" @click="startMGCGame(item, index)">
 
                             <!-- game icon, name, etc. -->
                             <img v-lazy="item.icon" alt="">
@@ -99,6 +99,7 @@ export default {
             footerText:'上滑加载更多',
             json_data: {},
             is_day: 0,
+            compact: 0, // 从哪个游戏中心样式过来的
 
             games: [],
             favoriteGameList: [],
@@ -160,6 +161,7 @@ export default {
                         newGames: dataList,
 						banners: banners,
                         is_day: query.is_day,
+                        compact: query.compact
 					}
                 }
             })).catch((e) => {
@@ -317,7 +319,7 @@ export default {
         },
 
         // 启动 梦工厂 游戏
-        startMGCGame(game) {
+        startMGCGame(game, position) {
 			// avoid quick click
 			let now = Date.now()
             if(now - this.lastClickTime < 500) {
@@ -330,8 +332,16 @@ export default {
                 id: `mgc_${game.id}`
             });
 
+			// report
+			if(window.mgc.reportH5GameCenterGameClicked) {
+				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), this.compact, position)
+			}
+
             // start
-			mgc.navigateToMiniProgram({ appId: game.id.toString() })
+			mgc.navigateToMiniProgram({
+                appId: game.id.toString(),
+                reportClick: false
+            })
         },
 
         getFavoriteGameList() {
