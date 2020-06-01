@@ -105,6 +105,7 @@
                         </template>
                         <template v-if="i.styleCode == 'gallery'">
                             <div class="list list-left">
+                                <StickyAd :top="stickyAdTop"></StickyAd>
                                 <!-- title -->
                                 <div class="row-game title">
                                     <div v-if="!i.icon" class="coin"></div>
@@ -600,6 +601,8 @@ import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
 import Cookie  from '~/plugins/cookie';
 
+import StickyAd from '~/components/StickyAd';
+
 export default {
     name: 'games',
 
@@ -610,7 +613,8 @@ export default {
         Ad,
         Modal,
         LoginModal,
-        GoldenEgg
+        GoldenEgg,
+        StickyAd
     },
 
     head() {
@@ -677,6 +681,7 @@ export default {
 
             available_num:0,
             add_coins:0,
+            stickyAdTop:"0px",
 
         }
     },
