@@ -64,9 +64,9 @@
                     container:dom,
                     hide_button:true,
                     style: { // 应用于图片的css样式
-                        "height": "30vh",
+                        //"height": "30vh",
                         "width":"100vw",
-                        "max-height": "280px"
+                        //"max-height": "280px"
                     }
                 })
 
