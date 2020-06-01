@@ -1071,9 +1071,12 @@ export default {
 			if(window.mgc.reportH5GameCenterGameClicked) {
 				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
 			}
-			
+
             // start
-			mgc.navigateToMiniProgram({ appId: game.id.toString() })
+			mgc.navigateToMiniProgram({
+                appId: game.id.toString(),
+                reportClick: false
+            })
 		},
 
         getFavoriteGameList() {

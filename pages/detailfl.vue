@@ -34,7 +34,7 @@
                                 <div class="list list-padding-without-bottom" >
                                     <!-- list -->
 
-                                    <div class="row-game inline"  v-for="(item, index) in newGames" :key="index" @click="startMGCGame(item)">
+                                    <div class="row-game inline"  v-for="(item, index) in newGames" :key="index" @click="startMGCGame(item, 8, index)">
 
                                         <!-- game icon, name, etc. -->
                                         <img v-lazy="item.icon" alt="">
@@ -339,7 +339,7 @@ export default {
         },
 
         // 启动 梦工厂 游戏
-        startMGCGame(game) {
+        startMGCGame(game, compact, position) {
 			// avoid quick click
 			let now = Date.now()
             if(now - this.lastClickTime < 500) {
@@ -352,8 +352,16 @@ export default {
                 id: `mgc_${game.id}`
             });
 
+			// report
+			if(window.mgc.reportH5GameCenterGameClicked) {
+				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
+			}
+
             // start
-			mgc.navigateToMiniProgram({ appId: game.id.toString() })
+			mgc.navigateToMiniProgram({
+                appId: game.id.toString(),
+                reportClick: false
+			})
         },
 
         getFavoriteGameList() {
