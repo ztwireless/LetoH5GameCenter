@@ -84,6 +84,7 @@
 
                     <!-- 所有游戏 -->
                     <div v-for="(i, k) in newGames" :key="k">
+                        <StickyAd :top="stickyAdTop" v-if="k == 1"></StickyAd>
                         <!-- gallery样式 -->
                         <template v-if="k == 2">
                             <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
@@ -105,7 +106,7 @@
                         </template>
                         <template v-if="i.styleCode == 'gallery'">
                             <div class="list list-left">
-                                <StickyAd :top="stickyAdTop"></StickyAd>
+                                
                                 <!-- title -->
                                 <div class="row-game title">
                                     <div v-if="!i.icon" class="coin"></div>
