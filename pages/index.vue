@@ -575,7 +575,7 @@
 
                 <!-- footer -->
                 <div class="footer">
-                    不断更新更多好玩的<em style="color: #3D9AF0">游戏</em>
+                    不断更新更多好玩的<em style="color: #3D9AF0" @click="eruda()">游戏</em>
                 </div>
             </div>
             </transition>
@@ -683,6 +683,7 @@ export default {
             available_num:0,
             add_coins:0,
             stickyAdTop:"0px",
+            erudaclick: 0,
 
         }
     },
@@ -804,6 +805,8 @@ export default {
         if(window.VConsole && window.Leto && (window.Leto.isIOS || !window.Leto.isWeChat)) {
         	new VConsole()
         }
+
+        localStorage.getItem("active-eruda") == "1" ? eruda.init() : "";
     },
 
     methods: {
@@ -1112,6 +1115,11 @@ export default {
             };
 
             return str;
+        },
+
+        eruda(){
+            this.erudaclick++;
+            if(this.erudaclick >= 50) localStorage.setItem("active-eruda", "1");
         },
     },
 }

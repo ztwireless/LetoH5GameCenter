@@ -37,6 +37,11 @@ let script = [
 		src: `${routerBase}/static/__leto__/app-service.js?t=${t}`,
 		type: 'text/javascript',
 		charset: 'utf-8'
+	},
+	{
+		src: `${routerBase}/static/eruda.js?t=${t}`,
+		type: 'text/javascript',
+		charset: 'utf-8'
 	}
 ]
 if(process.env.NODE_ENV != 'production') {
