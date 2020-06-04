@@ -1080,7 +1080,7 @@ export default {
 			if(window.mgc.reportH5GameCenterGameClicked) {
 				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
 			}
-
+            sessionStorage.removeItem('showAd');
             // start
 			mgc.navigateToMiniProgram({
                 appId: game.id.toString(),
