@@ -11,8 +11,6 @@
                 <header class="header">
                     <div v-if="backable" class="back" @click="back"></div>
                     <h2>{{title}}</h2>
-                    <div  class="withdraw" @click="withdrawLog"></div>
-                    <div class="withdraw_tx" @click="withdrawLog">提现记录</div>
                 </header>
 
                 <div class="content">
@@ -20,80 +18,27 @@
                     <div class="button-list" style="border-top: 0.8px solid #E3E3E3;">
                     </div>
                     <template>
-                        <div class="list list-left">
+                        <div style="width: 100%;text-align: center;">
+                            <div style=" font-size: 0.28rem; margin-bottom: 0.1rem; text-align: left;width: 90%;margin-left: 0.32rem; ">
 
-                            <div class="row-game title">
-                                <p style="margin-left: 0rem;">金币余额：{{my_coin}}</p>
-                                <div class="add-flex">
-                                    <div class="add-gold-wd">{约{{my_coin_rmb}}元}</div>
+                                <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
+                                    姓名:&nbsp &nbsp &nbsp &nbsp  &nbsp &nbsp<input id="real_name" placeholder="请输入姓名" style="border:none;width:2.71rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
+                                </div>
+                                <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
+                                    开户银行:&nbsp &nbsp  <select id="bank_code" v-model="couponSelected" style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9">
+                                                              <option v-for="item in bank_list" v-bind:value="item.bank_code" v-text="item.bank_name"></option>
+                                                         </select>
+                                </div>
+
+                                <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
+                                    银行卡号: &nbsp &nbsp<input id="bank_account"placeholder="请输入银行卡号"  style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
                             </div>
                         </div>
                     </template>
-
                     <template>
-                        <div class="list list-left" style="border-bottom: 0.1rem solid #FFFFFF;">
-                            <div class="row-game title">
-                                <div class="shu"></div>
-                                <p class="add-flex" style="margin-left: 0rem;">提现方式</p>
-                            </div>
-
-                            <div class="row-game title">
-                                <div style="border: 0.02rem solid #3D9AF0;border-radius:0.16rem;height:0.81rem;">
-                                    <div class="zfb"  id = "draw_way" style="display: inline-block;margin-left: 0.2rem"></div>
-                                    <div class="withdraw_type"  style="display: inline-block;">{{withdraw_type}}</div>
-                                    <div class="dg"  style="display: inline-block;"></div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </template>
-
-                    <template>
-                        <div class="list list-left" style="border-bottom: 0.1rem solid #FFFFFF;" v-if="points.points">
-                            <div class="row-game title">
-                                <div class="shu"></div>
-                                <p class="add-flex" style="margin-left: 0rem;">提现金额</p>
-                                <div class="arrow-right"></div>
-                            </div>
-                            <div class="mgc-games-row">
-                                <div class="mgc-game-row-point">
-                                    <div v-if="index %3 == 0" v-for="(item, index) in points.points"
-                                         :key="index" @click="withdraw(item.point_id,$event)" >
-                                        <div class="name" name = "point_name" v-bind:id= "item.point_id" v-bind:data-point ="item.price" style="border: 0.02rem solid #3D9AF0;border-radius:0.16rem;width:2.08rem;height:0.81rem;line-height: .81rem;">{{item.price + item.coin_name}}</div>
-                                    </div>
-                                </div>
-                                <div class="mgc-game-row-point">
-                                    <div v-if="index %3 == 1" v-for="(item, index) in points.points"
-                                         :key="index" @click="withdraw(item.point_id,$event)" >
-                                        <div class="name" name = "point_name" v-bind:id= "item.point_id" v-bind:data-point ="item.price" style="border: 0.02rem solid #3D9AF0;border-radius:0.16rem;width:2.08rem;height:0.81rem;line-height: .81rem;">{{item.price + item.coin_name}}</div>
-                                    </div>
-                                </div>
-                                <div class="mgc-game-row-point">
-                                    <div v-if="index %3 == 2" v-for="(item, index) in points.points"
-                                         :key="index" @click="withdraw(item.point_id,$event)" >
-                                        <div class="name" name = "point_name" v-bind:id= "item.point_id" v-bind:data-point ="item.price"  style="border: 0.02rem solid #3D9AF0;border-radius:0.16rem;width:2.08rem;height:0.81rem;line-height: .81rem;">{{item.price + item.coin_name}}</div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </template>
-                    <template>
-                    <div style="width: 100%;text-align: center;border-bottom: 0.1rem solid #F5F5F5;">
-                        <div style=" font-size: 0.2rem; margin-bottom: 0.1rem; text-align: left;background-color: #FFF9E9;width: 90%;margin-left: 0.32rem;" >
-
-                            <div style = "font-size: 0.25rem;height: 0.6rem;line-height: 0.6rem;padding-left: 0.2rem">提现说明</div>
-                            <div>
-                                <textarea v-bind:rows="rows_textarea" style="width: 100%;background-color: #FFF9E9;border:none;padding-left: 0.2rem" disabled>{{points.explain}}</textarea>
-                            </div>
-                        </div>
-                        <div v-bind:style="{height:this.tc_div_h+'px'}"></div>
-                    </div>
-                </template>
-                    <template>
-                        <div style="margin-top:0.3rem;width: 100%" @click="doDraw()">
-                            <div style="margin:0 auto;width:4.05rem;height:0.81rem;background-color: #3D9AF0;font-size: 0.28rem;font-weight:600;color: #FFFFFF;border-radius:0.41rem;text-align: center;line-height: 0.81rem">立即提现</div>
+                        <div style="margin-top: 2rem" @click="doBind()">
+                            <div style="margin:0 auto;width:4.05rem;height:0.81rem;background-color: #3D9AF0;font-size: 0.28rem;font-weight:600;color: #FFFFFF;border-radius:0.41rem;text-align: center;line-height: 0.81rem">确定</div>
                         </div>
                     </template>
 
@@ -112,8 +57,7 @@ import { hybridPointAction } from '~/plugins/report';
 import TimeBtn from '~/components/TimeBtn';
 import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
-import $ from 'jquery';
-import '~/plugins/mgch5'
+import $ from 'jquery'
 
 export default {
     name: 'games',
@@ -144,18 +88,12 @@ export default {
             json_data: {},
             is_day: 0,
             my_coin:0,
-            my_coin_rmb:0,
-            points:localStorage.getItem('points') || [],
-            rows_textarea:10,
-            withdraw_type: '支付宝',
-            is_login:false,
-            check_point_id:0,
-            check_point_price:0,
-            tc_div_h:0,
-            path:'./ali',
-            t_title:'绑定支付宝',
-            is_ex_type:5,//支付宝
-            is_wx_bind:false,
+            my_coin_today:0,
+            real_name:'',
+            bank_code:'',
+            bank_account:'',
+            draw_point_id:0,
+            bank_list:[],
 
             games: [],
             favoriteGameList: [],
@@ -180,9 +118,6 @@ export default {
                     },
                 },
             },
-
-            alertInfo:'',
-            maskreg : '<div id="maskreg" style="text-align:right;width: 100%;height:100%;background-color: rgba(0,0,0,.6);position: fixed;top: 0;left: 0;z-index: 800;" > </div >',
 
             newGames: NEWGAMES,
             banners: BANNER
@@ -232,26 +167,12 @@ export default {
 
     mounted() {
     	// 设置游戏根目录
+
         // ensure channel id is set
-        let is_success = localStorage.getItem('is_success');
-        if(is_success && is_success == 1){
-            localStorage.setItem('is_success',0);
-            this.preapply();
-        }
 
-        this.loadRemote()
-        this.checkWithDrawInfo()
-        this.getAliInfo() //应该在ali获取数据
+        this.getBankInfo();
+        //this.loadRemote()
        // this.listenScroll()
-        this.tcdiv()
-        mgc.getCoinConfig({
-            success: res => {
-                localStorage.setItem("app_conf",res);
-            }
-        })
-        this.loadRemoteCoinNew()
-        //this.setMemCoin()
-
 
 		// update recent game list
 		let newRecent = mgc.getRecentGameList()
@@ -279,10 +200,12 @@ export default {
 				leto_version: sysInfo.LetoVersion,
 				framework_version: sysInfo.SDKVersion,
                 mobile:mgc.getMgcUserId(),
+                account:this.account,
+                truename:this.truename,
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcPoints}`
+			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcSetAliInfo}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
@@ -311,52 +234,51 @@ export default {
             });
         },
 
-        tcdiv(){
-            let height=document.body.offsetHeight;//获取当前页面总高度
-            let exit_hight = 740;
-            if(height <= exit_hight){
-                this.tc_div_h = 0;
-            }else{
-                this.tc_div_h = height-exit_hight;
-            }
-            //alert(this.tc_div_h);
-            //alert(height-148);
-            //var top=height+$(".topdiv").height();//顶部页面的高度（注意height计算的高度没有把顶部嵌套的页面高度加进去）
-             //document.getElementById('tcdiv').css("top",height-148);//给底部页面添加绝对路径距离上面高度
-        },
-
 		loadRemote() {
-			this.getMGCGameCenterData().then(mgcResp => {
-				if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
-                    // save
-                    // mgc.saveGameCenterDataToLocal(mgcResp.data.data)
-
-                    // get banner data
-                    let data = mgcResp.data.data;
-                    //alert(JSON.stringify(this.points));
-                    this.points = mgcResp.data.data;
-                    let explain = data.explain;
-                    let arr = explain.split("\n");
-                    this.rows_textarea = arr.length + 1;
-                    localStorage.setItem('points',mgcResp.data.data);
-                }
-			})
-		},
-        preapply() {
-            this.preapplyData().then(mgcResp => {
+            this.getMGCGameCenterData().then(mgcResp => {
                 if(mgcResp && mgcResp.data && mgcResp.data.code == 200 ) {
-                    //alert("提现申请成功，请耐心等待审核");
-                    this.setAlertInfo("提现申请成功，请耐心等待审核");
-                    var div=document.createElement("div");
-                    div.innerHTML = this.alertInfo + this.maskreg;
-                    document.body.appendChild(div);
+                    localStorage.setItem('is_success',1);
+                    this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
                 }else{
                     alert(mgcResp.data.msg);
                 }
             })
         },
 
-        preapplyData() {
+
+        //关闭
+        back() {
+			// TODO how to exit webview?
+            //this.page = 1;
+            //$(window).unbind('scroll');
+            history.back();
+        },
+
+        //关闭
+        getBankInfo() {
+            this.getBankData().then(mgcResp => {
+                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
+                    let data = mgcResp.data.data;
+                    //alert(JSON.stringify(mgcResp.data.data));
+                    //localStorage.setItem('ali_info',data)
+                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("real_name")){
+                        document.getElementById('real_name').value =  data['mem_bank']['real_name']
+                    }
+                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("bank_account")){
+                        document.getElementById('bank_account').value =  data['mem_bank']['bank_account']
+                    }
+                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("bank_code")){
+                        this.couponSelected  =  data['mem_bank']['bank_code']
+                    }
+
+                    if(data.hasOwnProperty("banks")){
+                        this.bank_list = data['banks']
+                    }
+                }
+            })
+        },
+
+        getBankData() {
             // get info from native
             let appInfo = mgc.getAppInfoSync()
             let sysInfo = mgc.getSystemInfoSync()
@@ -372,11 +294,10 @@ export default {
                 framework_version: sysInfo.SDKVersion,
                 mobile:mgc.getMgcUserId(),
                 user_token:window.mgc.getUserToken(),
-                point_id:localStorage.getItem('draw_point_id'),
                 from: 11
             }
             let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcPreapply}`
+            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcBankInfo}`
             /*for(let key in args) {
                 if(first) {
                     url += '?'
@@ -391,22 +312,20 @@ export default {
             // promise of http
             return http.get(url)
         },
-        checkWithDrawInfo() {
-            this.checkWithDrawInfoData().then(mgcResp => {
-                console.log('checkWithDrawInfo ='+JSON.stringify(mgcResp))
-                if(mgcResp && mgcResp.data && (mgcResp.data.code == 200 || mgcResp.data.code == 416 || mgcResp.data.code == 461)) {
-                    this.is_login = true;//只考虑用户是否登录   416 请先填写银行卡付款信息 已经登录了
 
+
+        setBankInfo() {
+            this.setBankData().then(mgcResp => {
+                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 ) {
+                    localStorage.setItem('is_success',1);
+                    this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
                 }else{
-                    this.is_login = false;
-                }
-                if(mgcResp && mgcResp.data && mgcResp.data.code == 461){
-                    this.is_wx_bind = true;
+                    alert(mgcResp.data.msg);
                 }
             })
         },
 
-        checkWithDrawInfoData() {
+        setBankData() {
             // get info from native
             let appInfo = mgc.getAppInfoSync()
             let sysInfo = mgc.getSystemInfoSync()
@@ -421,11 +340,15 @@ export default {
                 leto_version: sysInfo.LetoVersion,
                 framework_version: sysInfo.SDKVersion,
                 mobile:mgc.getMgcUserId(),
+                user_token:window.mgc.getUserToken(),
+                real_name:this.real_name,
+                bank_account:this.bank_account,
+                bank_code:this.bank_code,
                 from: 11
             }
             let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcWithDrawInfo}`
-            for(let key in args) {
+            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcSetBankInfo}`
+            /*for(let key in args) {
                 if(first) {
                     url += '?'
                     first = false
@@ -433,139 +356,44 @@ export default {
                     url += '&'
                 }
                 url += `${key}=${args[key]}`
-            }
+            }*/
+            var data = encodeURIComponent(JSON.stringify(args));
+            url = url + '?key=&data=' + data;
             // promise of http
             return http.get(url)
         },
-
-
-        getAliInfo() {
-            this.getAliData().then(mgcResp => {
-                if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
-                    let data = mgcResp.data.data;
-                    //alert(JSON.stringify(mgcResp.data.data));
-                    localStorage.setItem('ali_info',data)
-                }
-            })
-        },
-
-        getAliData() {
-            // get info from native
-            let appInfo = mgc.getAppInfoSync()
-            let sysInfo = mgc.getSystemInfoSync()
-
-            // build url
-            let args = {
-                dt: 0,
-                open_token: '0023a78e02fb489528a99b7f9cb39ec',
-                channel_id: this.$route.query.channel_id,
-                client_id: 334,
-                packagename: appInfo.packageName,
-                leto_version: sysInfo.LetoVersion,
-                framework_version: sysInfo.SDKVersion,
-                mobile:mgc.getMgcUserId(),
-                from: 11
+        doBind(){
+		    this.draw_point_id = localStorage.getItem('draw_point_id');
+		    if(this.draw_point_id <= 0){
+		        alert("请选择提现金额");
+		        return;
             }
-            let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcAliInfo}`
-            for(let key in args) {
-                if(first) {
-                    url += '?'
-                    first = false
-                } else {
-                    url += '&'
-                }
-                url += `${key}=${args[key]}`
-            }
-            // promise of http
-            return http.get(url)
-        },
-
-        //关闭
-        back() {
-			// TODO how to exit webview?
-            //this.page = 1;
-            //$(window).unbind('scroll');
-            history.back();
-        },
-        setAlertInfo(msg){
-            this.alertInfo = '<div id = "reloaddiv" style="position: fixed;top: 200px;left: 0px;right: 0px;background-size: cover;-webkit-background-size: cover;width: 300px;height: 200px;margin:auto;z-index:801;">' +
-                '<form method="post" id="post_form" style="background-color: #FFFFFF;">' +
-                '<div style="height: 220px;">' +
-                '<div style="margin-left:20px;text-align: center;font-size: 20px;padding-top: 40px;height: 50px"> 温馨提示' +
-                '</div>' +
-                '<div style="margin-left:20px;margin-top: 40px;font-size: 15px;text-align: center">'+msg+
-                '</div>' +
-                '<input type="button"  name="button" onclick="window.mgcgame.reloadGame()" value="确定" style="border-radius: 50px;font-size: 19px;color: #FFFFFF;letter-spacing:1px;border: 0px; width: 246px;margin-top: 20px; margin-left: 28px;height: 45px;background-color: #476EFE;outline: none;">' +
-                '</div>' +
-                '</form>' +
-                '</div>';
-        },
-        reloadGame(){
-            document.getElementById("reloaddiv").remove();//隐藏
-            document.getElementById('maskreg').remove();
-        },
-        //提现
-        withdraw(point_id,ev) {
-		    this.check_point_id = point_id;
-		    this.check_point_price = ev.target.dataset.point;
-		    let point_name_len =  document.getElementsByName("point_name").length;
-            for(var i=0;i<point_name_len;i++){
-                document.getElementsByName("point_name")[i].style.backgroundColor='';
-                document.getElementsByName("point_name")[i].style.color='#000000';
-            }
-		    document.getElementById(point_id).style.backgroundColor = '#3D9AF0';
-            document.getElementById(point_id).style.color = '#ffffff';
-        },
-        withdrawLog() {
-            this.$router.push({path: './withdrawlog', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现记录',is_day:0}});
-        },
-        doDraw(){
-            let mobile = mgc.getMgcUserId();
-            console.log("doDraw mobile = "+ mobile)
-            let is_phone = this.isPoneAvailable(mobile);
-            console.log("doDraw is_login = "+ this.is_login)
-            if(!is_phone || false == this.is_login){
-                window.mgc.showMgcLogin({
-                    success: res => {
-                        this.is_login = true;
-                        console.log(`user login success`)
-                    },
-                    fail: res => {
-                        console.log(`user login fail`)
-                        return;
-                    }
-                })
+            this.real_name = document.getElementById('real_name').value;
+            this.bank_code = document.getElementById('bank_code').value;
+            this.bank_account = document.getElementById('bank_account').value;
+            if(!this.real_name){
+                alert("请输入真实姓名");
                 return;
             }
-            if(this.is_login){
-                if(this.is_wx_bind && 3 == this.is_ex_type){
-                    let url = "http://wx.mgc-games.com/api/v7/wx/h5Code?dt=0&open_token=0023a78e02fb489528a99b7f9cb39ec&channel_id="+mgc.getChannelId()+"&client_id=334&leto_version=3.2.0&framework_version=3.2.0&mobile="+mgc.getMgcUserId()+"&from=11&scope=1";
-                    window.location.href = url;
-                  // window.location.reload();
-                  // return http.get(url);
-                   // alert("网页授权");
-                    return;
-                }
-                if(!this.is_wx_bind && 3 == this.is_ex_type){
-                    this.preapply();
-                    return;
-                }
-                if(0 == this.check_point_id){
-                    alert("请选择提现金额");
-                    return;
-                }
-                if(parseInt(this.check_point_price) > parseInt(this.my_coin_rmb)){
-                    alert("您的金币余额不足");
-                    return;
-                }
-                localStorage.setItem('draw_point_id',this.check_point_id);
-                this.$router.push({path: this.path, query: {backable:true,channel_id:mgc.getChannelId(),title:this.t_title,is_day:0}});
+            if(!this.bank_code){
+                alert("请选择开户行");
+                return;
             }
+            if(!this.bank_account){
+                alert("请输入银行卡账号");
+                return;
+            }
+            this.setBankInfo();
         },
-        isPoneAvailable(tel) {
-            var reg =/^0?1[3|4|5|6|7|8|9][0-9]\d{8}$/;
-            return reg.test(tel);
+        //提现
+        withdraw() {
+            window.mgc.showWithdraw();
+        },
+        point(){
+		    //alert(mgc.getMgcUserId());
+            //alert(localStorage.getItem('app_conf'));
+            console.log(JSON.stringify(localStorage.getItem('app_conf')));
+            this.$router.push({path: './withdraw', query: {backable:true,channel_id:mgc.getChannelId(),title:'提现',is_day:0}});
         },
         //更多游戏
         moreGames(id){
@@ -582,47 +410,7 @@ export default {
             //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
-        loadRemoteCoinNew(){
-			window.mgc.getUserCoin({
-                success: data => {
-					let coins = data;
-					if(coins.hasOwnProperty("coins")) {
-						this.my_coin = coins['coins'];
-					};
-					let conf = localStorage.getItem('app_conf');
-					if(conf) {
-						if(conf.hasOwnProperty('ex_coins') && conf['ex_coins']> 0){
-							this.my_coin_rmb = (this.my_coin/conf['ex_coins']).toFixed(2);
-						}
-						if(conf.hasOwnProperty("is_ex") && 5 == conf['is_ex']){
 
-						}else if(conf.hasOwnProperty("is_ex") && 1 == conf['is_ex']) {
-							this.withdraw_type = '银行卡';
-                            this.path = './bank';
-                            this.t_title = '银行卡收款';
-                            this.is_ex_type = 1;
-                            document.getElementById('draw_way').className = "yinhang";
-						}else if(conf.hasOwnProperty("is_ex") && 2 == conf['is_ex']) {
-							// this.withdraw_type = '金币兑换第三方币'
-						}else if(conf.hasOwnProperty("is_ex") && 3 == conf['is_ex']) {
-                            this.withdraw_type = '微信';
-                            this.is_ex_type = 3;
-                            document.getElementById('draw_way').className = "weixin";
-                            //this.path = './wx';
-                            //this.t_title = '银行卡收款';
-						}else if(conf.hasOwnProperty("is_ex") && 4 == conf['is_ex']) {
-							// this.withdraw_type = '第三方提现到微信零钱'
-						}else{
-							// this.withdraw_type = '不支持的提现类型'
-						}
-                    }
-					localStorage.setItem('h5_mem_coins', data);
-                }
-            })
-        },
-        setMemCoin(){
-
-        },
         // 启动 梦工厂 游戏
         startMGCGame(game) {
 			// avoid quick click
@@ -897,26 +685,25 @@ export default {
         }
 
         .withdraw {
-            width: 0.43rem;
-            height: 0.43rem;
-            background: url("~assets/img/hybrid/common/tixianjilu.png") no-repeat;
+            width: 0.54rem;
+            height: 0.54rem;
+            background: url("~assets/img/hybrid/common/withdraw_pic.png") no-repeat;
             background-size: 100%;
             position: absolute;
             top: 0.26rem;
-            right: 1.3rem;
+            right: 0.85rem;
         }
 
         .withdraw_tx {
-            width: 1.32rem;
+            width: 0.66rem;
             height: 0.54rem;
             position: absolute;
             top: 0.26rem;
-            right: 0.1rem;
-            font-size: 0.21rem;
+            right: 0.22rem;
+            font-size: 0.3rem;
             font-weight: normal;
             line-height: 0.54rem;
             text-align: center;
-            color: #666666;
         }
 
         .withdraw_red {
@@ -1043,9 +830,10 @@ export default {
         }
 
         .add-gold {
-            font-size: 0.2rem;
-            color: #666666;
+            background-color: #FFF5E0;
+            font-size: 0.3rem;
             border-radius: 0.16rem;
+            color: #FA8C00;
             position: relative;
             line-height: 0.32rem;
             padding-right: 0.24rem;
@@ -1060,30 +848,6 @@ export default {
                 width: 0.32rem;
                 height: 0.32rem;
                 background: url('~assets/img/hybrid/task/upd/gold.png') no-repeat;
-                background-size: 100%;
-                left: 0;
-            }
-        }
-
-
-        .add-gold-wd {
-            font-size: 0.2rem;
-            color: #666666;
-            border-radius: 0.16rem;
-            position: relative;
-            line-height: 0.32rem;
-            padding-right: 0.24rem;
-            padding-left: 0.4rem;
-            display: inline-block;
-            padding-top: 0.02rem;
-            font-weight: bold;
-
-            &::before {
-                position: absolute;
-                content: '';
-                width: 0.32rem;
-                height: 0.32rem;
-                background: url('~assets/img/hybrid/common/xiaojinbi.png') no-repeat;
                 background-size: 100%;
                 left: 0;
             }
@@ -1225,20 +989,6 @@ export default {
                 display: inline-block;
                 margin-right: 0.8rem;
                 width: 20%;
-
-                p {
-                    font-size: 0.22rem;
-                    color: #87898C;
-                    margin-bottom: 0.24rem;
-                    text-align: center;
-                }
-            }
-
-            .mgc-game-row-point {
-                display: inline-block;
-                margin-right: 0.8rem;
-                width: 20%;
-                float: left;
 
                 p {
                     font-size: 0.22rem;
@@ -1615,58 +1365,5 @@ export default {
     height: 0.3rem;
     background: url('~assets/img/hybrid/common/qianjin.png') no-repeat;
     background-size: cover;
-}
-
-.shu{
-    width: 0.09rem;
-    height: 0.42rem;
-    background: url('~assets/img/hybrid/common/shu.png') no-repeat;
-    background-size: cover;
-    margin-right: 0.2rem;
-}
-.zfb{
-    width:0.41rem;
-    height:0.81rem;
-    background: url('~assets/img/hybrid/common/zhifubao.png') no-repeat;
-    background-size: 100%;
-    background-position-y: center;
-    float:left
-}
-
-.yinhang{
-    width:0.41rem;
-    height:0.81rem;
-    background: url('~assets/img/hybrid/common/yinhang.png') no-repeat;
-    background-size: 100%;
-    background-position-y: center;
-    float:left
-}
-
-.weixin{
-    width:0.41rem;
-    height:0.81rem;
-    background: url('~assets/img/hybrid/common/weixin.png') no-repeat;
-    background-size: 100%;
-    background-position-y: center;
-    float:left
-}
-
-.withdraw_type{
-    height:0.81rem;
-    font-size: 0.28rem;
-    float:left;
-    line-height:0.81rem;
-    margin-left: 0.1rem;
-
-}
-
-.dg{
-    width:0.41rem;
-    height:0.79rem;
-    background: url('~assets/img/hybrid/common/duigou.png') no-repeat;
-    background-size: 100%;
-    background-position-y: bottom;
-    float:left
-
 }
 </style>

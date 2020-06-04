@@ -23,6 +23,8 @@ module.exports = {
     mgcSetAliInfo: 'wx/setaliinfo',
     mgcPreapply: 'wx/preapply',
     mgcApplyLog: 'wx/applylog',
+    mgcBankInfo: 'wx/membank',
+    mgcSetBankInfo: 'wx/setmembank',
 
 
     // 前缀URL
