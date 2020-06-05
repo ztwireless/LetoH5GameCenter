@@ -724,6 +724,13 @@ export default {
     },
 
     async mounted() {
+
+        window.addEventListener('pageshow', function(e) {
+            if(sessionStorage.getItem("showAd") === null){
+
+                window.location.reload();
+            }
+         });
         // 设置游戏根路径
 
 		mgc.setJSGameRootUrl('http://h5.jrutech.com/games/games')
