@@ -109,7 +109,7 @@ export default {
             })
 
             ad.onError(()=>{
-                alert('信息流加载失败')
+                console.log('信息流加载失败')
                 this.$refs.feedLayer.style.display = 'none'
                 this.$refs.errorLayer.style.display = 'block'
             })
