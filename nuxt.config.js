@@ -79,7 +79,7 @@ module.exports = {
 			},
 			{
 				name: 'tencent-site-verification',
-				content: 'ed7b9d12dba1785bf4eb6117857235ae',
+				content: 'bb43e61fde186528b13c3ce94f9527fa',
 			}
 		],
 		link: [{
