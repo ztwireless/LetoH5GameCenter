@@ -76,6 +76,10 @@ module.exports = {
 				name: 'version',
 				content: config.version,
 				time: dayjs().format('YYYY-MM-DD HH:mm:ss SSS [Z] A'), // 展示
+			},
+			{
+				name: 'tencent-site-verification',
+				content: 'ed7b9d12dba1785bf4eb6117857235ae',
 			}
 		],
 		link: [{
