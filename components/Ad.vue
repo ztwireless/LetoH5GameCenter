@@ -35,12 +35,16 @@ export default {
         },
         game_url:{
             type: String,
-            default: 'http://download.mgc-games.com/games/games/1000054/__start__.html'
+            default: 'http://download.mgc-games.com/games/games/1000055/__start__.html'
         },
         btn: {
             type: String,
             default: '安装'
         },
+        appId: {
+            type: String,
+            default: "1000055",
+        }
     },
     data(){
         return{
@@ -74,12 +78,14 @@ export default {
         },
         openGame(){
             console.log('openGame');
+            console.log('' + this.game_url);
+            console.log('' + this.appId);
             this.$emit('openGame');
 
-            let game_url='http://download.mgc-games.com/games/games/1000054/__start__.html';
+            //let game_url='http://download.mgc-games.com/games/games/1000054/__start__.html';
 
-            mgc.saveRecentGame(game_url)
-            mgc.navigateToMiniProgram({ appId:'1000054' })
+            mgc.saveRecentGame(this.game_url)
+            mgc.navigateToMiniProgram({ appId: this.appId })
 
         },
 

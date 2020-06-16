@@ -724,10 +724,9 @@ export default {
     },
 
     async mounted() {
-
+        sessionStorage.setItem("NavToGame", true);
         window.addEventListener('pageshow', function(e) {
-            if(sessionStorage.getItem("showAd") === null){
-
+            if(sessionStorage.getItem("NavToGame") === null){
                 window.location.reload();
             }
          });
@@ -753,6 +752,22 @@ export default {
                         this.showRencent = false;
                         this.showWithdraw = true;
                         this.goldShow = true;
+                    }
+                    if(res['is_show_today_recommend']){
+                        //今日推荐只在第一次进入显示
+                        //if(mgc.showAd===undefined){
+                        //    this.showAd=true
+                        //    mgc.showAd=true
+                        //}
+                        if(sessionStorage.getItem('showAd')===null){
+                            this.showAd=true
+                            sessionStorage.setItem('showAd',true)
+                        }else{
+                            console.log( '显示过今日推荐了，下次再显示' )
+                        }
+                        this.ad.img_url = res['recommend_gamepic'];
+                        this.ad.game_url = "http://download.mgc-games.com/games/games/"+res['recommend_gameid']+"/__start__.html";
+                        this.ad.appId = res['recommend_gameid'].toString();
                     }
                 }
                 localStorage.setItem("app_conf",res);
@@ -782,19 +797,6 @@ export default {
 		//用户信息
         let mgcUserInfo = mgc.getMgcUserInfo();
 		console.log(JSON.stringify(mgcUserInfo));
-
-
-        //今日推荐只在第一次进入显示
-        //if(mgc.showAd===undefined){
-        //    this.showAd=true
-        //    mgc.showAd=true
-        //}
-        if(sessionStorage.getItem('showAd')===null){
-            this.showAd=true
-            sessionStorage.setItem('showAd',true)
-        }else{
-            console.log( '显示过今日推荐了，下次再显示' )
-        }
 
         //获取金蛋相关的数据
         let res= (await  this.getGoldeneggsconf()).data
@@ -1088,6 +1090,7 @@ export default {
 				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
 			}
             sessionStorage.removeItem('showAd');
+            sessionStorage.removeItem('NavToGame');
             // start
 			mgc.navigateToMiniProgram({
                 appId: game.id.toString(),
