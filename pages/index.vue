@@ -581,7 +581,7 @@
             </transition>
             <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)"></div>
 
-            <Ad v-if="this.showAd"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="showAd=false"  @openGame="openGame"> </Ad>
+            <Ad v-if="this.showFeedAd || this.showTodayRecommand"  v-show="!(!show&&(1 == splash_show))" :showFeedAd="showFeedAd" :showTodayRecommand="showTodayRecommand" :img_url="ad.img_url" :game_url="ad.game_url" :appId="ad.appId"  @close="closeTodayRecommand"  @openGame="openGame"> </Ad>
 
         </template>
     </div>
@@ -667,7 +667,7 @@ export default {
 
             //广告数据
             ad:{
-
+                
             },
             modalData:{
                 title:'温馨提示',
@@ -675,6 +675,8 @@ export default {
             },
             modalShow:5,
             showAd:false,      //启动广告
+            showFeedAd: false,
+            showTodayRecommand: false,
             showGoldenEgg:true,
             adShow:true,
             my_coin:0,
@@ -754,21 +756,32 @@ export default {
                         this.goldShow = true;
                     }
                     if(res['is_show_today_recommend']){
-                        //今日推荐只在第一次进入显示
-                        //if(mgc.showAd===undefined){
-                        //    this.showAd=true
-                        //    mgc.showAd=true
-                        //}
-                        if(sessionStorage.getItem('showAd')===null){
-                            this.showAd=true
-                            sessionStorage.setItem('showAd',true)
+    
+                        if(sessionStorage.getItem('showTodayRecommand')===null){
+                            this.showTodayRecommand = true
+                            sessionStorage.setItem('showTodayRecommand',true)
                         }else{
                             console.log( '显示过今日推荐了，下次再显示' )
                         }
                         this.ad.img_url = res['recommend_gamepic'];
                         this.ad.game_url = "http://download.mgc-games.com/games/games/"+res['recommend_gameid']+"/__start__.html";
                         this.ad.appId = res['recommend_gameid'].toString();
+                    }else{
+                        sessionStorage.setItem('showTodayRecommand',true)
                     }
+
+                    if(res['is_showyaping']){
+                        if(sessionStorage.getItem('showFeedAd')===null){
+                            this.showFeedAd = true
+                            sessionStorage.setItem('showFeedAd',true) 
+                        }else{
+                            console.log( '显示过压屏信息流了，下次在显示' )
+                        }
+                    }else{
+
+                        sessionStorage.setItem('showFeedAd',true)
+                    }
+                    console.log("this.ad"+JSON.stringify(this.ad))
                 }
                 localStorage.setItem("app_conf",res);
             }
@@ -822,6 +835,12 @@ export default {
 
         openGame(){
 
+        },
+
+        closeTodayRecommand(){
+
+            this.showFeedAd = false,
+            this.showTodayRecommand = false
         },
 
         //获取金蛋的次数
@@ -1089,7 +1108,8 @@ export default {
 			if(window.mgc.reportH5GameCenterGameClicked) {
 				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
 			}
-            sessionStorage.removeItem('showAd');
+            sessionStorage.removeItem('showTodayRecommand');
+            sessionStorage.removeItem('showFeedAd');
             sessionStorage.removeItem('NavToGame');
             // start
 			mgc.navigateToMiniProgram({
