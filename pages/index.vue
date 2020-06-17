@@ -84,6 +84,7 @@
 
                     <!-- 所有游戏 -->
                     <div v-for="(i, k) in newGames" :key="k">
+                        <StickyAd :top="stickyAdTop" v-if="k == 1"></StickyAd>
                         <!-- gallery样式 -->
                         <template v-if="k == 2">
                             <div class="list list-left" v-if="recentGameList.gameList && recentGameList.gameList.length">
@@ -92,7 +93,7 @@
                                     <p class="add-flex">我的游戏</p>
                                     <div class="arrow-right"></div>
                                     <div class="showMore" style="height: 0.3rem;" @click="moreGamesMy()">查看全部</div>
-                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div class="showMoreImage" @click="moreGames(i.id,i.name,0, 5)"></div>
                                 </div>
 
                                 <div class="mgc-games-row">
@@ -105,6 +106,7 @@
                         </template>
                         <template v-if="i.styleCode == 'gallery'">
                             <div class="list list-left">
+                                
                                 <!-- title -->
                                 <div class="row-game title">
                                     <div v-if="!i.icon" class="coin"></div>
@@ -113,8 +115,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold"  v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" style="height: 0.3rem;" @click="moreGames(i.id,i.name,0, 6)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 6)"></div>
                                 </div>
 
                                 <!-- gallery item -->
@@ -144,8 +146,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 3)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 3)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -175,8 +177,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 10)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 10)"></div>
                                 </div>
 
                                 <!-- item -->
@@ -206,8 +208,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,i.rankList[0].id)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,i.rankList[0].id, 9)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 9)"></div>
                                 </div>
 
                                 <!-- list -->
@@ -247,7 +249,7 @@
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
                                     <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesFl(i.id,i.name,i.categoryList[0].id,i.categoryList)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 8)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -289,8 +291,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 3)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 3)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -332,8 +334,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 2)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 2)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -418,8 +420,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 12)">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImage" @click="moreGames(i.id,i.name,0, 12)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -496,8 +498,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" style="background-color: rgba(0,0,0,0.2);color:#FFFFFF;font-size: 0.26rem;" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1)" style="color: #FFFFFF">查看全部</div>
-                                    <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGamesDay(i.id,i.name,0,1, 11)" style="color: #FFFFFF">查看全部</div>
+                                    <div v-if= "i.showmore == 1" class="showMoreImageWhite" @click="moreGamesDay(i.id,i.name,0,1, 11)"></div>
                                 </div>
 
                                 <!-- grid item -->
@@ -528,8 +530,8 @@
                                     <div class="add-flex">
                                         <div class="add-gold" v-if="goldShow">+{{i.gold || 100}}</div>
                                     </div>
-                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0)">查看全部</div>
-                                    <div v-if= "i.showmore == 1"  class="showMoreImage" @click="moreGames(i.id,i.name,0)"></div>
+                                    <div v-if= "i.showmore == 1" class="showMore" @click="moreGames(i.id,i.name,0, 13)">查看全部</div>
+                                    <div v-if= "i.showmore == 1"  class="showMoreImage" @click="moreGames(i.id,i.name,0, 13)"></div>
                                 </div>
 
                                 <!-- grid items -->
@@ -573,13 +575,13 @@
 
                 <!-- footer -->
                 <div class="footer">
-                    不断更新更多好玩的<em style="color: #3D9AF0">游戏</em>
+                    不断更新更多好玩的<em style="color: #3D9AF0" @click="eruda()">游戏</em>
                 </div>
             </div>
             </transition>
             <div class="add-win-page-new" id="splashContent" @click="show = !show"  v-if="!show&&(1 == splash_show)"></div>
 
-            <Ad v-if="this.showAd"  v-show="!(!show&&(1 == splash_show))"   :img_url="ad.img_url"  @close="showAd=false"  @openGame="openGame"> </Ad>
+            <Ad v-if="this.showFeedAd || this.showTodayRecommand"  v-show="!(!show&&(1 == splash_show))" :showFeedAd="showFeedAd" :showTodayRecommand="showTodayRecommand" :img_url="ad.img_url" :game_url="ad.game_url" :appId="ad.appId"  @close="closeTodayRecommand"  @openGame="openGame"> </Ad>
 
         </template>
     </div>
@@ -600,6 +602,8 @@ import Empty from '~/components/Empty';
 import {NEWGAMES, BANNER} from '~/plugins/games';
 import Cookie  from '~/plugins/cookie';
 
+import StickyAd from '~/components/StickyAd';
+
 export default {
     name: 'games',
 
@@ -610,7 +614,8 @@ export default {
         Ad,
         Modal,
         LoginModal,
-        GoldenEgg
+        GoldenEgg,
+        StickyAd
     },
 
     head() {
@@ -662,7 +667,7 @@ export default {
 
             //广告数据
             ad:{
-
+                
             },
             modalData:{
                 title:'温馨提示',
@@ -670,6 +675,8 @@ export default {
             },
             modalShow:5,
             showAd:false,      //启动广告
+            showFeedAd: false,
+            showTodayRecommand: false,
             showGoldenEgg:true,
             adShow:true,
             my_coin:0,
@@ -677,6 +684,8 @@ export default {
 
             available_num:0,
             add_coins:0,
+            stickyAdTop:"0px",
+            erudaclick: 0,
 
         }
     },
@@ -717,6 +726,12 @@ export default {
     },
 
     async mounted() {
+        sessionStorage.setItem("NavToGame", true);
+        window.addEventListener('pageshow', function(e) {
+            if(sessionStorage.getItem("NavToGame") === null){
+                window.location.reload();
+            }
+         });
         // 设置游戏根路径
 
 		mgc.setJSGameRootUrl('http://h5.jrutech.com/games/games')
@@ -740,6 +755,33 @@ export default {
                         this.showWithdraw = true;
                         this.goldShow = true;
                     }
+                    if(res['is_show_today_recommend']){
+    
+                        if(sessionStorage.getItem('showTodayRecommand')===null){
+                            this.showTodayRecommand = true
+                            sessionStorage.setItem('showTodayRecommand',true)
+                        }else{
+                            console.log( '显示过今日推荐了，下次再显示' )
+                        }
+                        this.ad.img_url = res['recommend_gamepic'];
+                        this.ad.game_url = "http://download.mgc-games.com/games/games/"+res['recommend_gameid']+"/__start__.html";
+                        this.ad.appId = res['recommend_gameid'].toString();
+                    }else{
+                        sessionStorage.setItem('showTodayRecommand',true)
+                    }
+
+                    if(res['is_showyaping']){
+                        if(sessionStorage.getItem('showFeedAd')===null){
+                            this.showFeedAd = true
+                            sessionStorage.setItem('showFeedAd',true) 
+                        }else{
+                            console.log( '显示过压屏信息流了，下次在显示' )
+                        }
+                    }else{
+
+                        sessionStorage.setItem('showFeedAd',true)
+                    }
+                    console.log("this.ad"+JSON.stringify(this.ad))
                 }
                 localStorage.setItem("app_conf",res);
             }
@@ -769,19 +811,6 @@ export default {
         let mgcUserInfo = mgc.getMgcUserInfo();
 		console.log(JSON.stringify(mgcUserInfo));
 
-
-        //今日推荐只在第一次进入显示
-        //if(mgc.showAd===undefined){
-        //    this.showAd=true
-        //    mgc.showAd=true
-        //}
-        if(sessionStorage.getItem('showAd')===null){
-            this.showAd=true
-            sessionStorage.setItem('showAd',true)
-        }else{
-            console.log( '显示过今日推荐了，下次再显示' )
-        }
-
         //获取金蛋相关的数据
         let res= (await  this.getGoldeneggsconf()).data
         this.available_num= res.data === null ? -1 : res.data.available_num       //剩余砸蛋次数
@@ -798,12 +827,20 @@ export default {
         if(window.VConsole && window.Leto && (window.Leto.isIOS || !window.Leto.isWeChat)) {
         	new VConsole()
         }
+
+        localStorage.getItem("active-eruda") == "1" ? eruda.init() : "";
     },
 
     methods: {
 
         openGame(){
 
+        },
+
+        closeTodayRecommand(){
+
+            this.showFeedAd = false,
+            this.showTodayRecommand = false
         },
 
         //获取金蛋的次数
@@ -991,8 +1028,8 @@ export default {
             this.$refs.egg.showEgg()
         },
         //更多游戏
-        moreGames(id,title,lid){
-            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0}});
+        moreGames(id,title,lid, compact){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:0, compact: compact}});
 
 			// report
 			if(window.mgc.reportH5GameCenterMore) {
@@ -1005,8 +1042,8 @@ export default {
             //alert(JSON.stringify(this.recentGameList));
             this.$router.push({path: './rencent', query: {backable:true,channel_id:mgc.getChannelId(),title:'我的游戏',is_day:0}});
         },
-        moreGamesDay(id,title,lid,is_day){
-            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day}});
+        moreGamesDay(id,title,lid,is_day, compact){
+            this.$router.push({path: './detail', query: {type_id: id,backable:true,channel_id:mgc.getChannelId(),title:title,lid:lid,is_day:is_day, compact: compact}});
 
 			// report
 			if(window.mgc.reportH5GameCenterMore) {
@@ -1071,7 +1108,9 @@ export default {
 			if(window.mgc.reportH5GameCenterGameClicked) {
 				window.mgc.reportH5GameCenterGameClicked(game.id.toString(), compact, position)
 			}
-
+            sessionStorage.removeItem('showTodayRecommand');
+            sessionStorage.removeItem('showFeedAd');
+            sessionStorage.removeItem('NavToGame');
             // start
 			mgc.navigateToMiniProgram({
                 appId: game.id.toString(),
@@ -1106,6 +1145,11 @@ export default {
             };
 
             return str;
+        },
+
+        eruda(){
+            this.erudaclick++;
+            if(this.erudaclick >= 50) localStorage.setItem("active-eruda", "1");
         },
     },
 }

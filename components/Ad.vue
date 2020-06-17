@@ -4,16 +4,16 @@
         <div class="body">
             <div class="main">
                 <div class="cover">
-                    <img @click="openGame" class="cover-img" :src="img_url"  >
-                    <img @click="close" class="close"  src="~assets/img/hybrid/ad/close.png"  >
+                    <img v-show="showTodayRecommand" @click="openGame" class="cover-img" :src="img_url"  >
+                    <img @click="close" v-bind:class="showTodayRecommand ? closeClass : closeWithoutTodayClass"   src="~assets/img/hybrid/ad/close.png"  >
                 </div>
 
-                <div class="ad" ref="feedLayer">
+                <div v-show="showFeedAd" class="ad" ref="feedLayer">
                     <div class="feedAd"  ref="feedAd"  >
                     </div>
                 </div>
 
-                <div class="ad" ref="errorLayer" style="display: none;width:6.59rem;background-color:#12B1EC;height: auto">
+                <div v-if="showFeedAd" class="ad" ref="errorLayer" style="display: none;width:6.59rem;background-color:#12B1EC;height: auto">
                     <img  style="display: block;margin:auto;width: auto;height: 3rem;"  class="ad"   src="~assets/img/hybrid/common/tjzm.png" alt="">
                 </div>
                 <slot />
@@ -35,15 +35,29 @@ export default {
         },
         game_url:{
             type: String,
-            default: 'http://download.mgc-games.com/games/games/1000054/__start__.html'
+            default: 'http://download.mgc-games.com/games/games/1000055/__start__.html'
         },
         btn: {
             type: String,
             default: '安装'
         },
+        appId: {
+            type: String,
+            default: "1000055",
+        },
+        showTodayRecommand: {
+            type: Boolean,
+            default: false
+        },
+        showFeedAd: {
+            type: Boolean,
+            default: false
+        }
     },
     data(){
         return{
+            closeClass: "close",
+            closeWithoutTodayClass: "close-no-today"
         }
     },
 
@@ -74,12 +88,14 @@ export default {
         },
         openGame(){
             console.log('openGame');
+            console.log('' + this.game_url);
+            console.log('' + this.appId);
             this.$emit('openGame');
 
-            let game_url='http://download.mgc-games.com/games/games/1000054/__start__.html';
+            //let game_url='http://download.mgc-games.com/games/games/1000054/__start__.html';
 
-            mgc.saveRecentGame(game_url)
-            mgc.navigateToMiniProgram({ appId:'1000054' })
+            mgc.saveRecentGame(this.game_url)
+            mgc.navigateToMiniProgram({ appId: this.appId })
 
         },
 
@@ -181,7 +197,17 @@ export default {
             width:0.49rem;
             height:0.49rem;
         }
+
+        .close-no-today{
+            position: absolute;
+            width:0.49rem;
+            height:0.49rem;
+            right:-1.5rem;
+            top:-0.5rem;
+        }
     }
+
+    
 
     .ad{
         width:6.74rem;

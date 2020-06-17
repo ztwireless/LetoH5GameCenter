@@ -37,6 +37,11 @@ let script = [
 		src: `${routerBase}/static/__leto__/app-service.js?t=${t}`,
 		type: 'text/javascript',
 		charset: 'utf-8'
+	},
+	{
+		src: `${routerBase}/static/eruda.js?t=${t}`,
+		type: 'text/javascript',
+		charset: 'utf-8'
 	}
 ]
 if(process.env.NODE_ENV != 'production') {
@@ -71,6 +76,10 @@ module.exports = {
 				name: 'version',
 				content: config.version,
 				time: dayjs().format('YYYY-MM-DD HH:mm:ss SSS [Z] A'), // 展示
+			},
+			{
+				name: 'tencent-site-verification',
+				content: 'bb43e61fde186528b13c3ce94f9527fa',
 			}
 		],
 		link: [{
