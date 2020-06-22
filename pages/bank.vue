@@ -25,7 +25,7 @@
                                     姓名:&nbsp &nbsp &nbsp &nbsp  &nbsp &nbsp<input id="real_name" placeholder="请输入姓名" style="border:none;width:2.71rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
                                 <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
-                                    开户银行:&nbsp &nbsp  <select id="bank_code" v-model="couponSelected" style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9">
+                                    开户行:&nbsp &nbsp &nbsp <select id="bank_code" v-model="couponSelected" style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9">
                                                               <option v-for="item in bank_list" v-bind:value="item.bank_code" v-text="item.bank_name"></option>
                                                          </select>
                                 </div>
@@ -94,6 +94,7 @@ export default {
             bank_account:'',
             draw_point_id:0,
             bank_list:[],
+            couponSelected:1001,
 
             games: [],
             favoriteGameList: [],
@@ -259,15 +260,16 @@ export default {
             this.getBankData().then(mgcResp => {
                 if(mgcResp && mgcResp.data && mgcResp.data.code == 200 && mgcResp.data.data) {
                     let data = mgcResp.data.data;
+                    //console.log(JSON.stringify(data));
                     //alert(JSON.stringify(mgcResp.data.data));
                     //localStorage.setItem('ali_info',data)
-                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("real_name")){
+                    if(data.hasOwnProperty("mem_bank") &&  data['mem_bank'] && data['mem_bank'].hasOwnProperty("real_name")){
                         document.getElementById('real_name').value =  data['mem_bank']['real_name']
                     }
-                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("bank_account")){
+                    if(data.hasOwnProperty("mem_bank")  &&  data['mem_bank'] && data['mem_bank'].hasOwnProperty("bank_account")){
                         document.getElementById('bank_account').value =  data['mem_bank']['bank_account']
                     }
-                    if(data.hasOwnProperty("mem_bank") && data['mem_bank'].hasOwnProperty("bank_code")){
+                    if(data.hasOwnProperty("mem_bank") &&  data['mem_bank'] && data['mem_bank'].hasOwnProperty("bank_code")){
                         this.couponSelected  =  data['mem_bank']['bank_code']
                     }
 

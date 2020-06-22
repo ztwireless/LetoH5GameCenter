@@ -25,7 +25,7 @@
                                     支付宝账号:&nbsp &nbsp<input id="account" placeholder="请输入支付宝账号" style="border:none;width:2.71rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
                                 <div style="border-bottom: 0.02rem solid #F5F5F5;height: 1rem;line-height: 1rem">
-                                    真实姓名: &nbsp &nbsp&nbsp &nbsp<input id="truename"placeholder="请输入支付宝账号对应的真实姓名"  style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
+                                    真实姓名: &nbsp &nbsp&nbsp &nbsp<input id="truename" placeholder="请输入支付宝账号对应的真实姓名"  style="border:none;width:5rem;height:0.4rem;line-height:0.4rem;letter-spacing:2px;color: #A9A9A9"/>
                                 </div>
                             </div>
                         </div>
