@@ -1,6 +1,6 @@
-var version = '100';
+let version = '100';
 
-module.exports = {
+let config = {
     // 发布版本
     version: version,
 
@@ -23,7 +23,13 @@ module.exports = {
     mgcSetAliInfo: 'wx/setaliinfo',
     mgcPreapply: 'wx/preapply',
     mgcApplyLog: 'wx/applylog',
-
+    mgcUrl: function() {
+        if(window.__wxConfig__ && window.__wxConfig__.dev) {
+            return config.mgcTestUrl
+        } else {
+            return config.mgcProdUrl
+        }
+    },
 
     // 前缀URL
     apiBaseUrl: 'http://api.pezy.cn/bc-activity-service',
@@ -68,7 +74,7 @@ module.exports = {
 
     bizBaseUrl: 'http://bizapi.pezy.cn',
 
-     //社区
+    //社区
     apiCommunityUrl: 'http://server.pezy.cn',
     // apiCommunityUrl: 'http://172.16.75.58:8003',
 
@@ -153,3 +159,5 @@ module.exports = {
         yyb: 'http://a.app.qq.com/o/simple.jsp?pkgname=com.cnode.blockchain&ckey=CK1409611065208',
     }
 }
+
+module.exports = config

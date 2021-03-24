@@ -200,7 +200,7 @@
                     page: this.page
                 }
                 let first = true
-                let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApplyLog}`
+                let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcApplyLog}`
                 for(let key in args) {
                     if(first) {
                         url += '?'

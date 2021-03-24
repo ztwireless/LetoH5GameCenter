@@ -106,7 +106,7 @@
                         </template>
                         <template v-if="i.styleCode == 'gallery'">
                             <div class="list list-left">
-                                
+
                                 <!-- title -->
                                 <div class="row-game title">
                                     <div v-if="!i.icon" class="coin"></div>
@@ -667,7 +667,7 @@ export default {
 
             //广告数据
             ad:{
-                
+
             },
             modalData:{
                 title:'温馨提示',
@@ -756,7 +756,7 @@ export default {
                         this.goldShow = true;
                     }
                     if(res['is_show_today_recommend']){
-    
+
                         if(sessionStorage.getItem('showTodayRecommand')===null){
                             this.showTodayRecommand = true
                             sessionStorage.setItem('showTodayRecommand',true)
@@ -773,7 +773,7 @@ export default {
                     if(res['is_showyaping']){
                         if(sessionStorage.getItem('showFeedAd')===null){
                             this.showFeedAd = true
-                            sessionStorage.setItem('showFeedAd',true) 
+                            sessionStorage.setItem('showFeedAd',true)
                         }else{
                             console.log( '显示过压屏信息流了，下次在显示' )
                         }
@@ -944,7 +944,7 @@ export default {
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
+			let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'

@@ -220,7 +220,7 @@ export default {
                 page: this.page
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterMoreData}`
+			let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterMoreData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'

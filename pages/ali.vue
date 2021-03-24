@@ -197,7 +197,7 @@ export default {
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcSetAliInfo}`
+			let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcSetAliInfo}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
