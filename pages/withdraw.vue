@@ -232,6 +232,7 @@ export default {
 
     mounted() {
     	// 设置游戏根目录
+
         // ensure channel id is set
         let is_success = localStorage.getItem('is_success');
         if(is_success && is_success == 1){
@@ -282,7 +283,7 @@ export default {
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcPoints}`
+			let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcPoints}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
@@ -376,7 +377,7 @@ export default {
                 from: 11
             }
             let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcPreapply}`
+            let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcPreapply}`
             /*for(let key in args) {
                 if(first) {
                     url += '?'
@@ -424,7 +425,7 @@ export default {
                 from: 11
             }
             let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcWithDrawInfo}`
+            let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcWithDrawInfo}`
             for(let key in args) {
                 if(first) {
                     url += '?'
@@ -467,7 +468,7 @@ export default {
                 from: 11
             }
             let first = true
-            let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcAliInfo}`
+            let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcAliInfo}`
             for(let key in args) {
                 if(first) {
                     url += '?'

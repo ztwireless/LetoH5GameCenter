@@ -944,7 +944,7 @@ export default {
 				from: 11
 			}
 			let first = true
-			let url = `${config.mgcProdUrl}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
+			let url = `${config.mgcUrl()}${config.mgcApiPathPrefix}${config.mgcApiGetGameCenterData}`
 			for(let key in args) {
 				if(first) {
 					url += '?'
